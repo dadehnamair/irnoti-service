@@ -103,6 +103,31 @@ class LinePurchaseTest extends TestCase
         $this->assertNotNull($order->reference_id);
     }
 
+    public function test_pay_page_and_post_callback_work(): void
+    {
+        $this->setOnlinePayment(true);
+        $line = $this->line();
+        $order = LineOrder::create([
+            'sms_line_id' => $line->id,
+            'line_label' => 'خطوط 3000',
+            'price' => $line->price,
+            'customer_name' => 'x',
+            'customer_phone' => '0912',
+            'status' => 'awaiting_payment',
+        ]);
+
+        // The gateway page must post to the callback, never back to itself.
+        $html = $this->get(route('lines.pay', $order))->assertOk()->getContent();
+        $this->assertStringContainsString('/lines/payment/callback?transactionId=', $html);
+        $this->assertStringNotContainsString('action=""', $html);
+
+        $txId = $order->fresh()->transaction_id;
+        $this->post("/lines/payment/callback?transactionId={$txId}")
+            ->assertRedirect(route('lines.track', $order));
+
+        $this->assertSame('paid', $order->fresh()->status);
+    }
+
     public function test_requires_inquiry_line_never_goes_online(): void
     {
         $this->setOnlinePayment(true);
