@@ -114,7 +114,8 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
     <link rel="stylesheet" href="{{ route('theme.css') }}" />
 
     <script type="application/ld+json">
-        @php echo $jsonLd; @endphp
+        @php echo $jsonLd;
+        @endphp
     </script>
 </head>
 
@@ -133,8 +134,8 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                 </nav>
 
                 <div class="nav-actions">
-                    <a class="btn btn-ghost" href="#pricing">مشاهده تعرفه</a>
                     <a class="btn btn-primary" href="#cta">ثبت‌نام</a>
+                    <a class="btn btn-ghost" target="_blank" href="https://vip.irnoti.com">ورود</a>
                 </div>
 
                 <button class="menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false" aria-controls="main-nav">

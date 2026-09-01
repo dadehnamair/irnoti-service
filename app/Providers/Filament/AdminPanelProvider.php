@@ -32,6 +32,11 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('logo/logo-text.png'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('logo/favicon.png'))
+            ->font(
+                'Vazirmatn',
+                url: 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap',
+                provider: \Filament\FontProviders\GoogleFontProvider::class,
+            )
             ->colors([
                 'primary' => Color::hex(config('theme.primary', '#ff3000')),
             ])

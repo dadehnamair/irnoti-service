@@ -10,6 +10,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/docs.css',
                 'resources/js/docs.js',
+                'resources/css/blog.css',
+                'resources/js/blog.js',
             ],
             refresh: true,
         }),

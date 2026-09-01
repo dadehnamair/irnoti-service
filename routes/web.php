@@ -1,12 +1,27 @@
 <?php
 
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DocsController;
+use App\Models\BlogCategory;
+use App\Models\BlogPost;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('landing');
 })->name('home');
+
+/*
+ * Blog ("/blog"). Content-marketing articles managed from the Filament admin
+ * panel (blog_posts / blog_categories / blog_tags) — see docs/starter.md §33.
+ */
+Route::prefix('blog')->name('blog.')->group(function () {
+    Route::get('/', [BlogController::class, 'index'])->name('index');
+    Route::get('/feed', [BlogController::class, 'feed'])->name('feed');
+    Route::get('/category/{category}', [BlogController::class, 'category'])->name('category');
+    Route::get('/tag/{tag}', [BlogController::class, 'tag'])->name('tag');
+    Route::get('/{post}', [BlogController::class, 'show'])->name('show');
+});
 
 /*
  * API documentation ("/developers"). Content is fully database-driven
@@ -40,12 +55,31 @@ Route::get('/assets/theme.css', function () {
 })->name('theme.css');
 
 Route::get('/sitemap.xml', function () {
-    $base = rtrim(config('theme.seo.url'), '/');
     $today = now()->toDateString();
 
     $urls = [
-        ['loc' => $base . '/', 'priority' => '1.0', 'changefreq' => 'weekly'],
+        ['loc' => route('home'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['loc' => route('blog.index'), 'lastmod' => $today, 'changefreq' => 'daily', 'priority' => '0.8'],
+        ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
     ];
+
+    foreach (BlogCategory::query()->visible()->get() as $category) {
+        $urls[] = [
+            'loc' => route('blog.category', $category->slug),
+            'lastmod' => optional($category->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'weekly',
+            'priority' => '0.5',
+        ];
+    }
+
+    foreach (BlogPost::query()->published()->get() as $post) {
+        $urls[] = [
+            'loc' => route('blog.show', $post->slug),
+            'lastmod' => optional($post->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'monthly',
+            'priority' => '0.7',
+        ];
+    }
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
         . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
@@ -53,7 +87,7 @@ Route::get('/sitemap.xml', function () {
     foreach ($urls as $url) {
         $xml .= "  <url>\n"
             . "    <loc>{$url['loc']}</loc>\n"
-            . "    <lastmod>{$today}</lastmod>\n"
+            . "    <lastmod>{$url['lastmod']}</lastmod>\n"
             . "    <changefreq>{$url['changefreq']}</changefreq>\n"
             . "    <priority>{$url['priority']}</priority>\n"
             . "  </url>\n";
