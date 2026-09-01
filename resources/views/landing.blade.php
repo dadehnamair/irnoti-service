@@ -22,7 +22,14 @@ $latestPosts = rescue(
     false
 );
 
-$lines = ['۱۰۰۰', '۲۰۰۰', '۳۰۰۰', '۵۰۰۰۱', '۵۰۰۰۴', '۰۲۱', '۰۲۶', '۰۴۱', '۰۵۱', '۰۷۱', '۲۱۷۰۰۰', '۹۰۰۰', '۹۹۹۹', '۹۹۸'];
+// Dedicated-line prefixes come from the DB (sms_lines table, docs/starter.md §9)
+// and are managed from the Filament admin panel. The full catalogue + buy flow
+// lives on the standalone /lines page.
+$lines = rescue(
+    fn () => \App\Models\SmsLine::query()->active()->orderBy('sort')->pluck('prefix')->unique()->values(),
+    collect(['1000', '2000', '3000', '5000', '021', '9000']),
+    false
+);
 
 $faqs = [
 ['q' => 'آیا irnoti برای شروع کسب‌وکارهای کوچک مناسب است؟', 'a' => 'بله، پلن‌های پایه و حرفه‌ای برای کسب‌وکارهای کوچک تا بزرگ طراحی شده‌اند و برای فروشگاه‌ها، خدمات و برندها مناسب هستند.'],
@@ -359,8 +366,12 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 
                     <div class="line-grid">
                         @foreach ($lines as $line)
-                        <span class="line-tag">خطوط {{ $line }}</span>
+                        <a class="line-tag" href="{{ route('lines') }}">خطوط {{ $line }}</a>
                         @endforeach
+                    </div>
+
+                    <div class="lines-cta">
+                        <a class="btn btn-primary" href="{{ route('lines') }}">مشاهده و خرید خطوط اختصاصی</a>
                     </div>
                 </div>
             </section>

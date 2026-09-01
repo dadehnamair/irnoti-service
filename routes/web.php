@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\LineController;
 use App\Http\Controllers\PricingController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
@@ -17,6 +18,16 @@ Route::get('/', function () {
  * (plans table) — same source as the landing "تعرفه‌ها" section.
  */
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+
+/*
+ * Dedicated SMS lines ("/lines") — the catalogue of line numbers for sale
+ * (sms_lines table), managed from the Filament admin panel. Buyers submit a
+ * purchase request (line_orders) and track it by token — see docs/starter.md
+ * §9 / §10 / §11. No online payment yet: the admin processes each order.
+ */
+Route::get('/lines', [LineController::class, 'index'])->name('lines');
+Route::post('/lines/order', [LineController::class, 'order'])->name('lines.order');
+Route::get('/lines/order/{order}', [LineController::class, 'track'])->name('lines.track');
 
 /*
  * Blog ("/blog"). Content-marketing articles managed from the Filament admin
@@ -67,6 +78,7 @@ Route::get('/sitemap.xml', function () {
     $urls = [
         ['loc' => route('home'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '1.0'],
         ['loc' => route('pricing'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
+        ['loc' => route('lines'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
         ['loc' => route('blog.index'), 'lastmod' => $today, 'changefreq' => 'daily', 'priority' => '0.8'],
         ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
     ];

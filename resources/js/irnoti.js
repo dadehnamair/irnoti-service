@@ -50,4 +50,80 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
+
+    /* Dedicated lines page — prefix tabs + digit/type/rond filters */
+    const lineCards = document.getElementById("line-cards");
+    if (lineCards) {
+        const cards = Array.from(lineCards.querySelectorAll(".line-card"));
+        const tabs = Array.from(document.querySelectorAll(".line-tab"));
+        const digitsSel = document.getElementById("filter-digits");
+        const typeSel = document.getElementById("filter-type");
+        const rondChk = document.getElementById("filter-rond");
+        const emptyState = document.getElementById("line-empty-state");
+        const state = { prefix: "all" };
+
+        const applyFilters = () => {
+            const digits = digitsSel ? digitsSel.value : "all";
+            const type = typeSel ? typeSel.value : "all";
+            const rondOnly = rondChk ? rondChk.checked : false;
+            let visible = 0;
+
+            cards.forEach((card) => {
+                const okPrefix =
+                    state.prefix === "all" ||
+                    card.dataset.prefix === state.prefix;
+                const okDigits = digits === "all" || card.dataset.digits === digits;
+                const okType = type === "all" || card.dataset.type === type;
+                const okRond = !rondOnly || card.dataset.rond === "1";
+                const show = okPrefix && okDigits && okType && okRond;
+                card.hidden = !show;
+                if (show) visible += 1;
+            });
+
+            if (emptyState) emptyState.hidden = visible !== 0;
+        };
+
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                tabs.forEach((item) => {
+                    item.classList.remove("active");
+                    item.setAttribute("aria-selected", "false");
+                });
+                tab.classList.add("active");
+                tab.setAttribute("aria-selected", "true");
+                state.prefix = tab.dataset.prefix;
+                applyFilters();
+            });
+        });
+
+        [digitsSel, typeSel].forEach((el) => el && el.addEventListener("change", applyFilters));
+        if (rondChk) rondChk.addEventListener("change", applyFilters);
+    }
+
+    /* Dedicated lines page — order dialog */
+    const orderDialog = document.getElementById("order-dialog");
+    if (orderDialog) {
+        const lineIdInput = document.getElementById("order-line-id");
+        const lineLabelEl = document.getElementById("order-line-label");
+        const linePriceEl = document.getElementById("order-line-price");
+
+        document.querySelectorAll(".line-buy").forEach((button) => {
+            button.addEventListener("click", () => {
+                if (lineIdInput) lineIdInput.value = button.dataset.lineId || "";
+                if (lineLabelEl) lineLabelEl.textContent = button.dataset.lineLabel || "";
+                if (linePriceEl) linePriceEl.textContent = button.dataset.linePrice || "";
+                if (typeof orderDialog.showModal === "function") {
+                    orderDialog.showModal();
+                }
+            });
+        });
+
+        orderDialog.querySelectorAll("[data-close]").forEach((el) => {
+            el.addEventListener("click", () => orderDialog.close());
+        });
+
+        orderDialog.addEventListener("click", (event) => {
+            if (event.target === orderDialog) orderDialog.close();
+        });
+    }
 });
