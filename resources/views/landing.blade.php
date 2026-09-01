@@ -15,6 +15,13 @@ $url = rtrim($seo['url'], '/');
 // schema below read from this collection.
 $plans = \App\Models\Plan::query()->active()->ordered()->get();
 
+// Latest published articles for the blog teaser strip (degrades to empty).
+$latestPosts = rescue(
+    fn () => \App\Models\BlogPost::query()->published()->with('category')->limit(3)->get(),
+    collect(),
+    false
+);
+
 $lines = ['۱۰۰۰', '۲۰۰۰', '۳۰۰۰', '۵۰۰۰۱', '۵۰۰۰۴', '۰۲۱', '۰۲۶', '۰۴۱', '۰۵۱', '۰۷۱', '۲۱۷۰۰۰', '۹۰۰۰', '۹۹۹۹', '۹۹۸'];
 
 $faqs = [
@@ -121,30 +128,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 
 <body>
     <div class="page-shell">
-        <header class="site-header">
-            <div class="container nav">
-                <a href="#top" class="brand" aria-label="{{ $brand }}">
-                    <img src="/logo/logo-text.png" alt="{{ $brand }}" class="brand-logo" width="260" height="82" />
-                </a>
-
-                <nav class="main-nav" aria-label="ناوبری اصلی">
-                    @foreach ($nav as $item)
-                    <a href="{{ $item['href'] }}">{{ $item['label'] }}</a>
-                    @endforeach
-                </nav>
-
-                <div class="nav-actions">
-                    <a class="btn btn-primary" href="#cta">ثبت‌نام</a>
-                    <a class="btn btn-ghost" target="_blank" href="https://vip.irnoti.com">ورود</a>
-                </div>
-
-                <button class="menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false" aria-controls="main-nav">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </header>
+        @include('partials.site-header')
 
         <main id="top">
             <section class="hero section">
@@ -437,6 +421,37 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                 </div>
             </section>
 
+            @if ($latestPosts->isNotEmpty())
+            <section id="blog" class="section alt-bg" aria-labelledby="blog-title">
+                <div class="container">
+                    <div class="section-heading">
+                        <span class="kicker">وبلاگ</span>
+                        <h2 id="blog-title">تازه‌ترین مقاله‌های {{ $brand }}</h2>
+                        <a class="heading-link" href="{{ route('blog.index') }}">مشاهده همه مقاله‌ها ←</a>
+                    </div>
+
+                    <div class="home-blog-grid">
+                        @foreach ($latestPosts as $post)
+                        <article class="home-blog-card">
+                            @if ($post->category)
+                            <a class="home-blog-cat" href="{{ route('blog.category', $post->category->slug) }}">{{ $post->category->name }}</a>
+                            @endif
+                            <h3><a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a></h3>
+                            @if ($post->excerpt)
+                            <p>{{ \Illuminate\Support\Str::of($post->excerpt)->squish()->limit(120) }}</p>
+                            @endif
+                            <div class="home-blog-meta">
+                                <time datetime="{{ optional($post->published_date)->toDateString() }}">{{ optional($post->published_date)->format('Y/m/d') }}</time>
+                                <span>·</span>
+                                <span>{{ $post->reading_minutes }} دقیقه مطالعه</span>
+                            </div>
+                        </article>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+            @endif
+
             <section id="cta" class="section cta-section">
                 <div class="container cta-box">
                     <div>
@@ -451,31 +466,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             </section>
         </main>
 
-        <footer class="site-footer">
-            <div class="container footer-inner">
-                <div>
-                    <a href="#top" class="brand footer-brand">
-                        <img src="/logo/logo-text.png" alt="{{ $brand }}" class="brand-logo" width="260" height="82" />
-                    </a>
-                    <p>پلتفرم حرفه‌ای ارسال پیامک برای کسب‌وکارهای مدرن.</p>
-                </div>
-
-                <nav class="footer-links" aria-label="پیوندهای فوتر">
-                    @foreach ($nav as $item)
-                    <a href="{{ $item['href'] }}">{{ $item['label'] }}</a>
-                    @endforeach
-                </nav>
-
-                <div class="footer-contact">
-                    <a href="mailto:{{ $email }}">{{ $email }}</a>
-                    <a href="tel:{{ $phone }}">{{ $phoneDisplay }}</a>
-                </div>
-            </div>
-            <div class="container footer-bottom">
-                <span>© <span id="year">{{ date('Y') }}</span> {{ Str::of($url)->after('://') }}</span>
-                <span>تمامی حقوق محفوظ است.</span>
-            </div>
-        </footer>
+        @include('partials.site-footer')
     </div>
 </body>
 

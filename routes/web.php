@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\PricingController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use Illuminate\Support\Facades\Response;
@@ -10,6 +11,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('landing');
 })->name('home');
+
+/*
+ * Standalone pricing / plans page ("/pricing"). Reads active plans from the DB
+ * (plans table) — same source as the landing "تعرفه‌ها" section.
+ */
+Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
 /*
  * Blog ("/blog"). Content-marketing articles managed from the Filament admin
@@ -59,6 +66,7 @@ Route::get('/sitemap.xml', function () {
 
     $urls = [
         ['loc' => route('home'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['loc' => route('pricing'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
         ['loc' => route('blog.index'), 'lastmod' => $today, 'changefreq' => 'daily', 'priority' => '0.8'],
         ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
     ];

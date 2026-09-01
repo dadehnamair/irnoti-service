@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call([
+            SettingsSeeder::class,
             PlansSeeder::class,
             DocsSeeder::class,
             BlogSeeder::class,

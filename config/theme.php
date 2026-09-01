@@ -45,6 +45,7 @@ return [
     'email' => env('THEME_EMAIL', 'hello@irnoti.com'),
     'phone' => env('THEME_PHONE', '+989123456789'),
     'phone_display' => '۰۹۱۲ ۳۴۵ ۶۷۸۹',
+    'address' => env('THEME_ADDRESS', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -69,8 +70,9 @@ return [
 
     'nav' => [
         ['label' => 'امکانات', 'href' => '#features'],
-        ['label' => 'تعرفه‌ها', 'href' => '#pricing'],
+        ['label' => 'تعرفه‌ها', 'href' => '/pricing'],
         ['label' => 'خطوط اختصاصی', 'href' => '#lines'],
+        ['label' => 'وبلاگ', 'href' => '/blog'],
         ['label' => 'مستندات API', 'href' => '/developers'],
         ['label' => 'سوالات متداول', 'href' => '#faq'],
     ],
