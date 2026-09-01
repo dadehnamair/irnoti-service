@@ -1326,6 +1326,15 @@ select {
     direction: ltr;
     text-align: start;
 }
+.line-card-num .sub {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    direction: ltr;
+    text-align: start;
+    opacity: 0.5;
+}
 .line-card-prefix {
     font-size: 0.85rem;
     color: var(--muted);
@@ -1673,6 +1682,9 @@ select {
         grid-template-columns: 1fr;
     }
     .line-card-num {
+        font-size: 1.3rem;
+    }
+    .line-card-num-sub {
         font-size: 1.3rem;
     }
 }

@@ -1,52 +1,52 @@
 @php
-    $brand = config('theme.brand');
-    $seo = config('theme.seo');
-    $primary = config('theme.primary');
-    $email = config('theme.email');
-    $phoneDisplay = config('theme.phone_display');
-    $url = rtrim($seo['url'], '/');
-    $canonical = route('lines');
+$brand = config('theme.brand');
+$seo = config('theme.seo');
+$primary = config('theme.primary');
+$email = config('theme.email');
+$phoneDisplay = config('theme.phone_display');
+$url = rtrim($seo['url'], '/');
+$canonical = route('lines');
 
-    $metaTitle = 'خرید خط اختصاصی پیامک ' . $brand . ' | خطوط ۱۰۰۰، ۲۰۰۰، ۳۰۰۰ و ۰۲۱';
-    $metaDescription = 'لیست خطوط اختصاصی پیامک ' . $brand
-        . ' با پیش‌شماره‌های ۱۰۰۰، ۲۰۰۰، ۳۰۰۰، ۵۰۰۰، ۰۲۱ و... — انتخاب تعداد ارقام، مشاهده قیمت و ثبت سفارش آنلاین.';
+$metaTitle = 'خرید خط اختصاصی پیامک ' . $brand . ' | خطوط ۱۰۰۰، ۲۰۰۰، ۳۰۰۰ و ۰۲۱';
+$metaDescription = 'لیست خطوط اختصاصی پیامک ' . $brand
+. ' با پیش‌شماره‌های ۱۰۰۰، ۲۰۰۰، ۳۰۰۰، ۵۰۰۰، ۰۲۱ و... — انتخاب تعداد ارقام، مشاهده قیمت و ثبت سفارش آنلاین.';
 
-    $totalLines = $groups->sum(fn ($g) => $g['lines']->count());
+$totalLines = $groups->sum(fn ($g) => $g['lines']->count());
 
-    $graph = [
-        [
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'خطوط اختصاصی', 'item' => $canonical],
-            ],
-        ],
-    ];
+$graph = [
+[
+'@type' => 'BreadcrumbList',
+'itemListElement' => [
+['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
+['@type' => 'ListItem', 'position' => 2, 'name' => 'خطوط اختصاصی', 'item' => $canonical],
+],
+],
+];
 
-    foreach ($groups as $group) {
-        foreach ($group['lines'] as $line) {
-            $graph[] = [
-                '@type' => 'Product',
-                'name' => 'خط ' . $line->prefix . ' (' . $line->digits . ' رقمی) ' . $brand,
-                'description' => $line->description ?: ('خط اختصاصی پیامک با پیش‌شماره ' . $line->prefix),
-                'brand' => ['@type' => 'Brand', 'name' => $brand],
-                'offers' => [
-                    '@type' => 'Offer',
-                    'price' => $line->price,
-                    'priceCurrency' => 'IRR',
-                    'availability' => $line->sale_status === 'available'
-                        ? 'https://schema.org/InStock'
-                        : 'https://schema.org/OutOfStock',
-                    'url' => $canonical,
-                ],
-            ];
-        }
-    }
+foreach ($groups as $group) {
+foreach ($group['lines'] as $line) {
+$graph[] = [
+'@type' => 'Product',
+'name' => 'خط ' . $line->prefix . ' (' . $line->digits . ' رقمی) ' . $brand,
+'description' => $line->description ?: ('خط اختصاصی پیامک با پیش‌شماره ' . $line->prefix),
+'brand' => ['@type' => 'Brand', 'name' => $brand],
+'offers' => [
+'@type' => 'Offer',
+'price' => $line->price,
+'priceCurrency' => 'IRR',
+'availability' => $line->sale_status === 'available'
+? 'https://schema.org/InStock'
+: 'https://schema.org/OutOfStock',
+'url' => $canonical,
+],
+];
+}
+}
 
-    $jsonLd = json_encode(
-        ['@context' => 'https://schema.org', '@graph' => $graph],
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-    );
+$jsonLd = json_encode(
+['@context' => 'https://schema.org', '@graph' => $graph],
+JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+);
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -109,95 +109,95 @@
                     </div>
 
                     @if ($groups->isEmpty())
-                        <p class="pricing-empty">به‌زودی خطوط اختصاصی در این بخش نمایش داده می‌شوند.</p>
+                    <p class="pricing-empty">به‌زودی خطوط اختصاصی در این بخش نمایش داده می‌شوند.</p>
                     @else
-                        <div class="line-tabs" role="tablist" aria-label="پیش‌شماره خطوط">
-                            <button class="line-tab active" type="button" role="tab" aria-selected="true" data-prefix="all">همه خطوط</button>
-                            @foreach ($groups as $group)
-                                <button class="line-tab" type="button" role="tab" aria-selected="false" data-prefix="{{ $group['prefix'] }}">{{ $group['label'] }}</button>
-                            @endforeach
-                        </div>
+                    <div class="line-tabs" role="tablist" aria-label="پیش‌شماره خطوط">
+                        <button class="line-tab active" type="button" role="tab" aria-selected="true" data-prefix="all">همه خطوط</button>
+                        @foreach ($groups as $group)
+                        <button class="line-tab" type="button" role="tab" aria-selected="false" data-prefix="{{ $group['prefix'] }}">{{ $group['label'] }}</button>
+                        @endforeach
+                    </div>
 
-                        <div class="line-filters">
-                            <label>
-                                <span>تعداد ارقام</span>
-                                <select id="filter-digits">
-                                    <option value="all">همه</option>
-                                    @foreach ($digitOptions as $d)
-                                        <option value="{{ $d }}">{{ $d }} رقمی</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label>
-                                <span>نوع خط</span>
-                                <select id="filter-type">
-                                    <option value="all">همه</option>
-                                    @foreach ($typeOptions as $t)
-                                        <option value="{{ $t }}">{{ \App\Models\SmsLine::TYPES[$t] ?? $t }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label class="line-filter-check">
-                                <input type="checkbox" id="filter-rond" />
-                                <span>فقط شماره‌های رند</span>
-                            </label>
-                        </div>
-
-                        <div class="line-cards" id="line-cards">
-                            @foreach ($groups as $group)
-                                @foreach ($group['lines'] as $line)
-                                    <article class="line-card"
-                                        data-prefix="{{ $line->prefix }}"
-                                        data-digits="{{ $line->digits }}"
-                                        data-type="{{ $line->line_type }}"
-                                        data-rond="{{ $line->is_rond ? '1' : '0' }}">
-                                        <header class="line-card-head">
-                                            <span class="line-card-num">{{ $line->display_number }}</span>
-                                            <span class="line-card-prefix">خطوط {{ $line->prefix }}</span>
-                                        </header>
-
-                                        <ul class="line-card-meta">
-                                            <li>{{ $line->digits }} رقمی</li>
-                                            <li>{{ $line->type_label }}</li>
-                                            @if ($line->operator)<li>{{ $line->operator }}</li>@endif
-                                            @if ($line->is_rond)<li class="is-rond">رند</li>@endif
-                                        </ul>
-
-                                        @if ($line->feature_list)
-                                            <ul class="line-card-features">
-                                                @foreach (array_slice($line->feature_list, 0, 3) as $feature)
-                                                    <li>{{ $feature }}</li>
-                                                @endforeach
-                                            </ul>
-                                        @endif
-
-                                        <div class="line-card-foot">
-                                            @if ($line->requires_inquiry)
-                                                <span class="line-card-price inquiry">استعلام قیمت</span>
-                                            @else
-                                                <span class="line-card-price">
-                                                    @if ($line->compare_at_price)
-                                                        <del>{{ number_format($line->compare_at_price) }}</del>
-                                                    @endif
-                                                    <strong>{{ number_format($line->price) }}</strong>
-                                                    <span class="unit">تومان</span>
-                                                </span>
-                                            @endif
-
-                                            @if ($line->sale_status === 'available')
-                                                <a class="btn btn-primary full" href="{{ route('lines.checkout', $line) }}">
-                                                    {{ $line->requires_inquiry ? 'درخواست استعلام' : 'خرید خط' }}
-                                                </a>
-                                            @else
-                                                <span class="pill dark">{{ $line->sale_status_label }}</span>
-                                            @endif
-                                        </div>
-                                    </article>
+                    <div class="line-filters">
+                        <label>
+                            <span>تعداد ارقام</span>
+                            <select id="filter-digits">
+                                <option value="all">همه</option>
+                                @foreach ($digitOptions as $d)
+                                <option value="{{ $d }}">{{ $d }} رقمی</option>
                                 @endforeach
-                            @endforeach
-                        </div>
+                            </select>
+                        </label>
+                        <label>
+                            <span>نوع خط</span>
+                            <select id="filter-type">
+                                <option value="all">همه</option>
+                                @foreach ($typeOptions as $t)
+                                <option value="{{ $t }}">{{ \App\Models\SmsLine::TYPES[$t] ?? $t }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <label class="line-filter-check">
+                            <input type="checkbox" id="filter-rond" />
+                            <span>فقط شماره‌های رند</span>
+                        </label>
+                    </div>
 
-                        <p class="line-empty-state" id="line-empty-state" hidden>خطی با این فیلترها پیدا نشد. فیلترها را تغییر دهید.</p>
+                    <div class="line-cards" id="line-cards">
+                        @foreach ($groups as $group)
+                        @foreach ($group['lines'] as $line)
+                        <article class="line-card"
+                            data-prefix="{{ $line->prefix }}"
+                            data-digits="{{ $line->digits }}"
+                            data-type="{{ $line->line_type }}"
+                            data-rond="{{ $line->is_rond ? '1' : '0' }}">
+                            <header class="line-card-head">
+                                <span class="line-card-num">{{ $line->display_number }}<span class="sub">{{ $line->display_number_x }}</span></span>
+                                <span class="line-card-prefix">خطوط {{ $line->prefix }}</span>
+                            </header>
+
+                            <ul class="line-card-meta">
+                                <li>{{ $line->digits }} رقمی</li>
+                                <li>{{ $line->type_label }}</li>
+                                @if ($line->operator)<li>{{ $line->operator }}</li>@endif
+                                @if ($line->is_rond)<li class="is-rond">رند</li>@endif
+                            </ul>
+
+                            @if ($line->feature_list)
+                            <ul class="line-card-features">
+                                @foreach (array_slice($line->feature_list, 0, 3) as $feature)
+                                <li>{{ $feature }}</li>
+                                @endforeach
+                            </ul>
+                            @endif
+
+                            <div class="line-card-foot">
+                                @if ($line->requires_inquiry)
+                                <span class="line-card-price inquiry">استعلام قیمت</span>
+                                @else
+                                <span class="line-card-price">
+                                    @if ($line->compare_at_price)
+                                    <del>{{ number_format($line->compare_at_price) }}</del>
+                                    @endif
+                                    <strong>{{ number_format($line->price) }}</strong>
+                                    <span class="unit">تومان</span>
+                                </span>
+                                @endif
+
+                                @if ($line->sale_status === 'available')
+                                <a class="btn btn-primary full" href="{{ route('lines.checkout', $line) }}">
+                                    {{ $line->requires_inquiry ? 'درخواست استعلام' : 'خرید خط' }}
+                                </a>
+                                @else
+                                <span class="pill dark">{{ $line->sale_status_label }}</span>
+                                @endif
+                            </div>
+                        </article>
+                        @endforeach
+                        @endforeach
+                    </div>
+
+                    <p class="line-empty-state" id="line-empty-state" hidden>خطی با این فیلترها پیدا نشد. فیلترها را تغییر دهید.</p>
                     @endif
                 </div>
             </section>
@@ -209,10 +209,18 @@
                         <h2 id="lines-help-title">مراحل خرید خط اختصاصی</h2>
                     </div>
                     <div class="line-steps">
-                        <div><span>۱</span><p>پیش‌شماره، تعداد ارقام و نوع خط دلخواه را انتخاب کنید.</p></div>
-                        <div><span>۲</span><p>روی «خرید خط» بزنید تا به صفحه تکمیل سفارش بروید.</p></div>
-                        <div><span>۳</span><p>فرم اطلاعات تماس را پر کنید و سفارش را ثبت کنید.</p></div>
-                        <div><span>۴</span><p>در صورت فعال بودن پرداخت آنلاین، همان‌جا پرداخت کنید؛ در غیر این صورت کارشناسان برای تکمیل پرداخت و فعال‌سازی با شما تماس می‌گیرند.</p></div>
+                        <div><span>۱</span>
+                            <p>پیش‌شماره، تعداد ارقام و نوع خط دلخواه را انتخاب کنید.</p>
+                        </div>
+                        <div><span>۲</span>
+                            <p>روی «خرید خط» بزنید تا به صفحه تکمیل سفارش بروید.</p>
+                        </div>
+                        <div><span>۳</span>
+                            <p>فرم اطلاعات تماس را پر کنید و سفارش را ثبت کنید.</p>
+                        </div>
+                        <div><span>۴</span>
+                            <p>در صورت فعال بودن پرداخت آنلاین، همان‌جا پرداخت کنید؛ در غیر این صورت کارشناسان برای تکمیل پرداخت و فعال‌سازی با شما تماس می‌گیرند.</p>
+                        </div>
                     </div>
                     <p class="line-help-contact">سوالی دارید؟ با پشتیبانی تماس بگیرید: <a href="tel:{{ config('theme.phone') }}">{{ $phoneDisplay }}</a> یا <a href="mailto:{{ $email }}">{{ $email }}</a></p>
                 </div>
