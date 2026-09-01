@@ -50,6 +50,12 @@ class LineOrdersTable
                     })
                     ->formatStateUsing(fn (string $state) => LineOrder::STATUSES[$state] ?? $state),
 
+                TextColumn::make('paid_at')
+                    ->label('پرداخت')
+                    ->dateTime('Y-m-d H:i')
+                    ->placeholder('—')
+                    ->toggleable(),
+
                 TextColumn::make('token')
                     ->label('کد پیگیری')
                     ->badge()

@@ -33,6 +33,9 @@ class SettingsSeeder extends Seeder
             ['seo', 'seo_keywords', config('theme.seo.keywords'), 'text', 'کلمات کلیدی'],
             ['seo', 'seo_image', config('theme.seo.image'), 'string', 'تصویر شبکه‌های اجتماعی'],
 
+            // خطوط اختصاصی — روش تکمیل خرید
+            ['commerce', 'line_payment_online', '0', 'bool', 'خرید آنلاین خطوط (اتصال به درگاه پرداخت)'],
+
             ['social', 'social_instagram', '', 'url', 'اینستاگرام'],
             ['social', 'social_telegram', '', 'url', 'تلگرام'],
             ['social', 'social_linkedin', '', 'url', 'لینکدین'],

@@ -21,13 +21,17 @@ Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
 /*
  * Dedicated SMS lines ("/lines") — the catalogue of line numbers for sale
- * (sms_lines table), managed from the Filament admin panel. Buyers submit a
- * purchase request (line_orders) and track it by token — see docs/starter.md
- * §9 / §10 / §11. No online payment yet: the admin processes each order.
+ * (sms_lines table), managed from the Filament admin panel. Buyer picks a line,
+ * fills the checkout form, and either pays online (shetabit/multipay, when the
+ * "line_payment_online" setting is on) or just registers an order that the
+ * admin processes. Orders are tracked by token — see docs/starter.md §9/§10/§11.
  */
 Route::get('/lines', [LineController::class, 'index'])->name('lines');
+Route::get('/lines/{line}/checkout', [LineController::class, 'checkout'])->name('lines.checkout');
 Route::post('/lines/order', [LineController::class, 'order'])->name('lines.order');
 Route::get('/lines/order/{order}', [LineController::class, 'track'])->name('lines.track');
+Route::get('/lines/order/{order}/pay', [LineController::class, 'pay'])->name('lines.pay');
+Route::match(['get', 'post'], '/lines/payment/callback', [LineController::class, 'paymentCallback'])->name('lines.payment.callback');
 
 /*
  * Blog ("/blog"). Content-marketing articles managed from the Filament admin

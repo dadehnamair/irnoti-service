@@ -11,7 +11,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // The payment gateway posts the result back here without a CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'lines/payment/callback',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

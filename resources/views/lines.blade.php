@@ -185,13 +185,9 @@
                                             @endif
 
                                             @if ($line->sale_status === 'available')
-                                                <button class="btn btn-primary line-buy"
-                                                    type="button"
-                                                    data-line-id="{{ $line->id }}"
-                                                    data-line-label="خطوط {{ $line->prefix }} — {{ $line->display_number }} ({{ $line->digits }} رقمی)"
-                                                    data-line-price="{{ $line->requires_inquiry ? 'استعلام' : number_format($line->price) . ' تومان' }}">
+                                                <a class="btn btn-primary full" href="{{ route('lines.checkout', $line) }}">
                                                     {{ $line->requires_inquiry ? 'درخواست استعلام' : 'خرید خط' }}
-                                                </button>
+                                                </a>
                                             @else
                                                 <span class="pill dark">{{ $line->sale_status_label }}</span>
                                             @endif
@@ -213,10 +209,10 @@
                         <h2 id="lines-help-title">مراحل خرید خط اختصاصی</h2>
                     </div>
                     <div class="line-steps">
-                        <div><span>۱</span><p>پیش‌شماره و تعداد ارقام دلخواه را انتخاب کنید.</p></div>
-                        <div><span>۲</span><p>قیمت خط را ببینید و روی «خرید خط» بزنید.</p></div>
-                        <div><span>۳</span><p>فرم اطلاعات تماس را تکمیل و سفارش را ثبت کنید.</p></div>
-                        <div><span>۴</span><p>کارشناسان ما برای تکمیل پرداخت و فعال‌سازی با شما تماس می‌گیرند.</p></div>
+                        <div><span>۱</span><p>پیش‌شماره، تعداد ارقام و نوع خط دلخواه را انتخاب کنید.</p></div>
+                        <div><span>۲</span><p>روی «خرید خط» بزنید تا به صفحه تکمیل سفارش بروید.</p></div>
+                        <div><span>۳</span><p>فرم اطلاعات تماس را پر کنید و سفارش را ثبت کنید.</p></div>
+                        <div><span>۴</span><p>در صورت فعال بودن پرداخت آنلاین، همان‌جا پرداخت کنید؛ در غیر این صورت کارشناسان برای تکمیل پرداخت و فعال‌سازی با شما تماس می‌گیرند.</p></div>
                     </div>
                     <p class="line-help-contact">سوالی دارید؟ با پشتیبانی تماس بگیرید: <a href="tel:{{ config('theme.phone') }}">{{ $phoneDisplay }}</a> یا <a href="mailto:{{ $email }}">{{ $email }}</a></p>
                 </div>
@@ -225,69 +221,6 @@
 
         @include('partials.site-footer')
     </div>
-
-    <dialog class="line-dialog" id="order-dialog">
-        <form method="POST" action="{{ route('lines.order') }}" class="line-order-form">
-            @csrf
-            <input type="hidden" name="sms_line_id" id="order-line-id" value="{{ old('sms_line_id') }}" />
-
-            <div class="line-dialog-head">
-                <h2>ثبت سفارش خط</h2>
-                <button type="button" class="line-dialog-close" data-close aria-label="بستن">×</button>
-            </div>
-
-            <div class="line-order-summary">
-                <span id="order-line-label">{{ old('sms_line_id') ? 'خط انتخابی' : '' }}</span>
-                <strong id="order-line-price"></strong>
-            </div>
-
-            @if ($errors->any())
-                <div class="line-order-errors">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <div class="line-order-grid">
-                <label>
-                    <span>نام و نام خانوادگی <b>*</b></span>
-                    <input type="text" name="customer_name" value="{{ old('customer_name') }}" required maxlength="120" />
-                </label>
-                <label>
-                    <span>شماره موبایل <b>*</b></span>
-                    <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}" required maxlength="20" inputmode="tel" placeholder="09xxxxxxxxx" />
-                </label>
-                <label>
-                    <span>ایمیل</span>
-                    <input type="email" name="customer_email" value="{{ old('customer_email') }}" maxlength="160" />
-                </label>
-                <label>
-                    <span>نام کسب‌وکار</span>
-                    <input type="text" name="company" value="{{ old('company') }}" maxlength="160" />
-                </label>
-                <label>
-                    <span>شماره دلخواه (اختیاری)</span>
-                    <input type="text" name="desired_number" value="{{ old('desired_number') }}" maxlength="40" placeholder="مثلاً 30001234" />
-                </label>
-                <label class="line-order-full">
-                    <span>توضیحات</span>
-                    <textarea name="note" rows="3" maxlength="1000">{{ old('note') }}</textarea>
-                </label>
-            </div>
-
-            <div class="line-order-actions">
-                <button type="submit" class="btn btn-primary full">ثبت سفارش</button>
-                <p>پس از ثبت، کد پیگیری دریافت می‌کنید. پرداخت به‌صورت هماهنگی با کارشناس انجام می‌شود.</p>
-            </div>
-        </form>
-    </dialog>
-
-    @if ($errors->any())
-        <script>document.addEventListener('DOMContentLoaded', () => document.getElementById('order-dialog')?.showModal());</script>
-    @endif
 </body>
 
 </html>

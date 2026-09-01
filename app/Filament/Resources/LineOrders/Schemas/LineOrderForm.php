@@ -4,8 +4,8 @@ namespace App\Filament\Resources\LineOrders\Schemas;
 
 use App\Models\LineOrder;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -32,6 +32,30 @@ class LineOrderForm
                             ->label('یادداشت داخلی')
                             ->rows(2)
                             ->columnSpanFull(),
+
+                        TextInput::make('payment_driver')
+                            ->label('درگاه پرداخت')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->placeholder('—'),
+
+                        TextInput::make('reference_id')
+                            ->label('کد پیگیری بانک')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->placeholder('—'),
+
+                        TextInput::make('transaction_id')
+                            ->label('شناسه تراکنش')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->placeholder('—'),
+
+                        TextInput::make('paid_at')
+                            ->label('زمان پرداخت')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->placeholder('پرداخت نشده'),
                     ]),
 
                 Section::make('اطلاعات خط')

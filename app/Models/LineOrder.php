@@ -24,10 +24,15 @@ class LineOrder extends Model
         'note',
         'status',
         'admin_note',
+        'transaction_id',
+        'reference_id',
+        'payment_driver',
+        'paid_at',
     ];
 
     protected $casts = [
         'price' => 'integer',
+        'paid_at' => 'datetime',
     ];
 
     /** §11 status workflow → Persian label. */
@@ -63,5 +68,12 @@ class LineOrder extends Model
     public function getStatusLabelAttribute(): string
     {
         return self::STATUSES[$this->status] ?? $this->status;
+    }
+
+    /** Still owes money and can be sent to the gateway. */
+    public function isPayable(): bool
+    {
+        return $this->price > 0
+            && in_array($this->status, ['pending', 'awaiting_payment'], true);
     }
 }
