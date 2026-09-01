@@ -43,11 +43,6 @@ class DocArticle extends Model
         });
     }
 
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
-    }
-
     public function category(): BelongsTo
     {
         return $this->belongsTo(DocCategory::class, 'doc_category_id');

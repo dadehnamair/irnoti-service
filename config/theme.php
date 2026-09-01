@@ -71,7 +71,7 @@ return [
         ['label' => 'امکانات', 'href' => '#features'],
         ['label' => 'تعرفه‌ها', 'href' => '#pricing'],
         ['label' => 'خطوط اختصاصی', 'href' => '#lines'],
-        ['label' => 'API', 'href' => '#api'],
+        ['label' => 'مستندات API', 'href' => '/developers'],
         ['label' => 'سوالات متداول', 'href' => '#faq'],
     ],
 

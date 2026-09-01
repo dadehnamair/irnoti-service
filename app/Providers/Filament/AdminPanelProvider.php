@@ -29,8 +29,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName(config('theme.brand', 'irnoti').' — مدیریت')
-            ->brandLogo(asset('logo/logo-text200-30.png'))
-            ->brandLogoHeight('1.75rem')
+            ->brandLogo(asset('logo/logo-text.png'))
+            ->brandLogoHeight('2rem')
             ->favicon(asset('logo/favicon.png'))
             ->colors([
                 'primary' => Color::hex(config('theme.primary', '#ff3000')),
