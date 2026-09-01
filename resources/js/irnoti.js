@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const menuToggle = document.querySelector(".menu-toggle");
     const year = document.getElementById("year");
     const toggleButtons = document.querySelectorAll(".toggle-btn");
-    const pricingPrices = document.querySelectorAll(".price");
+    const pricingPrices = document.querySelectorAll(".price, .price-compare");
     const periods = document.querySelectorAll(".period");
 
     if (year) {

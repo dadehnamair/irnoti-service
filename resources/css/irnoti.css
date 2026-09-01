@@ -741,9 +741,26 @@ select {
     font-weight: 800;
     letter-spacing: -0.06em;
 }
+.price-compare {
+    color: var(--muted);
+    text-decoration: line-through;
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+}
 .period {
     color: var(--text-soft);
     margin-bottom: 8px;
+}
+.plan-desc {
+    color: var(--text-soft);
+    font-size: 0.92rem;
+    margin: 0 0 4px;
+}
+.pricing-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-soft);
+    padding: 40px 0;
 }
 .pricing-card ul {
     list-style: none;

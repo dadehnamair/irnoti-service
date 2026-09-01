@@ -10,38 +10,10 @@ $phoneDisplay = config('theme.phone_display');
 $nav = config('theme.nav');
 $url = rtrim($seo['url'], '/');
 
-// Plans are defined here for now; this is the single source the pricing
-// cards and the Product schema both read from. Later it moves to the DB
-// (see docs/starter.md §8 / §40) without changing the markup below.
-$plans = [
-[
-'name' => 'پایه',
-'badge' => ['label' => 'برای شروع', 'style' => 'neutral'],
-'monthly' => 990000,
-'yearly' => 9900000,
-'featured' => false,
-'cta' => ['label' => 'انتخاب پلن', 'style' => 'btn-secondary'],
-'features' => ['۱٬۰۰۰ پیامک', '۱ خط اختصاصی', 'دسترسی به داشبورد', 'گزارش ارسال', 'API پایه'],
-],
-[
-'name' => 'حرفه‌ای',
-'badge' => ['label' => 'پرفروش', 'style' => 'primary'],
-'monthly' => 2490000,
-'yearly' => 24900000,
-'featured' => true,
-'cta' => ['label' => 'انتخاب پلن', 'style' => 'btn-primary'],
-'features' => ['۱۰٬۰۰۰ پیامک', '۳ خط اختصاصی', 'پیامک پترن', 'API کامل', 'پشتیبانی ویژه'],
-],
-[
-'name' => 'سازمانی',
-'badge' => ['label' => 'سفارشی', 'style' => 'dark'],
-'monthly' => 7990000,
-'yearly' => 79900000,
-'featured' => false,
-'cta' => ['label' => 'درخواست مشاوره', 'style' => 'btn-secondary'],
-'features' => ['۱۰۰٬۰۰۰ پیامک', 'خطوط اختصاصی نامحدود', 'API اختصاصی', 'پشتیبانی ویژه ۲۴/۷', 'مدیریت تیمی'],
-],
-];
+// Pricing plans come from the DB (docs/starter.md §8 / §40) and are managed
+// from the Filament admin panel. Both the pricing cards and the Product
+// schema below read from this collection.
+$plans = \App\Models\Plan::query()->active()->ordered()->get();
 
 $lines = ['۱۰۰۰', '۲۰۰۰', '۳۰۰۰', '۵۰۰۰۱', '۵۰۰۰۴', '۰۲۱', '۰۲۶', '۰۴۱', '۰۵۱', '۰۷۱', '۲۱۷۰۰۰', '۹۰۰۰', '۹۹۹۹', '۹۹۸'];
 
@@ -82,12 +54,12 @@ $graph = [
 foreach ($plans as $plan) {
 $graph[] = [
 '@type' => 'Product',
-'name' => 'پلن ' . $plan['name'] . ' ' . $brand,
-'description' => 'پنل پیامکی ' . $brand . ' — ' . implode('، ', $plan['features']),
+'name' => 'پلن ' . $plan->name . ' ' . $brand,
+'description' => 'پنل پیامکی ' . $brand . ' — ' . implode('، ', $plan->feature_list),
 'brand' => ['@type' => 'Brand', 'name' => $brand],
 'offers' => [
 '@type' => 'Offer',
-'price' => $plan['monthly'] * 10, // Toman -> Rial for ISO 4217
+'price' => $plan->price_monthly * 10, // Toman -> Rial for ISO 4217
 'priceCurrency' => 'IRR',
 'availability' => 'https://schema.org/InStock',
 'url' => $url . '/#pricing',
@@ -355,27 +327,40 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                     </div>
 
                     <div class="pricing-grid">
-                        @foreach ($plans as $plan)
-                        <article class="pricing-card @if ($plan['featured']) featured @endif">
+                        @forelse ($plans as $plan)
+                        <article class="pricing-card @if ($plan->is_featured) featured @endif"
+                            @if ($plan->color) style="--card-accent: {{ $plan->color }}" @endif>
                             <div class="pricing-header">
-                                <h3>{{ $plan['name'] }}</h3>
-                                <span class="pill {{ $plan['badge']['style'] }}">{{ $plan['badge']['label'] }}</span>
+                                <h3>{{ $plan->name }}</h3>
+                                @if ($plan->badge_label)
+                                <span class="pill {{ $plan->badge_style }}">{{ $plan->badge_label }}</span>
+                                @endif
                             </div>
+                            @if ($plan->description)
+                            <p class="plan-desc">{{ $plan->description }}</p>
+                            @endif
                             <div class="price-wrap">
                                 <span class="currency">تومان</span>
+                                @if ($plan->compare_at_monthly)
+                                <span class="price-compare"
+                                    data-monthly="{{ $plan->compare_at_monthly }}"
+                                    data-yearly="{{ $plan->compare_at_yearly ?: $plan->compare_at_monthly * 10 }}">{{ number_format($plan->compare_at_monthly) }}</span>
+                                @endif
                                 <span class="price"
-                                    data-monthly="{{ $plan['monthly'] }}"
-                                    data-yearly="{{ $plan['yearly'] }}">{{ number_format($plan['monthly']) }}</span>
+                                    data-monthly="{{ $plan->price_monthly }}"
+                                    data-yearly="{{ $plan->price_yearly }}">{{ number_format($plan->price_monthly) }}</span>
                                 <span class="period">/ماه</span>
                             </div>
                             <ul>
-                                @foreach ($plan['features'] as $feature)
+                                @foreach ($plan->feature_list as $feature)
                                 <li>{{ $feature }}</li>
                                 @endforeach
                             </ul>
-                            <a href="#cta" class="btn {{ $plan['cta']['style'] }} full">{{ $plan['cta']['label'] }}</a>
+                            <a href="{{ $plan->cta_url ?: '#cta' }}" class="btn {{ $plan->cta_style }} full">{{ $plan->cta_label }}</a>
                         </article>
-                        @endforeach
+                        @empty
+                        <p class="pricing-empty">به‌زودی پلن‌های تعرفه در این بخش نمایش داده می‌شوند.</p>
+                        @endforelse
                     </div>
                 </div>
             </section>
