@@ -17,7 +17,11 @@
     justify-content: center;
     padding: 48px 20px;
     background:
-        radial-gradient(circle at top left, var(--primary-soft-08), transparent 26%),
+        radial-gradient(
+            circle at top left,
+            var(--primary-soft-08),
+            transparent 26%
+        ),
         var(--bg);
 }
 
@@ -240,6 +244,9 @@
     border-radius: 12px;
     border: 1px solid var(--hairline);
     background: var(--bg-soft);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .account-stat span {
@@ -449,7 +456,7 @@
 }
 
 .account-inline-note {
-    margin: 12px 0 0;
+    margin: 20px 0;
     padding: 10px 12px;
     border-radius: 10px;
     font-size: 0.82rem;
@@ -845,6 +852,7 @@ fieldset.wallet-topup-method {
 }
 
 /* Buttons that live inside a panel form shouldn't inherit the field box. */
-.account-panel :where(input[type="submit"], input[type="button"], input[type="reset"]) {
+.account-panel
+    :where(input[type="submit"], input[type="button"], input[type="reset"]) {
     width: auto;
 }
