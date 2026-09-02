@@ -2,15 +2,15 @@
 
 namespace App\Services\Sms\Phonebook;
 
-use App\Services\Sms\MelipayamakProvider;
+use App\Services\Sms\PasargadProvider;
 use App\Services\Sms\Phonebook\Concerns\ParsesAsmxResponses;
 use Illuminate\Support\Carbon;
 use RuntimeException;
 
 /**
- * Melipayamak phonebook driver (docs/starter.md §13 / §17). Username/password
- * mode only — the classic Contacts.asmx web service on api.payamak-panel.com,
- * the same host {@see MelipayamakProvider} uses for sending.
+ * Upstream phonebook driver (docs/starter.md §13 / §17), internal codename
+ * "pasargad". Username/password mode only — the classic Contacts.asmx web
+ * service, the same host {@see PasargadProvider} uses for sending.
  *
  * Notes from the vendor docs that shape this class:
  *  - AddGroup / AddContact reply with a bare `1` (ok) or `0` (fail) — no new id,
@@ -19,7 +19,7 @@ use RuntimeException;
  *    (0 active / 1 inactive / -1 unchanged) — our "delete" sets it inactive.
  *  - SendSmsToContact lives on newbulks.asmx and is a GET.
  */
-class MelipayamakPhonebookClient implements PhonebookClientInterface
+class PasargadPhonebookClient implements PhonebookClientInterface
 {
     use ParsesAsmxResponses;
 
@@ -49,7 +49,7 @@ class MelipayamakPhonebookClient implements PhonebookClientInterface
 
     public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 100): array
     {
-        // Lowercase keys match Melipayamak's own SDK / WSDL. `count` MUST stay
+        // Lowercase keys match the provider's own SDK / WSDL. `count` MUST stay
         // <= 100 — a larger value makes the service return zero rows.
         $body = $this->asmxPost('Contacts.asmx/GetContacts', [
             'groupId' => $groupId ?? 0,

@@ -8,22 +8,22 @@ use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Melipayamak driver (docs/starter.md §13). Two independent modes:
+ * Upstream SMS driver (docs/starter.md §13), referred to internally by the
+ * opaque codename "pasargad" — the real vendor name is never exposed to
+ * customers. Two independent modes:
  *
- *  - api_key mode — config('services.sms.melipayamak.api_key') is set. Uses the
- *    JSON REST host rest.melipayamak.com (send/simple/{key}, …).
+ *  - api_key mode — config('sms.providers.pasargad.api_key') is set. Uses the
+ *    provider's JSON REST host (send/simple/{key}, …).
  *
  *  - username/password mode — a customer's own panel ({@see UserSmsGateway}),
- *    credentials from the users table. Uses the classic ASMX web service on
- *    api.payamak-panel.com, which takes plain form fields and returns a bare
- *    XML scalar. This host is what the official docs describe and it resolves
- *    even where rest.melipayamak.com does not:
- *      - Send  : /post/Send.asmx/SendSimpleSMS2  (https://www.melipayamak.com/api/sendsimplesms2/)
- *      - Count : /post/Users.asmx/GetUserCredit  (https://www.melipayamak.com/api/getusercredit/)
- *      - Rial  : /post/Users.asmx/GetUserCredit2 (https://www.melipayamak.com/api/getusercredit2/)
+ *    credentials from the users table. Uses the classic ASMX web service, which
+ *    takes plain form fields and returns a bare XML scalar:
+ *      - Send  : /post/Send.asmx/SendSimpleSMS2
+ *      - Count : /post/Users.asmx/GetUserCredit
+ *      - Rial  : /post/Users.asmx/GetUserCredit2
  *    All of them answer `-1` for wrong credentials.
  */
-class MelipayamakProvider implements SmsProviderInterface
+class PasargadProvider implements SmsProviderInterface
 {
     private const REST = 'https://rest.melipayamak.com/api';
 
@@ -76,8 +76,7 @@ class MelipayamakProvider implements SmsProviderInterface
     }
 
     /**
-     * Delivery receipt for one previously sent message
-     * (https://www.melipayamak.com/api/getdelivery2/). Returns the raw provider
+     * Delivery receipt for one previously sent message. Returns the raw provider
      * code as a string — "0"/"8" = still in transit, "1" = delivered, "2"/"16" =
      * undelivered, "3"/"5"/"100" = carrier error; null when the panel has no
      * report yet or reporting is disabled. {@see SmsMessage::mapDeliveryStatus()}.
@@ -98,8 +97,7 @@ class MelipayamakProvider implements SmsProviderInterface
     }
 
     /**
-     * The dedicated sender numbers on this account
-     * (https://www.melipayamak.com/api/getnumbers/). Only the username/password
+     * The dedicated sender numbers on this account. Only the username/password
      * mode can report them; api_key mode has no equivalent and returns [].
      *
      * @return array<int, string>
@@ -127,11 +125,10 @@ class MelipayamakProvider implements SmsProviderInterface
     }
 
     /**
-     * Remaining credit as a number of SMS
-     * (https://www.melipayamak.com/api/getcredit/). Send.asmx/GetCredit returns
-     * the count for valid credentials and "0" for invalid ones — so a 0 is
-     * cross-checked against GetUserCredit2 (which answers -1 on a bad login)
-     * before we decide it's really an error.
+     * Remaining credit as a number of SMS. Send.asmx/GetCredit returns the count
+     * for valid credentials and "0" for invalid ones — so a 0 is cross-checked
+     * against GetUserCredit2 (which answers -1 on a bad login) before we decide
+     * it's really an error.
      */
     public function credit(): ?int
     {
@@ -142,7 +139,7 @@ class MelipayamakProvider implements SmsProviderInterface
         $value = $this->soap('Send.asmx/GetCredit', []);
 
         if (! is_numeric($value)) {
-            throw new RuntimeException('پاسخ نامعتبر از ملی‌پیامک هنگام دریافت اعتبار: '.$value);
+            throw new RuntimeException('پاسخ نامعتبر از '.sms_provider_label().' هنگام دریافت اعتبار: '.$value);
         }
 
         $count = (float) $value;
@@ -155,9 +152,8 @@ class MelipayamakProvider implements SmsProviderInterface
     }
 
     /**
-     * Remaining credit as a Rial amount
-     * (https://www.melipayamak.com/api/getusercredit2/). Best-effort: -1 (bad
-     * login) or any failure returns null rather than throwing.
+     * Remaining credit as a Rial amount. Best-effort: -1 (bad login) or any
+     * failure returns null rather than throwing.
      */
     public function creditRial(): ?int
     {
@@ -172,7 +168,7 @@ class MelipayamakProvider implements SmsProviderInterface
                 return (int) round((float) $value);
             }
         } catch (\Throwable $e) {
-            Log::debug('[sms:melipayamak] rial credit read failed', ['error' => $e->getMessage()]);
+            Log::debug('[sms:pasargad] rial credit read failed', ['error' => $e->getMessage()]);
         }
 
         return null;
@@ -186,8 +182,8 @@ class MelipayamakProvider implements SmsProviderInterface
     /* -------------------------- username/password (ASMX) -------------------------- */
 
     /**
-     * POST a form to an api.payamak-panel.com ASMX method and return the inner
-     * text of the XML scalar it replies with (`<string>…</string>` etc.).
+     * POST a form to an ASMX method and return the inner text of the XML scalar
+     * it replies with (`<string>…</string>` etc.).
      *
      * @param  array<string, mixed>  $params
      */
@@ -197,9 +193,8 @@ class MelipayamakProvider implements SmsProviderInterface
     }
 
     /**
-     * POST a form to an api.payamak-panel.com ASMX method and return its raw
-     * response body. Used directly when the reply is a list rather than a scalar
-     * ({@see xmlStrings()}).
+     * POST a form to an ASMX method and return its raw response body. Used
+     * directly when the reply is a list rather than a scalar ({@see xmlStrings()}).
      *
      * @param  array<string, mixed>  $params
      */
@@ -213,12 +208,12 @@ class MelipayamakProvider implements SmsProviderInterface
         try {
             $response = Http::asForm()->timeout(20)->acceptJson()->post(self::SOAP.'/'.$method, $payload);
         } catch (\Throwable $e) {
-            Log::error('[sms:melipayamak] connection failed', ['method' => $method, 'error' => $e->getMessage()]);
+            Log::error('[sms:pasargad] connection failed', ['method' => $method, 'error' => $e->getMessage()]);
 
-            throw new RuntimeException('اتصال به سرور ملی‌پیامک برقرار نشد: '.$e->getMessage());
+            throw new RuntimeException('اتصال به '.sms_provider_label().' برقرار نشد: '.$e->getMessage());
         }
 
-        Log::debug('[sms:melipayamak] '.$method, [
+        Log::debug('[sms:pasargad] '.$method, [
             'sent' => ['username' => $payload['username']] + array_diff_key($payload, ['username' => 1, 'password' => 1]),
             'http' => $response->status(),
             'value' => mb_substr($response->body(), 0, 300),
@@ -226,7 +221,8 @@ class MelipayamakProvider implements SmsProviderInterface
 
         if ($response->failed()) {
             throw new RuntimeException(sprintf(
-                'ملی‌پیامک با کد %d پاسخ داد: %s',
+                '%s با کد %d پاسخ داد: %s',
+                sms_provider_label(),
                 $response->status(),
                 mb_substr($response->body(), 0, 300) ?: 'بدون بدنه',
             ));
@@ -305,17 +301,17 @@ class MelipayamakProvider implements SmsProviderInterface
         $key = $this->config['api_key'] ?? null;
 
         if (blank($key)) {
-            throw new RuntimeException('پیکربندی ملی‌پیامک ناقص است (MELIPAYAMAK_API_KEY تنظیم نشده).');
+            throw new RuntimeException('پیکربندی '.sms_provider_label().' ناقص است (SMS_PASARGAD_API_KEY تنظیم نشده).');
         }
 
         try {
             $response = Http::asJson()->timeout(15)->post(self::REST.'/'.$path.'/'.$key, $payload);
         } catch (\Throwable $e) {
-            throw new RuntimeException('اتصال به سرور ملی‌پیامک برقرار نشد: '.$e->getMessage());
+            throw new RuntimeException('اتصال به '.sms_provider_label().' برقرار نشد: '.$e->getMessage());
         }
 
         if ($response->failed()) {
-            throw new RuntimeException('ارسال از طریق ملی‌پیامک ناموفق بود (کد '.$response->status().').');
+            throw new RuntimeException('ارسال از طریق '.sms_provider_label().' ناموفق بود (کد '.$response->status().').');
         }
 
         return (array) $response->json();

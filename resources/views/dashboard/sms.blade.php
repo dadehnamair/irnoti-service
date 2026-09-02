@@ -17,7 +17,7 @@
 
             @if ($creditError)
                 <div class="account-banner is-danger">
-                    اتصال به پنل ملی‌پیامک برقرار نشد:<br>
+                    اتصال به {{ sms_provider_label() }} برقرار نشد:<br>
                     <span dir="auto">{{ $creditError }}</span>
                 </div>
             @endif

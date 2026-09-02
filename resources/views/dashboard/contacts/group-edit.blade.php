@@ -10,7 +10,7 @@
         </div>
 
         @if ($group->remote_id)
-            <p class="auth-sub">این گروه با ملی‌پیامک همگام است؛ تغییر نام در ملی‌پیامک اعمال نمی‌شود.</p>
+            <p class="auth-sub">این گروه با {{ sms_provider_label() }} همگام است؛ تغییر نام در {{ sms_provider_label() }} اعمال نمی‌شود.</p>
         @endif
 
         <form method="POST" action="{{ route('dashboard.contacts.groups.update', $group) }}" class="account-form">

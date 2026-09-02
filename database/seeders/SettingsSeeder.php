@@ -54,6 +54,7 @@ class SettingsSeeder extends Seeder
             // ثبت‌نام و اطلاع‌رسانی پیامکی (docs/starter.md §26 / §44)
             ['account', 'registration_enabled', '1', 'bool', 'فعال بودن ثبت‌نام کاربران'],
             ['account', 'sms_notifications_enabled', '1', 'bool', 'اطلاع‌رسانی پیامکی رویدادها'],
+            ['account', 'sms_provider_label', config('sms.label', 'سامانه پیامک'), 'string', 'نام نمایشی سامانه پیامک (برای مشتری)'],
             ['account', 'sms_delivery_sync_enabled', '1', 'bool', 'پیگیری خودکار وضعیت تحویل پیامک‌های ارسالی'],
             ['account', 'admin_mobile', env('ADMIN_MOBILE', ''), 'string', 'موبایل مدیر برای اطلاع‌رسانی'],
             ['account', 'require_admin_approval', '1', 'bool', 'نیاز به تأیید مدیر برای فعال‌سازی امکانات پنل'],

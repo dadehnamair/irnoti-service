@@ -348,17 +348,8 @@
 }
 
 .credit-card__plan-name {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
     font-weight: 700;
     opacity: 0.92;
-}
-
-.credit-card__plan-name svg {
-    width: 15px;
-    height: 15px;
-    opacity: 0.8;
 }
 
 .credit-card__plan-days {

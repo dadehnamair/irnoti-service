@@ -69,13 +69,13 @@ class SmsManager
 
     public function sender(): ?string
     {
-        return $this->senderOverride ?: config('services.sms.melipayamak.sender');
+        return $this->senderOverride ?: config('sms.providers.'.config('sms.provider').'.sender');
     }
 
     /** Mobile that receives the admin side of operation notifications (docs/starter.md §44). */
     public function adminMobile(): ?string
     {
-        return Setting::get('admin_mobile') ?: config('services.sms.admin_mobile');
+        return Setting::get('admin_mobile') ?: config('sms.admin_mobile');
     }
 
     /**

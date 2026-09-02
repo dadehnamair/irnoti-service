@@ -106,7 +106,7 @@ class AppServiceProvider extends ServiceProvider
     private function bindPhonebookClient(): void
     {
         $this->app->singleton(PhonebookClientInterface::class, function () {
-            return match ((string) config('services.sms.provider', 'log')) {
+            return match ((string) config('sms.provider', 'log')) {
                 'null' => new NullPhonebookClient,
                 default => new LogPhonebookClient,
             };
@@ -153,6 +153,9 @@ class AppServiceProvider extends ServiceProvider
         $put('theme.seo.description', 'seo_description');
         $put('theme.seo.keywords', 'seo_keywords');
         $put('theme.seo.image', 'seo_image');
+
+        // Brand-neutral name for the SMS backend (never the real vendor).
+        $put('sms.label', 'sms_provider_label');
 
         $social = array_filter([
             'instagram' => $s['social_instagram'] ?? null,

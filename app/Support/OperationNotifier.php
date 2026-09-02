@@ -236,7 +236,7 @@ class OperationNotifier
 
     private function toAdmin(string $message): void
     {
-        $admin = Setting::get('admin_mobile') ?: config('services.sms.admin_mobile');
+        $admin = Setting::get('admin_mobile') ?: config('sms.admin_mobile');
 
         if ($this->enabled() && filled($admin)) {
             dispatch(SendSmsJob::text($admin, $message));

@@ -18,7 +18,7 @@
             <div class="phonebook-toolbar">
                 <form method="POST" action="{{ route('dashboard.contacts.import') }}">
                     @csrf
-                    <button type="submit" class="btn btn-secondary btn-sm">دریافت گروه‌ها از ملی‌پیامک</button>
+                    <button type="submit" class="btn btn-secondary btn-sm">دریافت گروه‌ها از {{ sms_provider_label() }}</button>
                 </form>
                 <p class="auth-sub">
                     ابتدا گروه‌ها را دریافت کنید؛ سپس روی هر گروه دکمهٔ «دریافت مخاطبین» را بزنید تا مخاطبین همان گروه همگام شوند.
@@ -109,7 +109,7 @@
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-ghost btn-sm is-danger"
                                                 data-confirm="حذف گروه «{{ $group->name }}»"
-                                                data-confirm-text="گروه از سامانه حذف می‌شود. مخاطبین حذف نمی‌شوند و در ملی‌پیامک هم باقی می‌مانند."
+                                                data-confirm-text="گروه از سامانه حذف می‌شود. مخاطبین حذف نمی‌شوند و در {{ sms_provider_label() }} هم باقی می‌مانند."
                                                 data-confirm-yes="حذف">حذف</button>
                                     </form>
                                 </div>
