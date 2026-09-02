@@ -739,3 +739,112 @@ fieldset.wallet-topup-method {
     font-size: 0.82rem;
     color: var(--muted);
 }
+
+/* ============================================================================
+ * Baseline form controls — every input / select / textarea inside a panel or
+ * an auth card, regardless of which form wrapper it sits in. Uses :where() so
+ * the component-scoped rules above always win.
+ * ==========================================================================*/
+.account-panel :where(input, select, textarea),
+.auth-card :where(input, select, textarea) {
+    width: 100%;
+    padding: 0.72rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+.account-panel :where(input, select, textarea):hover,
+.auth-card :where(input, select, textarea):hover {
+    border-color: color-mix(in srgb, var(--border) 40%, var(--text-soft));
+}
+
+.account-panel :where(input, select, textarea):focus,
+.account-panel :where(input, select, textarea):focus-visible,
+.auth-card :where(input, select, textarea):focus,
+.auth-card :where(input, select, textarea):focus-visible {
+    outline: none;
+    border-color: var(--primary-line);
+    box-shadow: 0 0 0 3px var(--primary-soft-12);
+    background: var(--panel);
+}
+
+.account-panel :where(input, select, textarea)::placeholder,
+.auth-card :where(input, select, textarea)::placeholder {
+    color: var(--muted);
+}
+
+.account-panel :where(input, select, textarea):disabled,
+.auth-card :where(input, select, textarea):disabled,
+.account-panel :where(input, select, textarea)[readonly],
+.auth-card :where(input, select, textarea)[readonly] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: color-mix(in srgb, var(--bg-soft) 70%, transparent);
+}
+
+.account-panel textarea,
+.auth-card textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+/* Native select — kill the OS look, draw our own chevron (RTL: left side). */
+.account-panel select,
+.auth-card select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-inline-end: 2.2rem;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'><path d='M1 1l5 5 5-5' stroke='%23a9bfd8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: left 0.85rem center;
+    cursor: pointer;
+}
+
+/* Checkboxes & radios keep their intrinsic size. */
+.account-panel input[type="checkbox"],
+.account-panel input[type="radio"],
+.auth-card input[type="checkbox"],
+.auth-card input[type="radio"] {
+    width: 1.05rem;
+    height: 1.05rem;
+    padding: 0;
+    accent-color: var(--primary);
+    box-shadow: none;
+    cursor: pointer;
+    vertical-align: -2px;
+}
+
+/* File pickers. */
+.account-panel input[type="file"],
+.auth-card input[type="file"] {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    cursor: pointer;
+}
+.account-panel input[type="file"]::file-selector-button,
+.auth-card input[type="file"]::file-selector-button {
+    margin-inline-end: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+/* Buttons that live inside a panel form shouldn't inherit the field box. */
+.account-panel :where(input[type="submit"], input[type="button"], input[type="reset"]) {
+    width: auto;
+}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\BankReceiptService;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
  * (docs/starter.md §22). `receiptable` is the thing being paid — a WalletTopup,
  * Subscription, LineOrder, PackageOrder or Invoice; null means a plain wallet
  * top-up. On admin approval the matching domain effect runs once
- * ({@see App\Support\BankReceiptService}).
+ * ({@see BankReceiptService}).
  */
 return new class extends Migration
 {

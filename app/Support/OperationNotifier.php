@@ -10,7 +10,6 @@ use App\Models\PackageOrder;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
-use App\Models\WalletTopup;
 
 /**
  * Central place that turns an app event into SMS notifications for the customer

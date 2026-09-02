@@ -19,12 +19,12 @@ if (! function_exists('jalali_date')) {
         }
 
         try {
-            $carbon = $date instanceof \DateTimeInterface
+            $carbon = $date instanceof DateTimeInterface
                 ? Carbon::instance($date)
                 : (is_numeric($date) ? Carbon::createFromTimestamp($date) : Carbon::parse($date));
 
             return Jalalian::fromCarbon($carbon)->format($format);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return $default;
         }
     }

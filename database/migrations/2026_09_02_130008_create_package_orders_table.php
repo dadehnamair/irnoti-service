@@ -1,11 +1,12 @@
 <?php
 
+use App\Models\SmsPackage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * A purchase of an {@see App\Models\SmsPackage}. Same shape as subscriptions /
+ * A purchase of an {@see SmsPackage}. Same shape as subscriptions /
  * line orders: unguessable `token` route key + snapshot columns + status
  * workflow. When it settles, users.sms_credit goes up by `sms_count`.
  */

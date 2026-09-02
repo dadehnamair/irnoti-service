@@ -1,10 +1,11 @@
 <?php
 
+use App\Models\Invoice;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/** Line items of an {@see App\Models\Invoice}. amount = quantity × unit_price. */
+/** Line items of an {@see Invoice}. amount = quantity × unit_price. */
 return new class extends Migration
 {
     public function up(): void

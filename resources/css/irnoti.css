@@ -80,6 +80,53 @@ textarea,
 select {
     font: inherit;
 }
+
+/*
+ * Baseline for raw form controls. Zero-specificity (:where) so any component
+ * rule (.checkout-form, .line-order-grid, .line-filters…) still overrides it —
+ * this only catches fields that would otherwise render with the OS default.
+ */
+:where(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    select,
+    textarea
+) {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.6;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+:where(input, select, textarea):focus {
+    outline: none;
+    border-color: var(--primary-line);
+    box-shadow: 0 0 0 3px var(--primary-soft-12);
+}
+:where(input, select, textarea)::placeholder {
+    color: var(--muted);
+}
+:where(textarea) {
+    min-height: 96px;
+    resize: vertical;
+}
+:where(select) {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-inline-end: 2.2rem;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'><path d='M1 1l5 5 5-5' stroke='%23a9bfd8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: left 0.85rem center;
+    cursor: pointer;
+}
+:where(input[type="checkbox"], input[type="radio"]) {
+    accent-color: var(--primary);
+}
+
 ::selection {
     background: var(--primary-soft-20);
     color: #fff;

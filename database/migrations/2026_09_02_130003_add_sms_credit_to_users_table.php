@@ -1,12 +1,13 @@
 <?php
 
+use App\Models\PackageOrder;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
  * Purchased SMS credit as a plain piece count (docs/starter.md §12). Topped up by
- * SMS package orders ({@see App\Models\PackageOrder}) and by activating a plan
+ * SMS package orders ({@see PackageOrder}) and by activating a plan
  * that bundles `sms_count`.
  */
 return new class extends Migration
