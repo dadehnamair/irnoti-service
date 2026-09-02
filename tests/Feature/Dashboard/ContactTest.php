@@ -19,6 +19,19 @@ class ContactTest extends TestCase
         return User::factory()->create(['status' => 'active', 'approved_at' => now()]);
     }
 
+    public function test_phonebook_pages_render(): void
+    {
+        $user = $this->user();
+        $group = $user->contactGroups()->create(['name' => 'گروه']);
+        $contact = $user->contacts()->create(['mobile' => '09121234567']);
+        $contact->groups()->attach($group);
+
+        $this->actingAs($user)->get(route('dashboard.contacts'))->assertOk()->assertSee('دفترچه تلفن');
+        $this->actingAs($user)->get(route('dashboard.contacts.groups'))->assertOk()->assertSee('گروه‌های دفترچه تلفن');
+        $this->actingAs($user)->get(route('dashboard.contacts.send'))->assertOk()->assertSee('ارسال گروهی');
+        $this->actingAs($user)->get(route('dashboard.contacts.edit', $contact))->assertOk()->assertSee('ویرایش مخاطب');
+    }
+
     public function test_customer_adds_a_contact_with_groups_and_normalised_mobile(): void
     {
         $user = $this->user();

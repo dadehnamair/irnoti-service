@@ -21,6 +21,7 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +48,25 @@ Route::post('/lines/order', [LineController::class, 'order'])->name('lines.order
 Route::get('/lines/order/{order}', [LineController::class, 'track'])->name('lines.track');
 Route::get('/lines/order/{order}/pay', [LineController::class, 'pay'])->name('lines.pay');
 Route::match(['get', 'post'], '/lines/payment/callback', [LineController::class, 'paymentCallback'])->name('lines.payment.callback');
+
+/*
+ * Legal pages linked from the site footer (docs/starter.md §67). Body copy is
+ * markdown stored in the `settings` table (legal_terms_body / legal_privacy_body)
+ * and editable from the Filament admin panel.
+ */
+Route::get('/terms', function () {
+    return view('legal', [
+        'title' => 'قوانین و مقررات',
+        'body' => Setting::get('legal_terms_body', ''),
+    ]);
+})->name('legal.terms');
+
+Route::get('/privacy', function () {
+    return view('legal', [
+        'title' => 'حریم خصوصی',
+        'body' => Setting::get('legal_privacy_body', ''),
+    ]);
+})->name('legal.privacy');
 
 /*
  * Blog ("/blog"). Content-marketing articles managed from the Filament admin

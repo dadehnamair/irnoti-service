@@ -1276,26 +1276,58 @@ select {
     font-size: 0.82rem;
 }
 
-/* Footer socials / address ---------------------------------------- */
+/* Footer socials ------------------------------------------------- */
 .footer-social {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
-    margin-top: 14px;
+    gap: 10px;
 }
 .footer-social a {
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
     color: var(--text-soft);
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-weight: 600;
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease,
+        background 0.15s ease;
 }
 .footer-social a:hover {
     color: var(--primary);
+    border-color: var(--primary-line);
+    background: var(--primary-soft-08);
 }
-.footer-address {
-    display: block;
-    color: var(--muted);
-    font-size: 0.85rem;
-    max-width: 260px;
+
+/* Legal pages (terms / privacy) -------------------------------- */
+.legal-page {
+    padding: 64px 0 40px;
+}
+.legal-page h1 {
+    margin: 0 0 24px;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+}
+.legal-body {
+    max-width: 760px;
+    color: var(--text-soft);
+    line-height: 2.1;
+}
+.legal-body h2,
+.legal-body h3 {
+    color: var(--text);
+    margin: 28px 0 12px;
+}
+.legal-body p {
+    margin: 0 0 16px;
+}
+.legal-body ul,
+.legal-body ol {
+    padding-inline-start: 1.4em;
+    margin: 0 0 16px;
+}
+.legal-body a {
+    color: var(--primary);
 }
 
 /* Pricing page ----------------------------------------------------- */
