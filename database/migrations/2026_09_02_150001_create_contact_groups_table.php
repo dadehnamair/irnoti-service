@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Customer phonebook groups (docs/starter.md §14 / §17). Each row is mirrored to
- * the customer's own Melipayamak panel (Contacts.asmx/AddGroup) when they have
- * one; `remote_id` is the Melipayamak GroupID, `sync_status` tracks the mirror.
+ * the customer's own SMS panel (Contacts.asmx/AddGroup) when they have
+ * one; `remote_id` is the remote GroupID, `sync_status` tracks the mirror.
  */
 return new class extends Migration
 {
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
-            $table->unsignedBigInteger('remote_id')->nullable(); // Melipayamak GroupID
+            $table->unsignedBigInteger('remote_id')->nullable(); // remote GroupID
             $table->string('name');
             $table->string('description')->nullable();
             $table->boolean('show_to_child')->default(false);

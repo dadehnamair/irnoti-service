@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * A customer only gets access to the panel features (send SMS, buy a line) after
  * an admin has reviewed the identity profile AND the uploaded documents and
- * flipped the account to "active". The customer's own Melipayamak panel
+ * flipped the account to "active". The customer's own SMS panel
  * credentials are stored here by the admin so our panel can talk to the
  * customer's account (credit, single send).
  */
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->timestamp('documents_reviewed_at')->nullable()->after('documents_status');
             $table->string('documents_reject_reason')->nullable()->after('documents_reviewed_at');
 
-            // The customer's own Melipayamak panel login (set by the admin after
+            // The customer's own SMS panel login (set by the admin after
             // approval). Password is stored encrypted via the model cast.
             $table->string('sms_username')->nullable()->after('documents_reject_reason');
             $table->text('sms_password')->nullable()->after('sms_username');

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Contacts ↔ groups (docs/starter.md §17). A contact may belong to many groups;
- * on Melipayamak the memberships are pushed at contact-creation time as a
+ * on the provider the memberships are pushed at contact-creation time as a
  * comma-joined `groupIds` list.
  */
 return new class extends Migration

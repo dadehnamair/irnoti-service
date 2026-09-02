@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Outbox log for single SMS sent by a customer from the panel (docs/starter.md
- * §12). Sends go out through the customer's own Melipayamak credentials; this
+ * §12). Sends go out through the customer's own SMS panel credentials; this
  * table is our record of what left, its provider recId and delivery outcome.
  */
 return new class extends Migration

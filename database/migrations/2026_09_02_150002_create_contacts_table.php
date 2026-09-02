@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Customer phonebook contacts (docs/starter.md §14 / §17). Mirrored to the
- * customer's own Melipayamak panel (Contacts.asmx/AddContact2 / ChangeContact2);
- * `remote_id` is the Melipayamak ContactID. Melipayamak has no delete — a
+ * customer's own SMS panel (Contacts.asmx/AddContact2 / ChangeContact2);
+ * `remote_id` is the remote ContactID. The provider has no delete — a
  * removed contact is set inactive there (ChangeContact2 contactStatus=1) and
  * then deleted locally.
  */
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
-            $table->unsignedBigInteger('remote_id')->nullable(); // Melipayamak ContactID
+            $table->unsignedBigInteger('remote_id')->nullable(); // remote ContactID
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
             $table->string('mobile');

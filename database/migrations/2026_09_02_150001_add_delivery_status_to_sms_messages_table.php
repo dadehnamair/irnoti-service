@@ -6,10 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Delivery receipts for sent SMS (docs/starter.md §12/§14 "Delivery"). After a
- * message leaves the panel we poll Melipayamak's GetDelivery2
- * (https://www.melipayamak.com/api/getdelivery2/) on a schedule until the
- * outcome is final; these columns hold that outcome so a settled message is
- * never polled again.
+ * message leaves the panel we poll the provider's GetDelivery2 on a schedule
+ * until the outcome is final; these columns hold that outcome so a settled
+ * message is never polled again.
  */
 return new class extends Migration
 {

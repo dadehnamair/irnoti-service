@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * When a group's contacts were last pulled from Melipayamak (docs/starter.md §17).
+ * When a group's contacts were last pulled from the SMS provider (docs/starter.md §17).
  * Group import and per-group contact import are now separate steps.
  */
 return new class extends Migration

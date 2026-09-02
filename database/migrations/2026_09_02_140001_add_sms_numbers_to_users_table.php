@@ -5,10 +5,10 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Multiple dedicated sender numbers per customer (docs/starter.md §12). A
- * Melipayamak account can own several سرشماره; the list is pulled from the
- * GetUserNumbers API (https://www.melipayamak.com/api/getnumbers/) and cached
- * here. `sms_sender` keeps its meaning as the customer's selected default line.
+ * Multiple dedicated sender numbers per customer (docs/starter.md §12). An SMS
+ * panel account can own several سرشماره; the list is pulled from the
+ * GetUserNumbers API and cached here. `sms_sender` keeps its meaning as the
+ * customer's selected default line.
  */
 return new class extends Migration
 {

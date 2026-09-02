@@ -33,6 +33,13 @@ class FeatureCatalog
             ],
         ],
 
+        'marketplace' => [
+            'label' => 'بازارچه',
+            'items' => [
+                'marketplace.browse' => ['label' => 'بازارچه افزونه‌ها', 'route' => 'dashboard.marketplace', 'system' => true],
+            ],
+        ],
+
         'sms' => [
             'label' => 'ارسال پیامک',
             'items' => [
