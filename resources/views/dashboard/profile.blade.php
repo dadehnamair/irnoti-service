@@ -67,9 +67,10 @@
                     maxlength="120" placeholder="مدیرعامل، رئیس هیئت‌مدیره، …" />
                 @error('rep_role') <span class="field-error">{{ $message }}</span> @enderror
             </label>
-            <label data-when="individual">
-                <span>شرکت</span>
-                <input type="text" name="company" value="{{ old('company', $user->company) }}" maxlength="160" @readonly($lock) />
+            <label class="full">
+                <span data-label-for="legal" data-label-text="نام کامل شرکت *">شرکت</span>
+                <input type="text" name="company" value="{{ old('company', $user->company) }}" maxlength="200"
+                    @class(['has-error'=> $errors->has('company')]) @readonly($lock) />
                 @error('company') <span class="field-error">{{ $message }}</span> @enderror
             </label>
             <label>
@@ -103,12 +104,6 @@
             <h3>مشخصات و اطلاعات ثبتی شرکت</h3>
         </div>
         <div class="profile-grid" data-when="legal">
-            <label class="full">
-                <span>نام کامل شرکت *</span>
-                <input type="text" name="company" value="{{ old('company', $user->company) }}" maxlength="200"
-                    @class(['has-error'=> $errors->has('company')]) @readonly($lock) />
-                @error('company') <span class="field-error">{{ $message }}</span> @enderror
-            </label>
             <label>
                 <span>نوع شخصیت حقوقی *</span>
                 <select name="company_type" @class(['has-error'=> $errors->has('company_type')]) @disabled($lock)>

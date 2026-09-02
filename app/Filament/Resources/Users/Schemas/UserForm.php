@@ -82,11 +82,83 @@ class UserForm
                 Section::make('اطلاعات فردی')
                     ->columns(2)
                     ->schema([
-                        TextInput::make('first_name')->label('نام'),
-                        TextInput::make('last_name')->label('نام خانوادگی'),
-                        TextInput::make('company')->label('شرکت'),
+                        Select::make('account_type')
+                            ->label('نوع حساب')
+                            ->options(User::ACCOUNT_TYPES)
+                            ->default('individual')
+                            ->required()
+                            ->live(),
+
+                        TextInput::make('company')
+                            ->label(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal' ? 'نام کامل شرکت' : 'شرکت'),
+
+                        TextInput::make('first_name')
+                            ->label(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal' ? 'نام نماینده' : 'نام'),
+                        TextInput::make('last_name')
+                            ->label(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal' ? 'نام خانوادگی نماینده' : 'نام خانوادگی'),
+
+                        TextInput::make('rep_role')
+                            ->label('سمت نماینده')
+                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal'),
+
                         TextInput::make('email')->label('ایمیل')->email(),
                         TextInput::make('phone')->label('شماره تماس'),
+                    ]),
+
+                Section::make('مشخصات و اطلاعات ثبتی شرکت')
+                    ->description('فقط برای حساب حقوقی (docs/starter.md §26).')
+                    ->columns(2)
+                    ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal')
+                    ->schema([
+                        Select::make('company_type')
+                            ->label('نوع شخصیت حقوقی')
+                            ->options([
+                                'سهامی خاص' => 'سهامی خاص',
+                                'سهامی عام' => 'سهامی عام',
+                                'مسئولیت محدود' => 'مسئولیت محدود',
+                                'تعاونی' => 'تعاونی',
+                                'تضامنی' => 'تضامنی',
+                                'مؤسسه غیرتجاری' => 'مؤسسه غیرتجاری',
+                                'نسبی' => 'نسبی',
+                                'دولتی / عمومی' => 'دولتی / عمومی',
+                                'سایر' => 'سایر',
+                            ]),
+                        TextInput::make('company_national_id')->label('شناسه ملی شرکت'),
+                        TextInput::make('company_registration_number')->label('شماره ثبت'),
+                        TextInput::make('company_registered_at')->label('تاریخ ثبت')->placeholder('۱۴۰۲/۰۵/۱۷'),
+                        TextInput::make('company_economic_code')->label('کد اقتصادی'),
+                        TextInput::make('company_phone')->label('تلفن شرکت'),
+                        TextInput::make('company_postal_code')->label('کد پستی شرکت'),
+                        Textarea::make('company_address')->label('نشانی شرکت')->rows(2)->columnSpanFull(),
+
+                        FileUpload::make('company_registration_doc')
+                            ->label('آگهی تأسیس / روزنامه رسمی')
+                            ->disk('local')
+                            ->directory('identity')
+                            ->visibility('private')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+                            ->openable()
+                            ->downloadable(),
+
+                        FileUpload::make('company_changes_doc')
+                            ->label('آگهی آخرین تغییرات')
+                            ->disk('local')
+                            ->directory('identity')
+                            ->visibility('private')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+                            ->openable()
+                            ->downloadable(),
+
+                        FileUpload::make('company_extra_docs')
+                            ->label('مدارک اضافه')
+                            ->multiple()
+                            ->disk('local')
+                            ->directory('identity')
+                            ->visibility('private')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+                            ->openable()
+                            ->downloadable()
+                            ->columnSpanFull(),
                     ]),
 
                 Section::make('موقعیت و آدرس')
