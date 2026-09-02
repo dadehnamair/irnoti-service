@@ -198,11 +198,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background:
-        linear-gradient(
-            180deg,
-            var(--primary-soft-08),
-            transparent 120px
-        ),
+        linear-gradient(180deg, var(--primary-soft-08), transparent 120px),
         var(--panel);
     box-shadow: var(--shadow);
     backdrop-filter: blur(6px);
@@ -1307,6 +1303,18 @@ fieldset.wallet-topup-method {
     font-size: 0.85rem;
     font-weight: 600;
 }
+
+.account-form label.group-picker__option {
+    display: grid;
+    gap: 6px;
+    border: 1px solid #cccccc1f;
+    font-size: 0.85rem;
+    font-weight: 600;
+    grid-auto-flow: column;
+    align-content: space-between;
+    justify-content: space-between;
+}
+
 .account-form label.contact-form__check {
     display: flex;
     align-items: center;
@@ -1470,6 +1478,9 @@ fieldset.wallet-topup-method {
     border: 1px solid var(--border);
     padding: 0.1rem 0.45rem;
     border-radius: 99px;
+    width: 50px;
+    text-align: center;
+    line-height: 1rem;
 }
 .group-picker__flag {
     color: color-mix(in srgb, #ef4444 70%, var(--text));

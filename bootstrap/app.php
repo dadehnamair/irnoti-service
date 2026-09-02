@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountApproved;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -23,7 +24,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         // Panel features stay locked until an admin approves the account (docs/starter.md §39).
         $middleware->alias([
-            'approved' => \App\Http\Middleware\EnsureAccountApproved::class,
+            'approved' => EnsureAccountApproved::class,
         ]);
 
         // Customer auth entry points (docs/starter.md §26/§27).

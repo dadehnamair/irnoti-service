@@ -7,6 +7,7 @@ use App\Models\MarketplaceInstallation;
 use App\Models\Setting;
 use App\Models\User;
 use Database\Seeders\FeaturesSeeder;
+use Database\Seeders\MarketplaceAppsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -33,6 +34,18 @@ class MarketplaceInstallTest extends TestCase
     {
         Setting::updateOrCreate(['key' => $key], ['value' => $value, 'type' => 'bool', 'group' => 'commerce']);
         Cache::forget(Setting::CACHE_KEY);
+    }
+
+    public function test_seeder_is_idempotent_and_valid(): void
+    {
+        $this->seed(FeaturesSeeder::class);
+        $this->seed(MarketplaceAppsSeeder::class);
+        $this->seed(MarketplaceAppsSeeder::class);
+
+        $this->assertSame(4, MarketplaceApp::count());
+        $this->assertSame('feature_unlock', MarketplaceApp::where('slug', 'business-card')->value('handler'));
+        $this->assertContains('pro.business_card', MarketplaceApp::where('slug', 'business-card')->value('capabilities'));
+        $this->assertSame('subscription', MarketplaceApp::where('slug', 'irplus')->value('billing_type'));
     }
 
     public function test_catalogue_lists_only_active_apps(): void
