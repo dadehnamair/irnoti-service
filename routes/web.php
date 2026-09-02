@@ -11,6 +11,7 @@ use App\Http\Controllers\Dashboard\ContactGroupController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\InvoiceController;
 use App\Http\Controllers\Dashboard\LineOrderController as DashboardLineOrderController;
+use App\Http\Controllers\Dashboard\MarketplaceController;
 use App\Http\Controllers\Dashboard\PackageOrderController;
 use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
@@ -178,6 +179,24 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/packages/order/{order}', [PackageOrderController::class, 'show'])->name('package-orders.show');
     Route::get('/dashboard/packages/order/{order}/pay', [PackageOrderController::class, 'pay'])->name('package-orders.pay');
     Route::post('/dashboard/packages/order/{order}/wallet', [PackageOrderController::class, 'payFromWallet'])->name('package-orders.wallet');
+
+    /*
+     * «بازارچه افزونه‌ها» (docs/starter.md §15): the add-on catalogue + install /
+     * connect / pay / manage flow. Static `app/…`, `i/…` and `payment/callback`
+     * segments are declared before the {app:slug} wildcard. Behaviour per add-on
+     * lives in its handler class (config/marketplace.php).
+     */
+    Route::get('/dashboard/marketplace', [MarketplaceController::class, 'index'])->name('dashboard.marketplace');
+    Route::match(['get', 'post'], '/dashboard/marketplace/payment/callback', [MarketplaceController::class, 'callback'])->name('marketplace.payment.callback');
+    Route::get('/dashboard/marketplace/app/{app:slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
+    Route::post('/dashboard/marketplace/app/{app:slug}/install', [MarketplaceController::class, 'install'])->name('marketplace.install');
+    Route::get('/dashboard/marketplace/i/{installation:token}', [MarketplaceController::class, 'manage'])->name('marketplace.manage');
+    Route::post('/dashboard/marketplace/i/{installation:token}/sync', [MarketplaceController::class, 'sync'])
+        ->middleware('throttle:20,1')->name('marketplace.sync');
+    Route::post('/dashboard/marketplace/i/{installation:token}/config', [MarketplaceController::class, 'updateConfig'])->name('marketplace.config');
+    Route::post('/dashboard/marketplace/i/{installation:token}/wallet', [MarketplaceController::class, 'payFromWallet'])->name('marketplace.wallet');
+    Route::get('/dashboard/marketplace/i/{installation:token}/pay', [MarketplaceController::class, 'pay'])->name('marketplace.pay');
+    Route::delete('/dashboard/marketplace/i/{installation:token}', [MarketplaceController::class, 'uninstall'])->name('marketplace.uninstall');
 
     // Admin-issued invoices (docs/starter.md §22 / §51).
     Route::get('/dashboard/invoices', [InvoiceController::class, 'index'])->name('dashboard.invoices');
