@@ -6,6 +6,7 @@ use App\Models\User;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -151,8 +152,16 @@ class UserForm
                             ->helperText('برای حفظ رمز فعلی خالی بگذارید.'),
 
                         TextInput::make('sms_sender')
-                            ->label('شمارهٔ خط فرستنده')
-                            ->placeholder('مثلاً 3000xxxx'),
+                            ->label('سرشمارهٔ پیش‌فرض')
+                            ->placeholder('مثلاً 3000xxxx')
+                            ->helperText('خط فرستندهٔ پیش‌فرض؛ کاربر خودش می‌تواند از پنل تغییرش دهد.'),
+
+                        TagsInput::make('sms_numbers')
+                            ->label('سرشماره‌های شناخته‌شده')
+                            ->helperText('به‌صورت خودکار از ملی‌پیامک دریافت می‌شود.')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->columnSpanFull(),
                     ]),
             ]);
     }

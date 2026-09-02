@@ -16,6 +16,7 @@ class SmsMessage extends Model
     protected $fillable = [
         'user_id',
         'to',
+        'from',
         'body',
         'parts',
         'rec_id',

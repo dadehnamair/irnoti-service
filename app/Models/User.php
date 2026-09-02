@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\Sms\UserSmsGateway;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable implements FilamentUser
@@ -77,6 +80,8 @@ class User extends Authenticatable implements FilamentUser
         'sms_username',
         'sms_password',
         'sms_sender',
+        'sms_numbers',
+        'sms_numbers_synced_at',
         'sms_credit',
     ];
 
@@ -105,6 +110,8 @@ class User extends Authenticatable implements FilamentUser
             'profile_completed_at' => 'datetime',
             'approved_at' => 'datetime',
             'documents_reviewed_at' => 'datetime',
+            'sms_numbers' => 'array',
+            'sms_numbers_synced_at' => 'datetime',
             'sms_credit' => 'integer',
             // NOT hashed / NOT encrypted — Melipayamak's SendSMS API needs the raw
             // panel password, and the admin sets this value straight in the DB
@@ -213,6 +220,67 @@ class User extends Authenticatable implements FilamentUser
     public function hasSmsPanel(): bool
     {
         return filled($this->sms_username) && filled($this->sms_password);
+    }
+
+    /**
+     * The customer's live Melipayamak panel credit (docs/starter.md §12),
+     * cached for 60s under "sms_credit:{id}". Returns
+     * ['sms' => ?int, 'rial' => ?int, 'error' => ?string] and never throws —
+     * a failed read comes back as `error`, nulls elsewhere. Shared by the SMS
+     * panel page and the account sidebar card. `rial` is a Rial amount; render
+     * it through rial_to_toman() — the UI only ever shows Toman.
+     *
+     * @return array{sms: ?int, rial: ?int, error: ?string}
+     */
+    public function smsPanelCredit(): array
+    {
+        $empty = ['sms' => null, 'rial' => null, 'error' => null];
+
+        if (! $this->hasSmsPanel()) {
+            return $empty;
+        }
+
+        $cached = Cache::get("sms_credit:{$this->id}");
+
+        if (is_array($cached)) {
+            return ['sms' => $cached['sms'] ?? null, 'rial' => $cached['rial'] ?? null, 'error' => null];
+        }
+
+        try {
+            $gateway = UserSmsGateway::for($this);
+            $sms = $gateway->credit();
+            $rial = $gateway->creditRial();
+
+            // Only cache a real read, never a failure.
+            Cache::put("sms_credit:{$this->id}", ['sms' => $sms, 'rial' => $rial], now()->addSeconds(60));
+
+            return ['sms' => $sms, 'rial' => $rial, 'error' => null];
+        } catch (\Throwable $e) {
+            Log::warning('SMS credit read failed', ['user' => $this->id, 'error' => $e->getMessage()]);
+
+            return ['sms' => null, 'rial' => null, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * The sender lines (سرشماره) this customer may send from — the list cached
+     * from Melipayamak's GetUserNumbers, falling back to the single configured
+     * default when the list hasn't been synced yet (docs/starter.md §12).
+     *
+     * @return array<int, string>
+     */
+    public function availableSmsNumbers(): array
+    {
+        $list = array_values(array_filter((array) ($this->sms_numbers ?? [])));
+
+        return $list ?: array_values(array_filter([$this->sms_sender]));
+    }
+
+    /** The cached sender-number list is missing or older than a day. */
+    public function smsNumbersAreStale(): bool
+    {
+        return $this->sms_numbers_synced_at === null
+            || $this->sms_numbers_synced_at->lt(now()->subDay());
     }
 
     public function getDocumentsStatusLabelAttribute(): string

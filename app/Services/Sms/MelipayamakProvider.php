@@ -86,6 +86,35 @@ class MelipayamakProvider implements SmsProviderInterface
     }
 
     /**
+     * The dedicated sender numbers on this account
+     * (https://www.melipayamak.com/api/getnumbers/). Only the username/password
+     * mode can report them; api_key mode has no equivalent and returns [].
+     *
+     * @return array<int, string>
+     */
+    public function numbers(): array
+    {
+        if (! $this->usesCredentials()) {
+            return [];
+        }
+
+        // Users.asmx/GetUserNumbers replies with an ArrayOfString, not a scalar.
+        $strings = $this->xmlStrings($this->soapBody('Users.asmx/GetUserNumbers', []));
+
+        $numbers = [];
+
+        foreach ($strings as $value) {
+            $digits = preg_replace('/\D+/', '', $value) ?? '';
+
+            if ($digits !== '') {
+                $numbers[$digits] = $digits; // de-dupe
+            }
+        }
+
+        return array_values($numbers);
+    }
+
+    /**
      * Remaining credit as a number of SMS
      * (https://www.melipayamak.com/api/getcredit/). Send.asmx/GetCredit returns
      * the count for valid credentials and "0" for invalid ones — so a 0 is
@@ -152,6 +181,18 @@ class MelipayamakProvider implements SmsProviderInterface
      */
     private function soap(string $method, array $params): string
     {
+        return $this->xmlScalar($this->soapBody($method, $params));
+    }
+
+    /**
+     * POST a form to an api.payamak-panel.com ASMX method and return its raw
+     * response body. Used directly when the reply is a list rather than a scalar
+     * ({@see xmlStrings()}).
+     *
+     * @param  array<string, mixed>  $params
+     */
+    private function soapBody(string $method, array $params): string
+    {
         $payload = array_merge([
             'username' => $this->config['username'] ?? '',
             'password' => $this->config['password'] ?? '',
@@ -165,12 +206,10 @@ class MelipayamakProvider implements SmsProviderInterface
             throw new RuntimeException('اتصال به سرور ملی‌پیامک برقرار نشد: '.$e->getMessage());
         }
 
-        $scalar = $this->xmlScalar($response->body());
-
         Log::debug('[sms:melipayamak] '.$method, [
             'sent' => ['username' => $payload['username']] + array_diff_key($payload, ['username' => 1, 'password' => 1]),
             'http' => $response->status(),
-            'value' => $scalar,
+            'value' => mb_substr($response->body(), 0, 300),
         ]);
 
         if ($response->failed()) {
@@ -181,7 +220,7 @@ class MelipayamakProvider implements SmsProviderInterface
             ));
         }
 
-        return $scalar;
+        return $response->body();
     }
 
     /** Inner text of a .NET ASMX scalar response, or the trimmed body if it isn't wrapped. */
@@ -192,6 +231,24 @@ class MelipayamakProvider implements SmsProviderInterface
         }
 
         return trim(strip_tags($body));
+    }
+
+    /**
+     * Inner text of every `<string>…</string>` node in an ASMX ArrayOfString
+     * response (Users.asmx/GetUserNumbers).
+     *
+     * @return array<int, string>
+     */
+    private function xmlStrings(string $body): array
+    {
+        if (! preg_match_all('~<string[^>]*>(.*?)</string>~s', $body, $m)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn ($v) => trim(html_entity_decode($v)),
+            $m[1],
+        ), static fn ($v) => $v !== ''));
     }
 
     /** SendSimpleSMS2 returns a long recId on success, or a small/zero/negative status code. */

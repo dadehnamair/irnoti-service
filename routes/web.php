@@ -172,6 +172,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard/sms', [SmsController::class, 'index'])->name('dashboard.sms');
         Route::post('/dashboard/sms', [SmsController::class, 'send'])
             ->middleware('throttle:20,1')->name('dashboard.sms.send');
+        Route::post('/dashboard/sms/senders/refresh', [SmsController::class, 'refreshNumbers'])
+            ->middleware('throttle:10,1')->name('dashboard.sms.numbers.refresh');
+        Route::post('/dashboard/sms/senders/default', [SmsController::class, 'setDefaultSender'])
+            ->name('dashboard.sms.numbers.default');
 
         Route::get('/dashboard/lines', [DashboardLineOrderController::class, 'index'])->name('dashboard.lines');
         Route::get('/dashboard/lines/{line}/checkout', [DashboardLineOrderController::class, 'checkout'])->name('dashboard.lines.checkout');

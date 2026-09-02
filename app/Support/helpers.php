@@ -50,3 +50,16 @@ if (! function_exists('toman')) {
         return $withUnit ? $formatted.' تومان' : $formatted;
     }
 }
+
+if (! function_exists('rial_to_toman')) {
+    /**
+     * Convert a Rial amount to integer Toman for display. Some upstreams (the
+     * Melipayamak panel API, GetUserCredit2) only speak Rial; the whole UI
+     * shows Toman, so every such value passes through here first. Integer
+     * division — never a float, never a fractional Toman.
+     */
+    function rial_to_toman(mixed $rial): int
+    {
+        return intdiv((int) $rial, 10);
+    }
+}

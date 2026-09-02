@@ -23,9 +23,14 @@ class SmsManager
         private readonly ?string $senderOverride = null,
     ) {}
 
-    public function send(string $to, string $message): ?string
+    /**
+     * @param  string|null  $from  Sender line for this one message — a سرشماره the
+     *                             customer picked in the panel. Falls back to the
+     *                             manager's configured sender.
+     */
+    public function send(string $to, string $message, ?string $from = null): ?string
     {
-        return $this->provider->send($this->normalize($to), $message, $this->sender());
+        return $this->provider->send($this->normalize($to), $message, $from ?: $this->sender());
     }
 
     /** @param  array<int, string>  $variables */
@@ -37,6 +42,17 @@ class SmsManager
     public function deliveryStatus(string $recId): ?string
     {
         return $this->provider->deliveryStatus($recId);
+    }
+
+    /**
+     * The dedicated sender numbers (سرشماره) the wrapped account owns, or an
+     * empty list when the driver can't report them.
+     *
+     * @return array<int, string>
+     */
+    public function numbers(): array
+    {
+        return $this->provider->numbers();
     }
 
     /** Remaining panel credit (SMS count), or null when the driver can't report it. */

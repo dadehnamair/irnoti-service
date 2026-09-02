@@ -52,7 +52,7 @@ class SmsPanelCheck extends Command
 
             $this->info('اتصال موفق.');
             $this->line('اعتبار (تعداد پیامک): '.number_format((int) $credit));
-            $this->line('اعتبار ریالی: '.($rial === null ? 'در دسترس نیست' : number_format($rial).' ریال'));
+            $this->line('اعتبار ریالی: '.($rial === null ? 'در دسترس نیست' : number_format(rial_to_toman($rial)).' تومان'));
 
             return self::SUCCESS;
         } catch (\Throwable $e) {

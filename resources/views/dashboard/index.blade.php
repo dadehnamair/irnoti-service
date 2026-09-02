@@ -59,15 +59,8 @@
                     <strong>@jdate($user->plan_expires_at)</strong>
                 </div>
             @endif
-            <div class="account-stat">
-                <span>موجودی کیف پول</span>
-                <strong>@toman($user->walletBalance()) تومان</strong>
-            </div>
-            <div class="account-stat">
-                <span>اعتبار پیامکی</span>
-                <strong>@toman($user->sms_credit) پیامک</strong>
-            </div>
         </div>
+        {{-- موجودی کیف پول و اعتبار پیامکی حالا در کارت کناری (سایدبار) نمایش داده می‌شوند. --}}
 
         @if ($user->documents_status === 'rejected' && $user->documents_reject_reason)
             <p class="account-inline-note is-danger">

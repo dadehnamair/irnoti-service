@@ -177,20 +177,173 @@
     max-width: 1040px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 244px 1fr;
     gap: 28px;
     padding: 40px 20px 64px;
 }
 
-.account-nav {
+.account-side {
     display: grid;
-    gap: 4px;
+    gap: 16px;
     align-content: start;
     position: sticky;
     top: 90px;
 }
 
+.account-nav {
+    display: grid;
+    gap: 18px;
+    align-content: start;
+}
+
+/* ---- Sidebar credit / identity card (docs/starter.md §15/§23) ---- */
+
+.credit-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    padding: 18px;
+    color: #fff;
+    background:
+        radial-gradient(120% 120% at 100% 0, color-mix(in srgb, var(--secondary) 55%, transparent), transparent 58%),
+        linear-gradient(150deg, color-mix(in srgb, var(--primary) 92%, #000), color-mix(in srgb, var(--primary) 52%, #140b26));
+    box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+.credit-card__glow {
+    position: absolute;
+    inset: auto -35% -55% auto;
+    width: 210px;
+    height: 210px;
+    background: radial-gradient(circle, color-mix(in srgb, #fff 22%, transparent), transparent 70%);
+    pointer-events: none;
+}
+
+.credit-card__head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.credit-card__avatar {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.credit-card__id {
+    display: grid;
+    min-width: 0;
+    line-height: 1.45;
+}
+
+.credit-card__id strong {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.credit-card__id span {
+    font-size: 0.76rem;
+    opacity: 0.72;
+}
+
+.credit-card__body {
+    position: relative;
+    margin-top: 16px;
+}
+
+.credit-card__label {
+    display: block;
+    font-size: 0.76rem;
+    opacity: 0.82;
+}
+
+.credit-card__amount {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 2px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.credit-card__unit {
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.credit-card__meta {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.74rem;
+    opacity: 0.7;
+}
+
+.credit-card__mark {
+    position: absolute;
+    inset-block-start: -2px;
+    inset-inline-end: 0;
+    width: 38px;
+    height: 38px;
+    opacity: 0.55;
+}
+
+.credit-card__foot {
+    position: relative;
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.credit-card__foot a {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    transition: background 0.15s ease;
+}
+
+.credit-card__foot a:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.account-nav__group {
+    display: grid;
+    gap: 4px;
+}
+
+.account-nav__group--footer {
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.account-nav__label {
+    padding: 0 0.9rem 2px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+}
+
 .account-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     padding: 0.7rem 0.9rem;
     border-radius: 12px;
     color: var(--text-soft);
@@ -203,7 +356,17 @@
     color: color-mix(in srgb, var(--primary) 30%, #fff);
 }
 
+.account-nav svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    opacity: 0.8;
+}
+
 .account-nav form button {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     width: 100%;
     text-align: start;
     background: none;
@@ -372,10 +535,35 @@
         grid-template-columns: 1fr;
     }
 
+    .account-side {
+        position: static;
+    }
+
     .account-nav {
         position: static;
+        gap: 10px;
+    }
+
+    .account-nav__label {
+        display: none;
+    }
+
+    .account-nav__group {
         grid-auto-flow: column;
+        justify-content: start;
+        gap: 6px;
         overflow-x: auto;
+    }
+
+    .account-nav__group--footer {
+        margin-top: 0;
+        padding-top: 10px;
+    }
+
+    .account-nav a,
+    .account-nav form {
+        flex: none;
+        white-space: nowrap;
     }
 }
 
@@ -399,6 +587,37 @@
     margin-top: 4px;
     font-size: 0.76rem;
     color: var(--muted);
+}
+
+/* Sender-number (سرشماره) picker on the SMS panel */
+.sender-list {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.sender-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.sender-option:has(input:checked) {
+    border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+    background: var(--primary-soft-12);
+}
+
+.sender-option input {
+    accent-color: var(--primary);
+}
+
+.sender-option .account-badge {
+    margin-inline-start: auto;
 }
 
 .profile-grid input.has-error,

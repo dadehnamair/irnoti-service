@@ -35,18 +35,18 @@
                 </div>
                 @if (!is_null($creditRial))
                     <div class="account-stat">
-                        <span>اعتبار ریالی</span>
-                        <strong>{{ number_format($creditRial) }} ریال</strong>
+                        <span>اعتبار ریالی پنل</span>
+                        <strong>@toman(rial_to_toman($creditRial)) تومان</strong>
                     </div>
                 @endif
                 <div class="account-stat">
                     <span>نام کاربری پنل</span>
                     <strong dir="ltr">{{ $user->sms_username }}</strong>
                 </div>
-                @if ($user->sms_sender)
+                @if ($defaultSender)
                     <div class="account-stat">
-                        <span>خط فرستنده</span>
-                        <strong dir="ltr">{{ $user->sms_sender }}</strong>
+                        <span>سرشمارهٔ پیش‌فرض</span>
+                        <strong dir="ltr">{{ $defaultSender }}</strong>
                     </div>
                 @endif
             </div>
@@ -55,11 +55,66 @@
             </div>
         </div>
 
+        <div class="account-card" id="senders">
+            <h2>سرشماره‌های فرستنده</h2>
+            <p class="auth-sub">
+                فهرست خطوط اختصاصی حساب ملی‌پیامک شما. یکی را به‌عنوان پیش‌فرض انتخاب کنید؛ هنگام
+                ارسال هم می‌توانید سرشمارهٔ دیگری را انتخاب کنید.
+            </p>
+
+            @if (empty($numbers))
+                <p class="auth-sub">هنوز سرشماره‌ای دریافت نشده است. دکمهٔ زیر را بزنید.</p>
+            @else
+                <form method="POST" action="{{ route('dashboard.sms.numbers.default') }}" class="profile-form">
+                    @csrf
+                    <div class="sender-list">
+                        @foreach ($numbers as $number)
+                            <label class="sender-option">
+                                <input type="radio" name="from" value="{{ $number }}"
+                                    @checked($number === $defaultSender) />
+                                <span dir="ltr">{{ $number }}</span>
+                                @if ($number === $defaultSender)
+                                    <span class="account-badge is-ok">پیش‌فرض</span>
+                                @endif
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('from') <span class="field-error">{{ $message }}</span> @enderror
+                    <div class="profile-actions">
+                        <span></span>
+                        <button type="submit" class="btn btn-primary">ذخیره به‌عنوان پیش‌فرض</button>
+                    </div>
+                </form>
+            @endif
+
+            <form method="POST" action="{{ route('dashboard.sms.numbers.refresh') }}" style="margin-top:12px">
+                @csrf
+                <button type="submit" class="btn btn-ghost">به‌روزرسانی از ملی‌پیامک</button>
+                @if ($numbersSyncedAt)
+                    <span class="field-hint">آخرین به‌روزرسانی: @jdatetime($numbersSyncedAt)</span>
+                @endif
+            </form>
+        </div>
+
         <div class="account-card">
             <h2>ارسال پیامک تکی</h2>
 
             <form method="POST" action="{{ route('dashboard.sms.send') }}" class="profile-form" data-sms-form>
                 @csrf
+                @if (count($numbers) > 1)
+                    <label>
+                        <span>سرشماره فرستنده</span>
+                        <select name="from" dir="ltr" @class(['has-error' => $errors->has('from')])>
+                            @foreach ($numbers as $number)
+                                <option value="{{ $number }}"
+                                    @selected(old('from', $defaultSender) === $number)>{{ $number }}</option>
+                            @endforeach
+                        </select>
+                        @error('from') <span class="field-error">{{ $message }}</span> @enderror
+                    </label>
+                @elseif (count($numbers) === 1)
+                    <input type="hidden" name="from" value="{{ $numbers[0] }}" />
+                @endif
                 <label>
                     <span>شمارهٔ گیرنده *</span>
                     <input type="tel" name="to" value="{{ old('to') }}" dir="ltr" inputmode="tel"
@@ -90,6 +145,7 @@
                         <thead>
                             <tr>
                                 <th>تاریخ</th>
+                                <th>سرشماره</th>
                                 <th>گیرنده</th>
                                 <th>متن</th>
                                 <th>تعداد</th>
@@ -100,6 +156,7 @@
                             @foreach ($messages as $msg)
                                 <tr>
                                     <td>@jdatetime($msg->created_at)</td>
+                                    <td dir="ltr">{{ $msg->from ?: '—' }}</td>
                                     <td dir="ltr">{{ $msg->to }}</td>
                                     <td>{{ \Illuminate\Support\Str::limit($msg->body, 40) }}</td>
                                     <td>{{ $msg->parts }}</td>

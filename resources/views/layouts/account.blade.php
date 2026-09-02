@@ -31,41 +31,10 @@ $primary = config('theme.primary');
 
         <main>
             <div class="account-layout">
-                <nav class="account-nav" aria-label="ناوبری پنل کاربری">
-                    <a href="{{ route('dashboard') }}" @class(['is-active'=> request()->routeIs('dashboard')])>خلاصه حساب</a>
-                    @if (Route::has('dashboard.profile'))
-                    <a href="{{ route('dashboard.profile') }}" @class(['is-active'=> request()->routeIs('dashboard.profile*')])>تکمیل اطلاعات</a>
-                    @endif
-                    @if (Route::has('dashboard.plans'))
-                    <a href="{{ route('dashboard.plans') }}" @class(['is-active'=> request()->routeIs('dashboard.plan*') || request()->routeIs('subscriptions.*')])>پلن و اشتراک</a>
-                    @endif
-                    @if (Route::has('dashboard.wallet'))
-                    <a href="{{ route('dashboard.wallet') }}" @class(['is-active'=> request()->routeIs('dashboard.wallet') || request()->routeIs('wallet.*')])>کیف پول</a>
-                    @endif
-                    @if (Route::has('dashboard.transactions'))
-                    <a href="{{ route('dashboard.transactions') }}" @class(['is-active'=> request()->routeIs('dashboard.transactions')])>سوابق مالی</a>
-                    @endif
-                    @if (Route::has('dashboard.packages'))
-                    <a href="{{ route('dashboard.packages') }}" @class(['is-active'=> request()->routeIs('dashboard.packages*') || request()->routeIs('package-orders.*')])>بسته پیامکی</a>
-                    @endif
-                    @if (Route::has('dashboard.invoices'))
-                    <a href="{{ route('dashboard.invoices') }}" @class(['is-active'=> request()->routeIs('dashboard.invoices*')])>صورت‌حساب‌ها</a>
-                    @endif
-                    @if (Route::has('dashboard.receipts'))
-                    <a href="{{ route('dashboard.receipts') }}" @class(['is-active'=> request()->routeIs('dashboard.receipts*')])>فیش‌های بانکی</a>
-                    @endif
-                    @if (Route::has('dashboard.sms'))
-                    <a href="{{ route('dashboard.sms') }}" @class(['is-active'=> request()->routeIs('dashboard.sms*')])>ارسال پیامک</a>
-                    @endif
-                    @if (Route::has('dashboard.lines'))
-                    <a href="{{ route('dashboard.lines') }}" @class(['is-active'=> request()->routeIs('dashboard.lines*')])>خرید خط</a>
-                    @endif
-                    <a href="https://vip.irnoti.com" target="_blank">ورود به پنل VIP</a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit">خروج</button>
-                    </form>
-                </nav>
+                <div class="account-side">
+                    @include('partials.account-credit-card')
+                    @include('dashboard.partials.nav')
+                </div>
 
                 <section class="account-panel">
                     @yield('content')

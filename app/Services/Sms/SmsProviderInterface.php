@@ -27,6 +27,15 @@ interface SmsProviderInterface
     public function deliveryStatus(string $recId): ?string;
 
     /**
+     * The dedicated sender numbers (سرشماره) this account owns, as digit strings
+     * (https://www.melipayamak.com/api/getnumbers/). Empty when the driver can't
+     * report them (docs/starter.md §12).
+     *
+     * @return array<int, string>
+     */
+    public function numbers(): array;
+
+    /**
      * Remaining panel credit as a number of SMS, or null when the driver can't
      * report it (docs/starter.md §12). Shown in the customer panel.
      */
