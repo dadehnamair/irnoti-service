@@ -33,11 +33,15 @@
             <label>
                 <span>شماره موبایل</span>
                 <input type="tel" name="mobile" value="{{ old('mobile') }}" required
-                    inputmode="numeric" dir="ltr" autocomplete="tel" placeholder="09xxxxxxxxx" maxlength="13" />
+                    inputmode="numeric" dir="ltr" autocomplete="tel" placeholder="09xxxxxxxxx" maxlength="13"
+                    @class(['has-error' => $errors->has('mobile')]) />
+                @error('mobile') <span class="field-error">{{ $message }}</span> @enderror
             </label>
             <label>
                 <span>رمز عبور</span>
-                <input type="password" name="password" autocomplete="current-password" />
+                <input type="password" name="password" autocomplete="current-password"
+                    @class(['has-error' => $errors->has('password')]) />
+                @error('password') <span class="field-error">{{ $message }}</span> @enderror
             </label>
 
             <div class="auth-inline">

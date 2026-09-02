@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Services\Sms\UserSmsGateway;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * One single SMS a customer sent from the panel (docs/starter.md §12). The send
- * goes through the customer's own Melipayamak credentials ({@see \App\Services\Sms\UserSmsGateway});
+ * goes through the customer's own Melipayamak credentials ({@see UserSmsGateway});
  * this row records the outcome.
  */
 class SmsMessage extends Model

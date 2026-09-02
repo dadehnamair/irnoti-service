@@ -3,6 +3,7 @@
 namespace Tests\Feature\Dashboard;
 
 use App\Jobs\SendSmsJob;
+use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -105,10 +106,59 @@ class ProfileCompletionTest extends TestCase
 
         $user->refresh();
         $this->assertNotNull($user->profile_completed_at);
-        $this->assertSame('active', $user->status);
+        // No plan yet → account is not ready for approval, stays pending (docs/starter.md §39).
+        $this->assertSame('pending', $user->status);
+        $this->assertSame('pending', $user->documents_status);
         $this->assertNotNull($user->national_card_image);
         Storage::disk('local')->assertExists($user->national_card_image);
 
         Bus::assertDispatched(SendSmsJob::class);
+    }
+
+    public function test_profile_plus_plan_moves_account_to_awaiting_approval(): void
+    {
+        $plan = Plan::create([
+            'name' => 'پلن تست', 'slug' => 'test-plan', 'price_monthly' => 990000, 'duration_days' => 30, 'is_active' => true,
+        ]);
+        $user = User::factory()->create([
+            'status' => 'pending',
+            'profile_completed_at' => null,
+            'plan_id' => $plan->id,
+            'plan_expires_at' => now()->addYear(),
+        ]);
+
+        Storage::fake('local');
+
+        $this->actingAs($user)
+            ->put(route('dashboard.profile.update', ['step' => 3]), [
+                'national_code' => '0012345678',
+                'national_card_image' => UploadedFile::fake()->image('front.jpg'),
+            ])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertSame('awaiting_approval', $user->fresh()->status);
+    }
+
+    public function test_identity_fields_are_locked_after_approval(): void
+    {
+        $user = User::factory()->create([
+            'status' => 'active',
+            'approved_at' => now(),
+            'first_name' => 'علی',
+            'last_name' => 'رضایی',
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('dashboard.profile.update', ['step' => 1]), [
+                'first_name' => 'حسن',
+                'last_name' => 'کریمی',
+                'company' => 'شرکت تازه',
+            ])
+            ->assertRedirect(route('dashboard.profile.step', ['step' => 2]));
+
+        $user->refresh();
+        $this->assertSame('علی', $user->first_name);
+        $this->assertSame('رضایی', $user->last_name);
+        $this->assertSame('شرکت تازه', $user->company);
     }
 }

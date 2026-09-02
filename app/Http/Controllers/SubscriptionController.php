@@ -104,7 +104,7 @@ class SubscriptionController extends Controller
             return $this->purchaseViaGateway(
                 (int) $subscription->price,
                 route('subscriptions.payment.callback'),
-                fn($transactionId) => $subscription->update([
+                fn ($transactionId) => $subscription->update([
                     'transaction_id' => $transactionId,
                     'payment_driver' => config('payment.default'),
                 ]),
@@ -122,7 +122,7 @@ class SubscriptionController extends Controller
         $transactionId = $this->gatewayTransactionId($request);
 
         $subscription = Subscription::query()
-            ->when($transactionId, fn($q) => $q->where('transaction_id', $transactionId))
+            ->when($transactionId, fn ($q) => $q->where('transaction_id', $transactionId))
             ->latest('id')
             ->first();
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Dashboard\LineOrderController;
 use App\Models\LineOrder;
 use App\Models\Setting;
 use App\Models\SmsLine;
@@ -10,6 +11,7 @@ use App\Support\OperationNotifier;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Shetabit\Multipay\Exceptions\InvalidPaymentException;
@@ -39,11 +41,11 @@ class LineController extends Controller
     /**
      * Group a line collection by prefix into the tab structure the catalogue
      * views expect. Shared by the public /lines page and the in-panel version
-     * ({@see \App\Http\Controllers\Dashboard\LineOrderController}).
+     * ({@see LineOrderController}).
      *
-     * @param  \Illuminate\Support\Collection<int, SmsLine>  $lines
+     * @param  Collection<int, SmsLine>  $lines
      */
-    public static function groupLines($lines): \Illuminate\Support\Collection
+    public static function groupLines($lines): Collection
     {
         return $lines->groupBy('prefix')
             ->map(fn ($items, $prefix) => [

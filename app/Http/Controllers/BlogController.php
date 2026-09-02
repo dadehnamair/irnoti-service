@@ -24,7 +24,7 @@ class BlogController extends Controller
         return view('blog.index', [
             'posts' => $posts,
             'categories' => $this->sidebarCategories(),
-            'heading' => 'بلاگ ' . config('theme.brand'),
+            'heading' => 'بلاگ '.config('theme.brand'),
             'intro' => 'راهنماها و تحلیل‌های کاربردی دربارهٔ بازاریابی پیامکی، افزایش فروش و ارتباط با مشتری.',
             'crumb' => null,
         ]);
@@ -46,7 +46,7 @@ class BlogController extends Controller
             'heading' => $model->name,
             'intro' => $model->description,
             'crumb' => $model->name,
-            'metaTitle' => $model->meta_title ?: ('مقالات ' . $model->name),
+            'metaTitle' => $model->meta_title ?: ('مقالات '.$model->name),
             'metaDescription' => $model->meta_description ?: $model->description,
         ]);
     }
@@ -64,7 +64,7 @@ class BlogController extends Controller
         return view('blog.index', [
             'posts' => $posts,
             'categories' => $this->sidebarCategories(),
-            'heading' => 'برچسب: ' . $model->name,
+            'heading' => 'برچسب: '.$model->name,
             'intro' => null,
             'crumb' => $model->name,
         ]);
@@ -114,7 +114,7 @@ class BlogController extends Controller
         $self = route('blog.feed');
         $updated = optional(optional($posts->first())->published_date)->toRfc2822String();
 
-        $items = $posts->map(function (BlogPost $post) use ($site) {
+        $items = $posts->map(function (BlogPost $post) {
             $url = route('blog.show', $post->slug);
             $desc = htmlspecialchars($post->meta_description_value, ENT_QUOTES);
             $date = optional($post->published_date)->toRfc2822String();

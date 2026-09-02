@@ -3,6 +3,27 @@
 @section('title', 'خلاصه حساب')
 
 @section('content')
+    @if (session('gate_notice'))
+        <div class="account-banner is-warn">{{ session('gate_notice') }}</div>
+    @endif
+    @if (session('auth_status'))
+        <div class="account-banner is-ok">{{ session('auth_status') }}</div>
+    @endif
+
+    @php($status = $user->status)
+    @if ($status === 'pending')
+        <div class="account-banner is-warn">
+            اطلاعات حساب شما کامل نیست. برای فعال‌سازی امکانات، ابتدا اطلاعات را تکمیل کنید و یک پلن انتخاب کنید.
+        </div>
+    @elseif ($status === 'awaiting_approval')
+        <div class="account-banner is-info">
+            اطلاعات و پلن شما ثبت شده و حساب در <strong>انتظار تأیید کارشناسان</strong> است. پس از تأیید،
+            ارسال پیامک و خرید خط برایتان فعال می‌شود.
+        </div>
+    @elseif ($user->isApproved())
+        <div class="account-banner is-ok">حساب شما فعال است.</div>
+    @endif
+
     <div class="account-card">
         <h2>خوش آمدید، {{ $user->full_name }}</h2>
         <div class="account-stat-grid">
@@ -25,14 +46,19 @@
                 </strong>
             </div>
             <div class="account-stat">
-                <span>پلن فعال</span>
+                <span>وضعیت مدارک</span>
                 <strong>
-                    @if ($user->plan)
-                        {{ $user->plan->name }}
-                    @else
-                        —
-                    @endif
+                    @php($docClass = match ($user->documents_status) {
+                        'approved' => 'account-badge is-ok',
+                        'rejected' => 'account-badge is-danger',
+                        default => 'account-badge is-warn',
+                    })
+                    <span class="{{ $docClass }}">{{ $user->documents_status_label }}</span>
                 </strong>
+            </div>
+            <div class="account-stat">
+                <span>پلن فعال</span>
+                <strong>{{ $user->plan?->name ?? '—' }}</strong>
             </div>
             @if ($user->plan_expires_at)
                 <div class="account-stat">
@@ -41,15 +67,42 @@
                 </div>
             @endif
         </div>
+
+        @if ($user->documents_status === 'rejected' && $user->documents_reject_reason)
+            <p class="account-inline-note is-danger">
+                دلیل رد مدارک: {{ $user->documents_reject_reason }} —
+                <a href="{{ route('dashboard.profile.step', ['step' => 3]) }}">بارگذاری مجدد مدارک</a>
+            </p>
+        @endif
     </div>
 
     @unless ($user->isProfileComplete())
         <div class="account-card">
             <h2>اطلاعات حساب خود را تکمیل کنید</h2>
             <p class="auth-sub">برای استفاده از همهٔ سرویس‌ها، اطلاعات هویتی و آدرس را در چند مرحله وارد کنید.</p>
-            @if (Route::has('dashboard.profile'))
-                <a class="btn btn-primary" href="{{ route('dashboard.profile') }}">شروع تکمیل اطلاعات</a>
-            @endif
+            <a class="btn btn-primary" href="{{ route('dashboard.profile') }}">شروع تکمیل اطلاعات</a>
         </div>
     @endunless
+
+    @if ($user->isApproved() && $user->hasSmsPanel())
+        <div class="account-card">
+            <h2>پنل پیامک</h2>
+            <p class="auth-sub">اعتبار و ارسال تکی را از بخش «ارسال پیامک» مدیریت کنید.</p>
+            <a class="btn btn-secondary" href="{{ route('dashboard.sms') }}">رفتن به ارسال پیامک</a>
+        </div>
+    @endif
+
+    @if ($user->lineOrders()->exists())
+        <div class="account-card">
+            <h2>سفارش‌های خط من</h2>
+            <ul class="account-list">
+                @foreach ($user->lineOrders()->latest()->limit(5)->get() as $order)
+                    <li>
+                        <a href="{{ route('dashboard.lines.show', $order) }}">{{ $order->line_label }}</a>
+                        <span class="account-badge is-warn">{{ $order->status_label }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 @endsection

@@ -39,6 +39,12 @@ $primary = config('theme.primary');
                     @if (Route::has('dashboard.plans'))
                     <a href="{{ route('dashboard.plans') }}" @class(['is-active'=> request()->routeIs('dashboard.plan*')])>پلن و اشتراک</a>
                     @endif
+                    @if (Route::has('dashboard.sms'))
+                    <a href="{{ route('dashboard.sms') }}" @class(['is-active'=> request()->routeIs('dashboard.sms*')])>ارسال پیامک</a>
+                    @endif
+                    @if (Route::has('dashboard.lines'))
+                    <a href="{{ route('dashboard.lines') }}" @class(['is-active'=> request()->routeIs('dashboard.lines*')])>خرید خط</a>
+                    @endif
                     <a href="https://vip.irnoti.com" target="_blank">ورود به پنل VIP</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

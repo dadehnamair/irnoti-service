@@ -19,25 +19,44 @@
             </p>
         @endif
 
-        <div class="account-stat-grid">
+        <div class="period-switch" role="group" aria-label="دورهٔ صورت‌حساب" data-period-switch>
+            <button type="button" class="is-active" data-period="monthly">ماهانه</button>
+            <button type="button" data-period="yearly">سالانه</button>
+        </div>
+
+        <div class="account-stat-grid" data-plan-grid>
             @forelse ($plans as $plan)
+                @php($yearly = $plan->price_yearly ?? $plan->price_monthly * 12)
                 <div class="account-stat">
                     <span>{{ $plan->name }}</span>
-                    <strong>
+                    <strong class="plan-price"
+                        data-monthly="{{ $plan->isFree() ? 'رایگان' : number_format($plan->price_monthly) . ' تومان / ماه' }}"
+                        data-yearly="{{ $plan->isFree() ? 'رایگان' : number_format($yearly) . ' تومان / سال' }}">
                         @if ($plan->isFree())
                             رایگان
                         @else
                             {{ number_format($plan->price_monthly) }} تومان / ماه
                         @endif
                     </strong>
+
+                    @if (! $plan->isFree() && $yearly < $plan->price_monthly * 12)
+                        <span class="plan-saving" data-only="yearly">
+                            صرفه‌جویی
+                            {{ round((1 - $yearly / ($plan->price_monthly * 12)) * 100) }}٪
+                        </span>
+                    @endif
+
                     @if ($plan->description)
                         <p class="auth-sub" style="margin:8px 0 0">{{ $plan->description }}</p>
                     @endif
+
                     <div style="margin-top:12px">
                         @if ($user->plan_id === $plan->id)
                             <span class="account-badge is-ok">پلن فعلی</span>
                         @else
-                            <a class="btn btn-primary" href="{{ route('dashboard.plan.checkout', ['plan' => $plan->slug]) }}">
+                            <a class="btn btn-primary plan-cta"
+                                data-checkout="{{ route('dashboard.plan.checkout', ['plan' => $plan->slug]) }}"
+                                href="{{ route('dashboard.plan.checkout', ['plan' => $plan->slug, 'period' => 'monthly']) }}">
                                 {{ $plan->isFree() ? 'فعال‌سازی رایگان' : 'انتخاب و پرداخت' }}
                             </a>
                         @endif

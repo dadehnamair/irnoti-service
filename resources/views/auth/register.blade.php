@@ -39,7 +39,8 @@
                 <span>شماره موبایل</span>
                 <input type="tel" name="mobile" value="{{ old('mobile') }}" required
                     inputmode="numeric" dir="ltr" autocomplete="tel" placeholder="09xxxxxxxxx"
-                    maxlength="13" autofocus />
+                    maxlength="13" autofocus @class(['has-error' => $errors->has('mobile')]) />
+                @error('mobile') <span class="field-error">{{ $message }}</span> @enderror
             </label>
 
             <button type="submit" class="btn btn-primary full">دریافت کد تأیید</button>

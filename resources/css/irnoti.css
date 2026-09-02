@@ -91,6 +91,12 @@ select {
 
 .page-shell {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+/* Keep the footer pinned to the bottom on short pages. */
+.page-shell > main {
+    flex: 1 0 auto;
 }
 .container {
     width: min(var(--container), calc(100% - 32px));
@@ -188,6 +194,7 @@ select {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5em;
     border-radius: 14px;
     padding: 0.92rem 1.5rem;
     font-weight: 700;
@@ -1689,4 +1696,38 @@ select {
     .line-card-num-sub {
         font-size: 1.3rem;
     }
+}
+
+/* Error pages ------------------------------------------------- */
+.error-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 0;
+}
+.error-page .error-code {
+    font-size: clamp(4rem, 18vw, 9rem);
+    font-weight: 900;
+    line-height: 1;
+    margin: 0;
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.error-page .error-title {
+    margin: 16px 0 8px;
+    font-size: 1.6rem;
+}
+.error-page .error-text {
+    margin: 0 auto 28px;
+    max-width: 460px;
+    color: var(--text-soft);
+}
+.error-page .error-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
 }

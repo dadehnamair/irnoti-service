@@ -8,6 +8,7 @@ use App\Models\BlogTag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class BlogSeeder extends Seeder
 {
@@ -33,7 +34,7 @@ class BlogSeeder extends Seeder
 
         $tags = collect(['کمپین پیامکی', 'نرخ تبدیل', 'فروشگاه اینترنتی', 'OTP', 'API', 'امنیت', 'اتوماسیون'])
             ->mapWithKeys(fn ($name) => [$name => BlogTag::firstOrCreate(
-                ['slug' => \Illuminate\Support\Str::slug($name)],
+                ['slug' => Str::slug($name)],
                 ['name' => $name],
             )]);
 

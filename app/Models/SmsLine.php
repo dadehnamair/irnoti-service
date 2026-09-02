@@ -94,7 +94,7 @@ class SmsLine extends Model
     /** "خطوط 3000" — the group heading + tab label. */
     public function getGroupLabelAttribute(): string
     {
-        return 'خطوط ' . $this->prefix;
+        return 'خطوط '.$this->prefix;
     }
 
     /** Display number: the explicit one, else "3000XXXXXXXX" from the prefix. */

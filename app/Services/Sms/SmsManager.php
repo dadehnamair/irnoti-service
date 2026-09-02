@@ -15,8 +15,8 @@ class SmsManager
 {
     /**
      * @param  string|null  $senderOverride  Sender line to use instead of the
-     *                                        configured one — set when the manager
-     *                                        wraps a customer's own panel ({@see UserSmsGateway}).
+     *                                       configured one — set when the manager
+     *                                       wraps a customer's own panel ({@see UserSmsGateway}).
      */
     public function __construct(
         private readonly SmsProviderInterface $provider,

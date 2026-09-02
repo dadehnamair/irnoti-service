@@ -16,6 +16,15 @@
             </div>
         @endif
 
+        @unless ($plan->isFree())
+            <div class="period-switch" role="group" aria-label="دورهٔ صورت‌حساب">
+                <a href="{{ route('dashboard.plan.checkout', ['plan' => $plan->slug, 'period' => 'monthly']) }}"
+                    @class(['is-active' => $period === 'monthly'])>ماهانه</a>
+                <a href="{{ route('dashboard.plan.checkout', ['plan' => $plan->slug, 'period' => 'yearly']) }}"
+                    @class(['is-active' => $period === 'yearly'])>سالانه</a>
+            </div>
+        @endunless
+
         <div class="account-stat-grid">
             <div class="account-stat">
                 <span>پلن</span>
@@ -66,8 +75,11 @@
                 @elseif ($price > 0)
                     خرید آنلاین پلن غیرفعال است؛ کارشناسان برای هماهنگی پرداخت تماس می‌گیرند.
                 @else
-                    این پلن رایگان است و بلافاصله فعال می‌شود.
+                    این پلن رایگان است و بلافاصله ثبت می‌شود.
                 @endif
+            </p>
+            <p class="auth-sub" style="text-align:center">
+                فعال‌سازی نهایی امکانات پس از تأیید حساب توسط کارشناسان انجام می‌شود.
             </p>
         </form>
 

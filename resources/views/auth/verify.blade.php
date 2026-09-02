@@ -37,7 +37,8 @@
                 <span>کد تأیید</span>
                 <input type="text" name="code" class="otp-input" required
                     inputmode="numeric" dir="ltr" autocomplete="one-time-code"
-                    maxlength="5" autofocus />
+                    maxlength="5" autofocus @class(['has-error' => $errors->has('code')]) />
+                @error('code') <span class="field-error">{{ $message }}</span> @enderror
             </label>
 
             <button type="submit" class="btn btn-primary full">تأیید و ورود</button>

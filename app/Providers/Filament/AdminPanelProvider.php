@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Filament\FontProviders\GoogleFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -35,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->font(
                 'Vazirmatn',
                 url: 'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap',
-                provider: \Filament\FontProviders\GoogleFontProvider::class,
+                provider: GoogleFontProvider::class,
             )
             ->colors([
                 'primary' => Color::hex(config('theme.primary', '#ff3000')),

@@ -99,15 +99,18 @@
                             <div class="line-order-grid">
                                 <label>
                                     <span>نام و نام خانوادگی <b>*</b></span>
-                                    <input type="text" name="customer_name" value="{{ old('customer_name') }}" required maxlength="120" autofocus />
+                                    <input type="text" name="customer_name" value="{{ old('customer_name') }}" required maxlength="120" autofocus @class(['has-error' => $errors->has('customer_name')]) />
+                                    @error('customer_name') <span class="field-error">{{ $message }}</span> @enderror
                                 </label>
                                 <label>
                                     <span>شماره موبایل <b>*</b></span>
-                                    <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}" required maxlength="20" inputmode="tel" placeholder="09xxxxxxxxx" />
+                                    <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}" required maxlength="20" inputmode="tel" placeholder="09xxxxxxxxx" @class(['has-error' => $errors->has('customer_phone')]) />
+                                    @error('customer_phone') <span class="field-error">{{ $message }}</span> @enderror
                                 </label>
                                 <label>
                                     <span>ایمیل</span>
-                                    <input type="email" name="customer_email" value="{{ old('customer_email') }}" maxlength="160" />
+                                    <input type="email" name="customer_email" value="{{ old('customer_email') }}" maxlength="160" @class(['has-error' => $errors->has('customer_email')]) />
+                                    @error('customer_email') <span class="field-error">{{ $message }}</span> @enderror
                                 </label>
                                 <label>
                                     <span>نام کسب‌وکار</span>
