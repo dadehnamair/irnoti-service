@@ -58,13 +58,6 @@
                         <p>کد پیگیری: <strong dir="ltr">{{ $order->token }}</strong> — این نشانی را برای پیگیری‌های بعدی ذخیره کنید.</p>
                     </div>
 
-                    @if (session('payment_success'))
-                        <div class="order-alert is-success">پرداخت با موفقیت انجام شد. سفارش شما در حال پیگیری است.</div>
-                    @endif
-                    @if (session('payment_error'))
-                        <div class="order-alert is-error">{{ session('payment_error') }}</div>
-                    @endif
-
                     <div class="order-card">
                         <div class="order-row">
                             <span>خط</span>

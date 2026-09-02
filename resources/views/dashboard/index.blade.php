@@ -3,13 +3,6 @@
 @section('title', 'خلاصه حساب')
 
 @section('content')
-    @if (session('gate_notice'))
-        <div class="account-banner is-warn">{{ session('gate_notice') }}</div>
-    @endif
-    @if (session('auth_status'))
-        <div class="account-banner is-ok">{{ session('auth_status') }}</div>
-    @endif
-
     @php($status = $user->status)
     @if ($status === 'pending')
         <div class="account-banner is-warn">

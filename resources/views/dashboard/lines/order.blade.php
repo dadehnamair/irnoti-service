@@ -3,10 +3,6 @@
 @section('title', 'وضعیت سفارش خط')
 
 @section('content')
-    @if ($justCreated)
-        <div class="account-banner is-ok">سفارش شما ثبت شد. کد پیگیری: <strong dir="ltr">{{ $order->token }}</strong></div>
-    @endif
-
     <div class="account-card">
         <h2>{{ $order->line_label }}</h2>
 

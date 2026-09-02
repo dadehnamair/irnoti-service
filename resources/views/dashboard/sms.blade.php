@@ -3,13 +3,6 @@
 @section('title', 'ارسال پیامک')
 
 @section('content')
-    @if (session('sms_status'))
-        <div class="account-banner is-ok">{{ session('sms_status') }}</div>
-    @endif
-    @if (session('sms_error'))
-        <div class="account-banner is-danger">{{ session('sms_error') }}</div>
-    @endif
-
     @unless ($hasPanel)
         <div class="account-card">
             <h2>پنل پیامک</h2>
