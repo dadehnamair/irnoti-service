@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\OtpController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\PricingController;
@@ -75,6 +80,35 @@ Route::get('/assets/theme.css', function () {
         'Cache-Control' => 'public, max-age=86400',
     ]);
 })->name('theme.css');
+
+/*
+ * Customer authentication (docs/starter.md §26 / §27). Mobile-first: register
+ * with a phone number, verify a one-time code, then complete the identity
+ * profile from the dashboard. Separate from the Filament /admin login.
+ */
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])
+        ->middleware('throttle:6,1')->name('register.store');
+
+    Route::get('/verify', [OtpController::class, 'show'])->name('otp.show');
+    Route::post('/verify', [OtpController::class, 'verify'])
+        ->middleware('throttle:10,1')->name('otp.verify');
+    Route::post('/verify/resend', [OtpController::class, 'resend'])
+        ->middleware('throttle:4,1')->name('otp.resend');
+
+    Route::get('/login', [LoginController::class, 'create'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])
+        ->middleware('throttle:6,1')->name('login.store');
+    Route::post('/login/otp', [LoginController::class, 'requestOtp'])
+        ->middleware('throttle:6,1')->name('login.otp');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LogoutController::class, 'store'])->name('logout');
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+});
 
 Route::get('/sitemap.xml', function () {
     $today = now()->toDateString();

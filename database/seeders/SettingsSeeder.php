@@ -36,6 +36,11 @@ class SettingsSeeder extends Seeder
             // خطوط اختصاصی — روش تکمیل خرید
             ['commerce', 'line_payment_online', '0', 'bool', 'خرید آنلاین خطوط (اتصال به درگاه پرداخت)'],
 
+            // ثبت‌نام و اطلاع‌رسانی پیامکی (docs/starter.md §26 / §44)
+            ['account', 'registration_enabled', '1', 'bool', 'فعال بودن ثبت‌نام کاربران'],
+            ['account', 'sms_notifications_enabled', '1', 'bool', 'اطلاع‌رسانی پیامکی رویدادها'],
+            ['account', 'admin_mobile', env('ADMIN_MOBILE', ''), 'string', 'موبایل مدیر برای اطلاع‌رسانی'],
+
             ['social', 'social_instagram', '', 'url', 'اینستاگرام'],
             ['social', 'social_telegram', '', 'url', 'تلگرام'],
             ['social', 'social_linkedin', '', 'url', 'لینکدین'],

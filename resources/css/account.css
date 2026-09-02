@@ -1,0 +1,379 @@
+/*
+ * irnoti — customer auth + account dashboard styles (docs/starter.md §26/§27, §15).
+ * Builds on the shared design tokens in irnoti.css. Loaded on /register, /login,
+ * /verify and /dashboard* only.
+ */
+
+.auth-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px;
+    background:
+        radial-gradient(circle at top left, var(--primary-soft-08), transparent 26%),
+        var(--bg);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--panel);
+    display: grid;
+    gap: 18px;
+}
+
+.auth-card .auth-head {
+    display: grid;
+    gap: 6px;
+    text-align: center;
+}
+
+.auth-card .auth-head .kicker {
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.auth-card h1 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.auth-card .auth-sub {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+}
+
+.auth-form {
+    display: grid;
+    gap: 14px;
+}
+
+.auth-form label {
+    display: grid;
+    gap: 6px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-soft);
+}
+
+.auth-form input[type="tel"],
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="number"] {
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+}
+
+.auth-form .otp-input {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.5em;
+    padding-inline-start: 0.5em;
+}
+
+.auth-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+}
+
+.auth-inline label {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+.auth-alt {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+}
+
+.auth-alt a {
+    color: color-mix(in srgb, var(--primary) 30%, #fff);
+    font-weight: 600;
+}
+
+.auth-errors {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: color-mix(in srgb, #ff3b30 12%, transparent);
+    border: 1px solid color-mix(in srgb, #ff3b30 40%, transparent);
+}
+
+.auth-errors ul {
+    margin: 0;
+    padding-inline-start: 1.1rem;
+    font-size: 0.85rem;
+}
+
+.auth-note {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    text-align: center;
+    background: color-mix(in srgb, var(--secondary) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--secondary) 34%, transparent);
+    color: color-mix(in srgb, var(--secondary) 28%, #fff);
+}
+
+.auth-note.is-debug {
+    background: var(--primary-soft-12);
+    border-color: var(--primary-line);
+    color: color-mix(in srgb, var(--primary) 30%, #fff);
+}
+
+.resend-row {
+    text-align: center;
+    font-size: 0.83rem;
+    color: var(--muted);
+}
+
+.resend-row button {
+    background: none;
+    border: 0;
+    color: color-mix(in srgb, var(--primary) 30%, #fff);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+}
+
+.resend-row button[disabled] {
+    color: var(--muted);
+    cursor: not-allowed;
+}
+
+/* ---- Account dashboard ---- */
+
+.account-layout {
+    max-width: 1040px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 28px;
+    padding: 40px 20px 64px;
+}
+
+.account-nav {
+    display: grid;
+    gap: 4px;
+    align-content: start;
+    position: sticky;
+    top: 90px;
+}
+
+.account-nav a {
+    padding: 0.7rem 0.9rem;
+    border-radius: 12px;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.account-nav a.is-active {
+    background: var(--primary-soft-12);
+    color: color-mix(in srgb, var(--primary) 30%, #fff);
+}
+
+.account-nav form button {
+    width: 100%;
+    text-align: start;
+    background: none;
+    border: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 0.7rem 0.9rem;
+    cursor: pointer;
+}
+
+.account-panel {
+    display: grid;
+    gap: 20px;
+    align-content: start;
+}
+
+.account-card {
+    padding: 22px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--panel);
+}
+
+.account-card h2 {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+}
+
+.account-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.account-stat {
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--hairline);
+    background: var(--bg-soft);
+}
+
+.account-stat span {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.account-stat strong {
+    font-size: 1rem;
+}
+
+.account-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.account-badge.is-ok {
+    background: color-mix(in srgb, var(--secondary) 16%, transparent);
+    color: color-mix(in srgb, var(--secondary) 30%, #fff);
+}
+
+.account-badge.is-warn {
+    background: var(--primary-soft-12);
+    color: color-mix(in srgb, var(--primary) 30%, #fff);
+}
+
+/* ---- Stepped profile form ---- */
+
+.wizard-steps {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    list-style: none;
+    padding: 0;
+    counter-reset: step;
+}
+
+.wizard-steps li {
+    flex: 1;
+    text-align: center;
+    padding: 0.55rem 0.4rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.wizard-steps li.done {
+    color: color-mix(in srgb, var(--secondary) 30%, #fff);
+    border-color: color-mix(in srgb, var(--secondary) 36%, transparent);
+}
+
+.wizard-steps li.current {
+    color: color-mix(in srgb, var(--primary) 28%, #fff);
+    border-color: var(--primary-line);
+    background: var(--primary-soft-12);
+    font-weight: 700;
+}
+
+.profile-form {
+    display: grid;
+    gap: 16px;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.profile-grid label {
+    display: grid;
+    gap: 6px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-soft);
+}
+
+.profile-grid label.full {
+    grid-column: 1 / -1;
+}
+
+.profile-grid input,
+.profile-grid select,
+.profile-grid textarea {
+    padding: 0.7rem 0.85rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.file-field {
+    display: grid;
+    gap: 6px;
+    padding: 14px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    font-size: 0.83rem;
+    color: var(--text-soft);
+}
+
+.file-field .current {
+    font-size: 0.78rem;
+    color: color-mix(in srgb, var(--secondary) 30%, #fff);
+}
+
+@media (max-width: 860px) {
+    .account-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .account-nav {
+        position: static;
+        grid-auto-flow: column;
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 620px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}

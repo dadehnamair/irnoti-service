@@ -15,6 +15,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'lines/payment/callback',
         ]);
+
+        // Customer auth entry points (docs/starter.md §26/§27).
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(fn () => route('dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

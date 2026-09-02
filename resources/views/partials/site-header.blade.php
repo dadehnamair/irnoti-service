@@ -28,8 +28,16 @@
         </nav>
 
         <div class="nav-actions">
-            <a class="btn btn-primary" href="{{ $resolve('#cta') }}">ثبت‌نام</a>
-            <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://vip.irnoti.com">ورود</a>
+            @auth
+                <a class="btn btn-primary" href="{{ route('dashboard') }}">پنل کاربری</a>
+                <form method="POST" action="{{ route('logout') }}" class="nav-logout">
+                    @csrf
+                    <button type="submit" class="btn btn-ghost">خروج</button>
+                </form>
+            @else
+                <a class="btn btn-primary" href="{{ route('register') }}">ثبت‌نام</a>
+                <a class="btn btn-ghost" href="{{ route('login') }}">ورود</a>
+            @endauth
         </div>
 
         <button class="menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false" aria-controls="main-nav">

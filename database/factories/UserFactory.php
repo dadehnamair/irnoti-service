@@ -28,6 +28,9 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            'mobile' => '09'.fake()->unique()->numerify('#########'),
+            'mobile_verified_at' => now(),
+            'status' => 'active',
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
@@ -41,5 +44,22 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /** A just-registered account: mobile only, nothing else filled in. */
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'name' => null,
+            'email' => null,
+            'password' => null,
+            'mobile_verified_at' => null,
+            'status' => 'pending',
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => ['is_admin' => true]);
     }
 }

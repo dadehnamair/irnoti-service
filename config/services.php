@@ -35,4 +35,30 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | SMS provider (docs/starter.md §12 / §13)
+    |--------------------------------------------------------------------------
+    |
+    | The app talks to SMS through App\Services\Sms\SmsProviderInterface, never
+    | a vendor SDK directly. "log" is the credential-free dev/test default
+    | (writes to the log, mirrors PAYMENT_DRIVER=local); "melipayamak" is the
+    | production driver. Credentials never live in code — only here from .env.
+    |
+    */
+
+    'sms' => [
+        'provider' => env('SMS_PROVIDER', 'log'),
+
+        'melipayamak' => [
+            'username' => env('MELIPAYAMAK_USERNAME'),
+            'password' => env('MELIPAYAMAK_PASSWORD'),
+            'api_key' => env('MELIPAYAMAK_API_KEY'),
+            'sender' => env('MELIPAYAMAK_SENDER'),
+        ],
+
+        // Where "user + admin" operation notifications are sent (docs/starter.md §44).
+        'admin_mobile' => env('ADMIN_MOBILE'),
+    ],
+
 ];

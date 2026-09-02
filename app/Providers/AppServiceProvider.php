@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Services\Sms\LogProvider;
+use App\Services\Sms\MelipayamakProvider;
+use App\Services\Sms\NullProvider;
+use App\Services\Sms\SmsProviderInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -12,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->bindSmsProvider();
     }
 
     /**
@@ -21,6 +25,22 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->overlaySettingsOnConfig();
+    }
+
+    /**
+     * Resolve the SMS driver from config('services.sms.provider') — docs/starter.md
+     * §12/§13. "log" is the credential-free default (mirrors PAYMENT_DRIVER=local);
+     * tests get the no-op NullProvider.
+     */
+    private function bindSmsProvider(): void
+    {
+        $this->app->singleton(SmsProviderInterface::class, function () {
+            return match ((string) config('services.sms.provider', 'log')) {
+                'melipayamak' => new MelipayamakProvider((array) config('services.sms.melipayamak')),
+                'null' => new NullProvider,
+                default => new LogProvider,
+            };
+        });
     }
 
     /**

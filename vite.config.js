@@ -12,6 +12,8 @@ export default defineConfig({
                 'resources/js/docs.js',
                 'resources/css/blog.css',
                 'resources/js/blog.js',
+                'resources/css/account.css',
+                'resources/js/account.js',
             ],
             refresh: true,
         }),
