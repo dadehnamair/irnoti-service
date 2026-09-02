@@ -104,7 +104,7 @@ class SubscriptionController extends Controller
             return $this->purchaseViaGateway(
                 (int) $subscription->price,
                 route('subscriptions.payment.callback'),
-                fn ($transactionId) => $subscription->update([
+                fn($transactionId) => $subscription->update([
                     'transaction_id' => $transactionId,
                     'payment_driver' => config('payment.default'),
                 ]),
@@ -122,7 +122,7 @@ class SubscriptionController extends Controller
         $transactionId = $this->gatewayTransactionId($request);
 
         $subscription = Subscription::query()
-            ->when($transactionId, fn ($q) => $q->where('transaction_id', $transactionId))
+            ->when($transactionId, fn($q) => $q->where('transaction_id', $transactionId))
             ->latest('id')
             ->first();
 
@@ -180,8 +180,12 @@ class SubscriptionController extends Controller
             $user->forceFill([
                 'plan_id' => $subscription->plan_id,
                 'plan_expires_at' => $subscription->expires_at,
-                'status' => in_array($user->status, ['suspended', 'blocked'], true) ? $user->status : 'active',
             ])->save();
+
+            // Buying a plan doesn't activate the account — an admin still has to
+            // approve it (docs/starter.md §39). This only moves pending accounts
+            // to "awaiting_approval" once the profile is also complete.
+            $user->refreshApprovalState();
         }
 
         $notifier->subscriptionActivated($subscription);

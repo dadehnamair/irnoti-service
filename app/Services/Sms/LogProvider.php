@@ -44,4 +44,10 @@ class LogProvider implements SmsProviderInterface
     {
         return 'delivered';
     }
+
+    public function credit(): ?int
+    {
+        // A fake balance so the panel UI is usable without a real gateway.
+        return 1000;
+    }
 }

@@ -59,9 +59,13 @@ class UserResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
+        // حساب‌هایی که منتظر اقدام ادمین‌اند: تأیید حساب یا بررسی مدارکِ کاربری که اطلاعاتش را تکمیل کرده.
         $pending = static::getModel()::query()
             ->where('is_admin', false)
-            ->where('status', 'pending')
+            ->whereNotNull('profile_completed_at')
+            ->where(fn ($q) => $q
+                ->where('status', 'awaiting_approval')
+                ->orWhere('documents_status', 'pending'))
             ->count();
 
         return $pending > 0 ? (string) $pending : null;

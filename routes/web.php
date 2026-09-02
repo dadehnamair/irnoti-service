@@ -6,7 +6,9 @@ use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\LineOrderController as DashboardLineOrderController;
 use App\Http\Controllers\Dashboard\ProfileController;
+use App\Http\Controllers\Dashboard\SmsController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\PricingController;
@@ -127,6 +129,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/plan/order', [SubscriptionController::class, 'order'])->name('subscriptions.order');
     Route::get('/dashboard/subscription/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
     Route::get('/dashboard/subscription/{subscription}/pay', [SubscriptionController::class, 'pay'])->name('subscriptions.pay');
+
+    /*
+     * Panel features that need a fully approved account (docs/starter.md §39):
+     * single SMS send + buying a dedicated line from inside the panel. The
+     * "approved" middleware bounces unapproved accounts back to the dashboard.
+     */
+    Route::middleware('approved')->group(function () {
+        Route::get('/dashboard/sms', [SmsController::class, 'index'])->name('dashboard.sms');
+        Route::post('/dashboard/sms', [SmsController::class, 'send'])
+            ->middleware('throttle:20,1')->name('dashboard.sms.send');
+
+        Route::get('/dashboard/lines', [DashboardLineOrderController::class, 'index'])->name('dashboard.lines');
+        Route::get('/dashboard/lines/{line}/checkout', [DashboardLineOrderController::class, 'checkout'])->name('dashboard.lines.checkout');
+        Route::post('/dashboard/lines/order', [DashboardLineOrderController::class, 'order'])->name('dashboard.lines.order');
+        Route::get('/dashboard/lines/order/{order}', [DashboardLineOrderController::class, 'show'])->name('dashboard.lines.show');
+        Route::get('/dashboard/lines/order/{order}/pay', [DashboardLineOrderController::class, 'pay'])->name('dashboard.lines.pay');
+    });
 });
 
 Route::match(['get', 'post'], '/subscriptions/payment/callback', [SubscriptionController::class, 'paymentCallback'])

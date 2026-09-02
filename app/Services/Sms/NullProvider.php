@@ -25,4 +25,9 @@ class NullProvider implements SmsProviderInterface
     {
         return null;
     }
+
+    public function credit(): ?int
+    {
+        return null;
+    }
 }

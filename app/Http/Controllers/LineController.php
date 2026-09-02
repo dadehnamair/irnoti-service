@@ -27,19 +27,31 @@ class LineController extends Controller
     {
         $lines = SmsLine::query()->active()->ordered()->get();
 
-        $groups = $lines->groupBy('prefix')
+        return view('lines', array_merge(
+            ['groups' => self::groupLines($lines)],
+            [
+                'digitOptions' => $lines->pluck('digits')->unique()->sort()->values(),
+                'typeOptions' => $lines->pluck('line_type')->unique()->values(),
+            ],
+        ));
+    }
+
+    /**
+     * Group a line collection by prefix into the tab structure the catalogue
+     * views expect. Shared by the public /lines page and the in-panel version
+     * ({@see \App\Http\Controllers\Dashboard\LineOrderController}).
+     *
+     * @param  \Illuminate\Support\Collection<int, SmsLine>  $lines
+     */
+    public static function groupLines($lines): \Illuminate\Support\Collection
+    {
+        return $lines->groupBy('prefix')
             ->map(fn ($items, $prefix) => [
                 'prefix' => $prefix,
                 'label' => 'خطوط '.$prefix,
                 'lines' => $items,
             ])
             ->values();
-
-        return view('lines', [
-            'groups' => $groups,
-            'digitOptions' => $lines->pluck('digits')->unique()->sort()->values(),
-            'typeOptions' => $lines->pluck('line_type')->unique()->values(),
-        ]);
     }
 
     /**

@@ -17,6 +17,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'subscriptions/payment/callback',
         ]);
 
+        // Panel features stay locked until an admin approves the account (docs/starter.md §39).
+        $middleware->alias([
+            'approved' => \App\Http\Middleware\EnsureAccountApproved::class,
+        ]);
+
         // Customer auth entry points (docs/starter.md §26/§27).
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('dashboard'));

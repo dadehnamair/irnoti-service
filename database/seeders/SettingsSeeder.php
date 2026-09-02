@@ -41,6 +41,7 @@ class SettingsSeeder extends Seeder
             ['account', 'registration_enabled', '1', 'bool', 'فعال بودن ثبت‌نام کاربران'],
             ['account', 'sms_notifications_enabled', '1', 'bool', 'اطلاع‌رسانی پیامکی رویدادها'],
             ['account', 'admin_mobile', env('ADMIN_MOBILE', ''), 'string', 'موبایل مدیر برای اطلاع‌رسانی'],
+            ['account', 'require_admin_approval', '1', 'bool', 'نیاز به تأیید مدیر برای فعال‌سازی امکانات پنل'],
 
             ['social', 'social_instagram', '', 'url', 'اینستاگرام'],
             ['social', 'social_telegram', '', 'url', 'تلگرام'],

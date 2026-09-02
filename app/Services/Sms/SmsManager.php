@@ -13,7 +13,15 @@ use Illuminate\Support\Str;
  */
 class SmsManager
 {
-    public function __construct(private readonly SmsProviderInterface $provider) {}
+    /**
+     * @param  string|null  $senderOverride  Sender line to use instead of the
+     *                                        configured one — set when the manager
+     *                                        wraps a customer's own panel ({@see UserSmsGateway}).
+     */
+    public function __construct(
+        private readonly SmsProviderInterface $provider,
+        private readonly ?string $senderOverride = null,
+    ) {}
 
     public function send(string $to, string $message): ?string
     {
@@ -31,9 +39,15 @@ class SmsManager
         return $this->provider->deliveryStatus($recId);
     }
 
+    /** Remaining panel credit (SMS count), or null when the driver can't report it. */
+    public function credit(): ?int
+    {
+        return $this->provider->credit();
+    }
+
     public function sender(): ?string
     {
-        return config('services.sms.melipayamak.sender');
+        return $this->senderOverride ?: config('services.sms.melipayamak.sender');
     }
 
     /** Mobile that receives the admin side of operation notifications (docs/starter.md §44). */

@@ -45,11 +45,22 @@ class UsersTable
                     ->badge()
                     ->color(fn (string $state) => match ($state) {
                         'active' => 'success',
+                        'awaiting_approval' => 'info',
                         'suspended' => 'warning',
                         'blocked' => 'danger',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state) => User::STATUSES[$state] ?? $state),
+
+                TextColumn::make('documents_status')
+                    ->label('مدارک')
+                    ->badge()
+                    ->color(fn (string $state) => match ($state) {
+                        'approved' => 'success',
+                        'rejected' => 'danger',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state) => User::DOCUMENT_STATUSES[$state] ?? $state),
 
                 TextColumn::make('plan.name')
                     ->label('پلن')
@@ -71,6 +82,10 @@ class UsersTable
                 SelectFilter::make('status')
                     ->label('وضعیت')
                     ->options(User::STATUSES),
+
+                SelectFilter::make('documents_status')
+                    ->label('وضعیت مدارک')
+                    ->options(User::DOCUMENT_STATUSES),
 
                 SelectFilter::make('plan_id')
                     ->label('پلن')

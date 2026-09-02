@@ -1,10 +1,10 @@
 @php
-    /**
-     * Customer account panel layout (docs/starter.md §15 — light version).
-     * Shared header/footer + a simple sidebar. Uses the `account` asset bundle.
-     */
-    $brand = config('theme.brand');
-    $primary = config('theme.primary');
+/**
+* Customer account panel layout (docs/starter.md §15 — light version).
+* Shared header/footer + a simple sidebar. Uses the `account` asset bundle.
+*/
+$brand = config('theme.brand');
+$primary = config('theme.primary');
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -32,13 +32,14 @@
         <main>
             <div class="account-layout">
                 <nav class="account-nav" aria-label="ناوبری پنل کاربری">
-                    <a href="{{ route('dashboard') }}" @class(['is-active' => request()->routeIs('dashboard')])>خلاصه حساب</a>
+                    <a href="{{ route('dashboard') }}" @class(['is-active'=> request()->routeIs('dashboard')])>خلاصه حساب</a>
                     @if (Route::has('dashboard.profile'))
-                        <a href="{{ route('dashboard.profile') }}" @class(['is-active' => request()->routeIs('dashboard.profile*')])>تکمیل اطلاعات</a>
+                    <a href="{{ route('dashboard.profile') }}" @class(['is-active'=> request()->routeIs('dashboard.profile*')])>تکمیل اطلاعات</a>
                     @endif
                     @if (Route::has('dashboard.plans'))
-                        <a href="{{ route('dashboard.plans') }}" @class(['is-active' => request()->routeIs('dashboard.plan*')])>پلن و اشتراک</a>
+                    <a href="{{ route('dashboard.plans') }}" @class(['is-active'=> request()->routeIs('dashboard.plan*')])>پلن و اشتراک</a>
                     @endif
+                    <a href="https://vip.irnoti.com" target="_blank">ورود به پنل VIP</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit">خروج</button>

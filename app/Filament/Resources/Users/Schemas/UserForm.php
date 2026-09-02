@@ -51,6 +51,33 @@ class UserForm
                             ->dehydrated(false),
                     ]),
 
+                Section::make('تأیید حساب')
+                    ->description('حساب پس از تأیید مدارک و تأیید نهایی، امکانات پنل را باز می‌کند (docs/starter.md §39).')
+                    ->columns(2)
+                    ->schema([
+                        DateTimePicker::make('approved_at')
+                            ->label('زمان تأیید حساب')
+                            ->helperText('برای تأیید، از دکمهٔ «تأیید حساب» بالای صفحه استفاده کنید.'),
+
+                        Select::make('documents_status')
+                            ->label('وضعیت مدارک')
+                            ->options(User::DOCUMENT_STATUSES)
+                            ->default('pending')
+                            ->required()
+                            ->live(),
+
+                        DateTimePicker::make('documents_reviewed_at')
+                            ->label('زمان بررسی مدارک')
+                            ->disabled()
+                            ->dehydrated(false),
+
+                        Textarea::make('documents_reject_reason')
+                            ->label('دلیل رد مدارک')
+                            ->rows(2)
+                            ->visible(fn ($get) => $get('documents_status') === 'rejected')
+                            ->columnSpanFull(),
+                    ]),
+
                 Section::make('اطلاعات فردی')
                     ->columns(2)
                     ->schema([
@@ -72,7 +99,7 @@ class UserForm
                         Textarea::make('description')->label('توضیحات')->rows(2)->columnSpanFull(),
                     ]),
 
-                Section::make('احراز هویت')
+                Section::make('احراز هویت و مدارک')
                     ->columns(2)
                     ->schema([
                         TextInput::make('national_code')->label('کد ملی'),
@@ -105,6 +132,27 @@ class UserForm
                             ->openable()
                             ->downloadable()
                             ->columnSpanFull(),
+                    ]),
+
+                Section::make('پنل پیامک کاربر')
+                    ->description('اعتبار پنل ملی‌پیامکِ خودِ کاربر؛ پس از تأیید حساب پر شود تا پنل ما به پنل او وصل شود.')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('sms_username')
+                            ->label('نام کاربری پنل')
+                            ->autocomplete(false),
+
+                        TextInput::make('sms_password')
+                            ->label('رمز عبور پنل')
+                            ->password()
+                            ->revealable()
+                            ->autocomplete('new-password')
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->helperText('برای حفظ رمز فعلی خالی بگذارید.'),
+
+                        TextInput::make('sms_sender')
+                            ->label('شمارهٔ خط فرستنده')
+                            ->placeholder('مثلاً 3000xxxx'),
                     ]),
             ]);
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 /**
@@ -13,6 +14,7 @@ class LineOrder extends Model
 {
     protected $fillable = [
         'token',
+        'user_id',
         'sms_line_id',
         'line_label',
         'price',
@@ -63,6 +65,11 @@ class LineOrder extends Model
     public function line()
     {
         return $this->belongsTo(SmsLine::class, 'sms_line_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function getStatusLabelAttribute(): string

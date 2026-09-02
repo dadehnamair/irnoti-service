@@ -39,6 +39,41 @@ class OperationNotifier
         ));
     }
 
+    /** Profile complete + plan bought → account is waiting for the admin (docs/starter.md §39). */
+    public function awaitingApproval(User $user): void
+    {
+        $this->toAdmin(sprintf(
+            'حساب %s (%s) آمادهٔ بررسی و تأیید است.',
+            $user->full_name,
+            $user->mobile,
+        ));
+    }
+
+    /** Admin approved the account — panel features are now open. */
+    public function accountApproved(User $user): void
+    {
+        $this->toUser($user->mobile, sprintf(
+            'حساب شما در %s تأیید شد. اکنون می‌توانید از امکانات پنل استفاده کنید.',
+            $this->brand(),
+        ));
+    }
+
+    /** Admin approved the uploaded identity documents. */
+    public function documentsApproved(User $user): void
+    {
+        $this->toUser($user->mobile, sprintf('مدارک هویتی شما در %s تأیید شد.', $this->brand()));
+    }
+
+    /** Admin rejected the documents — the customer needs to re-upload. */
+    public function documentsRejected(User $user, ?string $reason = null): void
+    {
+        $this->toUser($user->mobile, trim(sprintf(
+            'مدارک هویتی شما در %s تأیید نشد. %s لطفاً دوباره بارگذاری کنید.',
+            $this->brand(),
+            $reason ? 'دلیل: '.$reason.'.' : '',
+        )));
+    }
+
     /** A plan became active — free (instant) or paid (after the gateway). */
     public function subscriptionActivated(Subscription $subscription): void
     {

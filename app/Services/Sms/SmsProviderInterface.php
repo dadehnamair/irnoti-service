@@ -25,4 +25,10 @@ interface SmsProviderInterface
 
     /** Delivery status for a previously sent message id (docs/starter.md §14 "Delivery"). */
     public function deliveryStatus(string $recId): ?string;
+
+    /**
+     * Remaining panel credit (number of SMS), or null when the driver can't
+     * report it (docs/starter.md §12). Shown in the customer panel.
+     */
+    public function credit(): ?int;
 }
