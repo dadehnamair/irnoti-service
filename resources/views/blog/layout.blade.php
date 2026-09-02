@@ -57,36 +57,13 @@
 <body class="blog-body">
     <div class="blog-progress" aria-hidden="true"></div>
     <div class="page-shell">
-        <header class="site-header">
-            <div class="container nav">
-                <a href="{{ route('home') }}" class="brand" aria-label="{{ $brand }}">
-                    <img src="/logo/logo-text.png" alt="{{ $brand }}" class="brand-logo" width="260" height="82" />
-                </a>
-
-                <nav class="main-nav" aria-label="ناوبری اصلی">
-                    <a href="{{ route('home') }}#features">امکانات</a>
-                    <a href="{{ route('home') }}#pricing">تعرفه‌ها</a>
-                    <a href="{{ route('blog.index') }}" aria-current="page">بلاگ</a>
-                    <a href="{{ route('docs.index') }}">مستندات API</a>
-                </nav>
-
-                <div class="nav-actions">
-                    <a class="btn btn-ghost" href="{{ route('home') }}">بازگشت به سایت</a>
-                    <a class="btn btn-primary" href="{{ route('home') }}#cta">ثبت‌نام</a>
-                </div>
-            </div>
-        </header>
+        @include('partials.site-header')
 
         <main class="blog-main container">
             @yield('blog')
         </main>
 
-        <footer class="site-footer">
-            <div class="container footer-bottom">
-                <span>© <span>{{ date('Y') }}</span> {{ \Illuminate\Support\Str::of($siteUrl)->after('://') }}</span>
-                <a href="{{ route('blog.feed') }}">RSS</a>
-            </div>
-        </footer>
+        @include('partials.site-footer')
     </div>
 </body>
 

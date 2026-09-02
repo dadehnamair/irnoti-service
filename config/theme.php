@@ -43,8 +43,8 @@ return [
     */
 
     'email' => env('THEME_EMAIL', 'hello@irnoti.com'),
-    'phone' => env('THEME_PHONE', '+989123456789'),
-    'phone_display' => '۰۹۱۲ ۳۴۵ ۶۷۸۹',
+    'phone' => env('THEME_PHONE', '+982191016838'),
+    'phone_display' => '021-91016838',
     'address' => env('THEME_ADDRESS', ''),
 
     /*

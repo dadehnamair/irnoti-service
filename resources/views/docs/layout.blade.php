@@ -38,31 +38,13 @@
 
 <body class="docs-body">
     <div class="page-shell">
-        <header class="site-header">
-            <div class="container nav">
-                <a href="{{ route('home') }}" class="brand" aria-label="{{ $brand }}">
-                    <img src="/logo/logo-text.png" alt="{{ $brand }}" class="brand-logo" width="260" height="82" />
-                </a>
-
-                <nav class="main-nav" aria-label="ناوبری اصلی">
-                    <a href="{{ route('home') }}#features">امکانات</a>
-                    <a href="{{ route('home') }}#pricing">تعرفه‌ها</a>
-                    <a href="{{ route('home') }}#lines">خطوط اختصاصی</a>
-                    <a href="{{ route('docs.index') }}" aria-current="page">مستندات API</a>
-                </nav>
-
-                <div class="nav-actions">
-                    <a class="btn btn-ghost" href="{{ route('home') }}">بازگشت به سایت</a>
-                    <a class="btn btn-primary" href="{{ route('home') }}#cta">ثبت‌نام</a>
-                </div>
-
-                <button class="menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false" data-docs-sidebar-toggle>
-                    <span></span><span></span><span></span>
-                </button>
-            </div>
-        </header>
+        @include('partials.site-header')
 
         <div class="docs-shell container">
+            <button class="docs-sidebar-toggle" type="button" aria-expanded="false" data-docs-sidebar-toggle>
+                <span aria-hidden="true">☰</span> فهرست مستندات
+            </button>
+
             <aside class="docs-sidebar" data-docs-sidebar>
                 <nav aria-label="فهرست مستندات">
                     @include('docs.partials.nav', ['tree' => $tree, 'activeArticleId' => $article->id ?? null])
@@ -74,12 +56,7 @@
             </main>
         </div>
 
-        <footer class="site-footer">
-            <div class="container footer-bottom">
-                <span>© <span>{{ date('Y') }}</span> {{ \Illuminate\Support\Str::of($url)->after('://') }}</span>
-                <span>مستندات API</span>
-            </div>
-        </footer>
+        @include('partials.site-footer')
     </div>
 </body>
 
