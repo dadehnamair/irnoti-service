@@ -76,12 +76,16 @@
                                 </span>
                             </td>
                             <td>
-                                <a class="btn btn-secondary btn-sm" href="{{ route('dashboard.contacts.edit', $contact) }}">ویرایش</a>
-                                <form method="POST" action="{{ route('dashboard.contacts.destroy', $contact) }}"
-                                      onsubmit="return confirm('این مخاطب حذف شود؟')" style="display:inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm">حذف</button>
-                                </form>
+                                <div class="row-actions">
+                                    <a class="btn btn-ghost btn-sm" href="{{ route('dashboard.contacts.edit', $contact) }}">ویرایش</a>
+                                    <form method="POST" action="{{ route('dashboard.contacts.destroy', $contact) }}">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-ghost btn-sm is-danger"
+                                                data-confirm="حذف مخاطب"
+                                                data-confirm-text="«{{ $contact->full_name }}» از دفترچه تلفن شما حذف می‌شود."
+                                                data-confirm-yes="حذف">حذف</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty

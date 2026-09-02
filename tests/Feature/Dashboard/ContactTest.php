@@ -28,6 +28,7 @@ class ContactTest extends TestCase
 
         $this->actingAs($user)->get(route('dashboard.contacts'))->assertOk()->assertSee('دفترچه تلفن');
         $this->actingAs($user)->get(route('dashboard.contacts.groups'))->assertOk()->assertSee('گروه‌های دفترچه تلفن');
+        $this->actingAs($user)->get(route('dashboard.contacts.groups.edit', $group))->assertOk()->assertSee('ویرایش گروه');
         $this->actingAs($user)->get(route('dashboard.contacts.send'))->assertOk()->assertSee('ارسال گروهی');
         $this->actingAs($user)->get(route('dashboard.contacts.edit', $contact))->assertOk()->assertSee('ویرایش مخاطب');
     }

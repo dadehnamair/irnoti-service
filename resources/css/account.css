@@ -1344,11 +1344,49 @@ fieldset.wallet-topup-method {
 .contact-actions form {
     margin: 0;
 }
-.account-inline-edit > summary {
-    list-style: none;
-    display: inline-block;
+
+/* Inline action buttons on a table row — all small, aligned, no forms breaking flow. */
+.row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
 }
-.account-inline-edit .account-form {
-    margin-top: 10px;
-    min-width: 240px;
+.row-actions form {
+    margin: 0;
+}
+.row-actions .btn {
+    white-space: nowrap;
+}
+.btn.is-danger {
+    color: color-mix(in srgb, #ef4444 60%, var(--text));
+    border-color: color-mix(in srgb, #ef4444 30%, var(--border));
+}
+.btn.is-danger:hover,
+.btn.is-danger:focus-visible {
+    background: color-mix(in srgb, #ef4444 12%, transparent);
+    border-color: color-mix(in srgb, #ef4444 45%, var(--border));
+}
+
+/* Secondary line inside a table cell (description, last-synced date…). */
+.account-cell-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.76rem;
+    color: var(--muted);
+}
+
+.phonebook-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin-bottom: 14px;
+}
+.phonebook-toolbar form {
+    margin: 0;
+}
+.phonebook-toolbar .auth-sub {
+    margin: 0;
+    flex: 1 1 240px;
 }

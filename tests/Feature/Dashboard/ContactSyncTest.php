@@ -3,7 +3,6 @@
 namespace Tests\Feature\Dashboard;
 
 use App\Models\Contact;
-use App\Models\ContactGroup;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -153,14 +152,12 @@ class ContactSyncTest extends TestCase
         ]);
     }
 
-    public function test_import_pulls_groups_and_contacts_from_melipayamak(): void
+    public function test_importing_groups_pulls_only_the_group_list(): void
     {
         Http::fake([
             'api.payamak-panel.com/post/Contacts.asmx/GetGroups' => Http::response($this->groupsXml([
-                ['id' => 55, 'name' => 'وارداتی', 'count' => 1],
-            ])),
-            'api.payamak-panel.com/post/Contacts.asmx/GetContacts' => Http::response($this->contactsXml([
-                ['id' => 900, 'mobile' => '09129998877', 'first' => 'مهمان', 'groups' => 'وارداتی'],
+                ['id' => 55, 'name' => 'وارداتی', 'count' => 12],
+                ['id' => 56, 'name' => 'صادراتی', 'count' => 4],
             ])),
             'api.payamak-panel.com/*' => Http::response('<int>0</int>'),
         ]);
@@ -171,12 +168,52 @@ class ContactSyncTest extends TestCase
             ->assertRedirect(route('dashboard.contacts.groups'))
             ->assertSessionHas('status');
 
-        $group = ContactGroup::firstWhere(['user_id' => $user->id, 'remote_id' => 55]);
-        $contact = Contact::firstWhere(['user_id' => $user->id, 'remote_id' => 900]);
+        $this->assertDatabaseHas('contact_groups', ['user_id' => $user->id, 'remote_id' => 55, 'sync_status' => 'synced']);
+        $this->assertDatabaseHas('contact_groups', ['user_id' => $user->id, 'remote_id' => 56]);
+        $this->assertSame(0, Contact::where('user_id', $user->id)->count());
+        Http::assertNotSent(fn ($r) => str_contains($r->url(), 'Contacts.asmx/GetContacts'));
+    }
 
-        $this->assertNotNull($group);
-        $this->assertSame('synced', $group->sync_status);
+    public function test_pulling_a_group_imports_its_contacts(): void
+    {
+        Http::fake([
+            'api.payamak-panel.com/post/Contacts.asmx/GetContacts' => Http::response($this->contactsXml([
+                ['id' => 900, 'mobile' => '09129998877', 'first' => 'مهمان', 'groups' => 'وارداتی'],
+                ['id' => 901, 'mobile' => '09121112233', 'first' => 'دوم', 'groups' => 'وارداتی'],
+            ])),
+            'api.payamak-panel.com/*' => Http::response('<int>0</int>'),
+        ]);
+
+        $user = $this->panelUser();
+        $group = $user->contactGroups()->create([
+            'name' => 'وارداتی', 'remote_id' => 55, 'sync_status' => 'synced', 'synced_at' => now(),
+        ]);
+
+        $this->actingAs($user)->post(route('dashboard.contacts.groups.pull', $group))
+            ->assertRedirect(route('dashboard.contacts.groups'))
+            ->assertSessionHas('status');
+
+        $group->refresh();
+        $this->assertNotNull($group->contacts_synced_at);
+        $this->assertSame(2, $group->contacts()->count());
+
+        $contact = Contact::firstWhere(['user_id' => $user->id, 'remote_id' => 900]);
         $this->assertNotNull($contact);
+        $this->assertSame('09129998877', $contact->mobile);
         $this->assertTrue($contact->groups->contains($group));
+    }
+
+    public function test_pulling_an_unsynced_group_is_rejected(): void
+    {
+        Http::fake(['api.payamak-panel.com/*' => Http::response('<int>0</int>')]);
+
+        $user = $this->panelUser();
+        $group = $user->contactGroups()->create(['name' => 'محلی']); // no remote_id
+
+        $this->actingAs($user)->post(route('dashboard.contacts.groups.pull', $group))
+            ->assertRedirect(route('dashboard.contacts.groups'))
+            ->assertSessionHas('warning');
+
+        $this->assertSame(0, $group->contacts()->count());
     }
 }
