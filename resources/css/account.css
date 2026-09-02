@@ -1138,3 +1138,91 @@ fieldset.wallet-topup-method {
     :where(input[type="submit"], input[type="button"], input[type="reset"]) {
     width: auto;
 }
+
+/* ── Phonebook / دفترچه تلفن (docs/starter.md §17) ── */
+.account-form label {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.account-form label.contact-form__check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+.account-form label.contact-form__check input {
+    width: auto;
+}
+
+.contact-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0 16px;
+}
+
+.contact-form__groups {
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 6px 0 16px;
+}
+.contact-form__groups legend {
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0 6px;
+}
+.contact-form__check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+}
+.contact-form__check input {
+    width: auto;
+}
+
+.account-details {
+    margin: 14px 0;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+.account-details > summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.account-details[open] > summary {
+    margin-bottom: 12px;
+}
+
+.account-filter-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+.account-filter-form input {
+    max-width: 320px;
+}
+
+.contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: start;
+}
+.contact-actions form {
+    margin: 0;
+}
+.account-inline-edit > summary {
+    list-style: none;
+    display: inline-block;
+}
+.account-inline-edit .account-form {
+    margin-top: 10px;
+    min-width: 240px;
+}
