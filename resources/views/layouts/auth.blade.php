@@ -36,6 +36,8 @@
 
         @include('partials.site-footer')
     </div>
+
+    @include('partials.flash')
 </body>
 
 </html>

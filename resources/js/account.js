@@ -3,7 +3,10 @@
  * Loaded on /register, /login, /verify and /dashboard* only.
  *   - OTP resend countdown
  *   - auto-advance / numeric-only on the OTP input
+ *   - SweetAlert2 flash toasts (via ./flash.js)
  */
+
+import './flash.js';
 
 function otpResendCountdown() {
     const btn = document.querySelector('[data-resend]');

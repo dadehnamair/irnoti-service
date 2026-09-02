@@ -21,6 +21,11 @@ class Wallet extends Model
         'balance',
     ];
 
+    /** So a freshly firstOrCreate()d wallet reports 0, not null, before reload. */
+    protected $attributes = [
+        'balance' => 0,
+    ];
+
     protected $casts = [
         'balance' => 'integer',
     ];

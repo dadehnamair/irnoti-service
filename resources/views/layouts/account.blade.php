@@ -75,6 +75,8 @@ $primary = config('theme.primary');
 
         @include('partials.site-footer')
     </div>
+
+    @include('partials.flash')
 </body>
 
 </html>

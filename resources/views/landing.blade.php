@@ -479,6 +479,8 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 
         @include('partials.site-footer')
     </div>
+
+    @include('partials.flash')
 </body>
 
 </html>

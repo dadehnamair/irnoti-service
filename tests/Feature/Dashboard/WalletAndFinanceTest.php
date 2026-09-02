@@ -5,6 +5,7 @@ namespace Tests\Feature\Dashboard;
 use App\Models\BankAccount;
 use App\Models\BankReceipt;
 use App\Models\Invoice;
+use App\Models\PackageOrder;
 use App\Models\Plan;
 use App\Models\SmsPackage;
 use App\Models\Subscription;
@@ -147,7 +148,7 @@ class WalletAndFinanceTest extends TestCase
             'method' => 'wallet',
         ])->assertRedirect();
 
-        $order = \App\Models\PackageOrder::firstOrFail();
+        $order = PackageOrder::firstOrFail();
         $this->assertSame('completed', $order->status);
         $this->assertSame(10000, $user->fresh()->sms_credit);
         $this->assertSame(2000000 - 750000, $user->fresh()->wallet()->balance);
@@ -168,6 +169,20 @@ class WalletAndFinanceTest extends TestCase
 
         $this->assertSame('paid', $invoice->fresh()->status);
         $this->assertSame(700000, $user->fresh()->wallet()->balance);
+    }
+
+    public function test_finance_pages_render_for_a_logged_in_user(): void
+    {
+        $user = User::factory()->create();
+        SmsPackage::create(['name' => 'بسته', 'slug' => 'b1', 'sms_count' => 5000, 'price' => 400000, 'is_active' => true]);
+
+        $this->actingAs($user)->get(route('dashboard.wallet'))->assertOk()->assertSee('کیف پول');
+        $this->actingAs($user)->get(route('dashboard.transactions'))->assertOk()->assertSee('سوابق مالی');
+        $this->actingAs($user)->get(route('dashboard.packages'))->assertOk()->assertSee('بسته‌های پیامکی');
+        $this->actingAs($user)->get(route('dashboard.invoices'))->assertOk();
+        $this->actingAs($user)->get(route('dashboard.receipts'))->assertOk();
+        $this->actingAs($user)->get(route('dashboard.receipts.create', ['for' => 'topup']))->assertOk()->assertSee('ثبت فیش');
+        $this->get(route('sms-packages'))->assertOk()->assertSee('بسته‌های پیامکی');
     }
 
     public function test_invoice_wallet_payment_blocked_without_balance(): void

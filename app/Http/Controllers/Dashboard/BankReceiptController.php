@@ -140,7 +140,9 @@ class BankReceiptController extends Controller
         ]);
 
         try {
-            return CalendarUtils::createCarbonFromFormat('Y/m/d', $normalized)->startOfDay();
+            $carbon = CalendarUtils::createCarbonFromFormat('Y/m/d', $normalized);
+
+            return Carbon::instance($carbon)->startOfDay();
         } catch (\Throwable) {
             throw ValidationException::withMessages([
                 'paid_at' => 'تاریخ واریز معتبر نیست. نمونه درست: 1403/07/12',
