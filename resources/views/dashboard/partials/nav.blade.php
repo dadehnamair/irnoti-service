@@ -115,6 +115,9 @@
         </div>
     </details>
 
+    {{-- Panel mega-menu — catalogue-driven, mostly «بزودی» (docs/starter.md §15). --}}
+    @include('dashboard.partials.nav-features')
+
     <div class="account-nav__group account-nav__group--footer">
         <a href="https://vip.irnoti.com" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M10 14L21 3"/><path d="M21 14v7H3V3h7"/></svg>

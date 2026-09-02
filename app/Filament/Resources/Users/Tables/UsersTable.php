@@ -73,6 +73,13 @@ class UsersTable
                     ->badge()
                     ->placeholder('—'),
 
+                TextColumn::make('userGroup.name')
+                    ->label('گروه کاربری')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—')
+                    ->toggleable(),
+
                 IconColumn::make('profile_completed_at')
                     ->label('اطلاعات')
                     ->boolean()
@@ -100,6 +107,10 @@ class UsersTable
                 SelectFilter::make('plan_id')
                     ->label('پلن')
                     ->relationship('plan', 'name'),
+
+                SelectFilter::make('user_group_id')
+                    ->label('گروه کاربری')
+                    ->relationship('userGroup', 'name'),
 
                 TernaryFilter::make('profile_completed_at')
                     ->label('تکمیل اطلاعات')

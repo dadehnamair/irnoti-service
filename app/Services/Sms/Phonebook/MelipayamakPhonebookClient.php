@@ -53,7 +53,9 @@ class MelipayamakPhonebookClient implements PhonebookClientInterface
             'Count' => max(1, $count),
         ]);
 
-        $rows = $this->xmlRecords($body, 'GridList', [
+        // The repeating record element is <ContactsGridList> (docs:
+        // https://www.melipayamak.com/api/getcontacts/ — the "خروجی" sample).
+        $rows = $this->xmlRecords($body, 'ContactsGridList', [
             'ContactID', 'FirstName', 'LastName', 'NickName', 'Corporation',
             'MobileNumbers', 'Email', 'Gender', 'BirthDate', 'Descriptions', 'Groups',
         ]);

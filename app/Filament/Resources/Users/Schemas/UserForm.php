@@ -55,6 +55,43 @@ class UserForm
                             ->dehydrated(false),
                     ]),
 
+                Section::make('گروه کاربری و امکانات پنل')
+                    ->description('گروه، مجموعه‌ای از امکانات منوی پنل است (docs/starter.md §15). با «استثناها» می‌توان جدا از گروه، امکانی را برای همین کاربر فعال یا محدود کرد.')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('user_group_id')
+                            ->label('گروه کاربری')
+                            ->relationship('userGroup', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('بدون گروه'),
+
+                        Repeater::make('featureOverrides')
+                            ->label('استثناهای این کاربر')
+                            ->relationship()
+                            ->schema([
+                                Select::make('feature_id')
+                                    ->label('امکان')
+                                    ->relationship('feature', 'label')
+                                    ->getOptionLabelFromRecordUsing(fn (Feature $record) => $record->group_label.' › '.$record->label)
+                                    ->options(fn () => Feature::query()->ordered()->get()
+                                        ->mapWithKeys(fn (Feature $f) => [$f->id => $f->group_label.' › '.$f->label])
+                                        ->all())
+                                    ->searchable()
+                                    ->required(),
+
+                                Select::make('mode')
+                                    ->label('نوع')
+                                    ->options(UserFeatureOverride::MODES)
+                                    ->default('grant')
+                                    ->required(),
+                            ])
+                            ->columns(2)
+                            ->addActionLabel('افزودن استثنا')
+                            ->defaultItems(0)
+                            ->columnSpanFull(),
+                    ]),
+
                 Section::make('تأیید حساب')
                     ->description('حساب پس از تأیید مدارک و تأیید نهایی، امکانات پنل را باز می‌کند (docs/starter.md §39).')
                     ->columns(2)

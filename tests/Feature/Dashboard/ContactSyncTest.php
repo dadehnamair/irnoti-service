@@ -49,7 +49,7 @@ class ContactSyncTest extends TestCase
     {
         $items = '';
         foreach ($contacts as $c) {
-            $items .= '<GridList>'
+            $items .= '<ContactsGridList>'
                 .'<ContactID>'.$c['id'].'</ContactID>'
                 .'<FirstName>'.($c['first'] ?? '').'</FirstName>'
                 .'<LastName>'.($c['last'] ?? '').'</LastName>'
@@ -58,10 +58,10 @@ class ContactSyncTest extends TestCase
                 .'<Email></Email><Gender>0</Gender><BirthDate>0001-01-01T00:00:00</BirthDate>'
                 .'<Descriptions></Descriptions>'
                 .'<Groups>'.($c['groups'] ?? '').'</Groups>'
-                .'</GridList>';
+                .'</ContactsGridList>';
         }
 
-        return '<?xml version="1.0" encoding="utf-8"?><ArrayOfGridList xmlns="http://tempuri.org/">'.$items.'</ArrayOfGridList>';
+        return '<?xml version="1.0" encoding="utf-8"?><GetContactsResponse xmlns="http://tempuri.org/"><GetContactsResult>'.$items.'</GetContactsResult></GetContactsResponse>';
     }
 
     public function test_creating_a_group_pushes_to_melipayamak_and_captures_the_id(): void

@@ -169,35 +169,45 @@ class PhonebookSync
         /** @var array<int, array<int, int>> $membership  remote ContactID => local group ids */
         $membership = [];
 
-        // One pass per group (plus a best-effort ungrouped pass) — a contact seen
-        // through several groups is merged and keeps every membership.
+        // GetContacts needs a real GroupId, so we page each group in turn (plus a
+        // best-effort ungrouped pass). A contact seen through several groups is
+        // merged and keeps every membership. One failing group must not abort the
+        // whole import.
         foreach (array_merge(array_keys($groupMap), [null]) as $remoteGroupId) {
-            $from = 0;
-            $page = 200;
+            try {
+                $from = 0;
+                $page = 200;
 
-            do {
-                $batch = $client->contacts($remoteGroupId, null, $from, $page);
+                do {
+                    $batch = $client->contacts($remoteGroupId, null, $from, $page);
 
-                foreach ($batch as $c) {
-                    $rows[$c['remote_id']] = $c;
+                    foreach ($batch as $c) {
+                        $rows[$c['remote_id']] = $c;
 
-                    $ids = $membership[$c['remote_id']] ?? [];
+                        $ids = $membership[$c['remote_id']] ?? [];
 
-                    if ($remoteGroupId !== null && isset($groupMap[$remoteGroupId])) {
-                        $ids[] = $groupMap[$remoteGroupId];
-                    }
-
-                    foreach ($c['group_ids'] as $gid) {
-                        if (isset($groupMap[$gid])) {
-                            $ids[] = $groupMap[$gid];
+                        if ($remoteGroupId !== null && isset($groupMap[$remoteGroupId])) {
+                            $ids[] = $groupMap[$remoteGroupId];
                         }
+
+                        foreach ($c['group_ids'] as $gid) {
+                            if (isset($groupMap[$gid])) {
+                                $ids[] = $groupMap[$gid];
+                            }
+                        }
+
+                        $membership[$c['remote_id']] = array_values(array_unique($ids));
                     }
 
-                    $membership[$c['remote_id']] = array_values(array_unique($ids));
-                }
-
-                $from += $page;
-            } while (count($batch) === $page && $from < 20000);
+                    $from += $page;
+                } while (count($batch) === $page && $from < 20000);
+            } catch (\Throwable $e) {
+                Log::warning('[phonebook] import: group fetch failed', [
+                    'user' => $user->id,
+                    'group' => $remoteGroupId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         foreach ($rows as $remoteId => $c) {
