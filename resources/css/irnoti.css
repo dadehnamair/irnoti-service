@@ -1023,6 +1023,7 @@ select {
     font-size: 0.92rem;
     line-height: 2;
     max-width: 42ch;
+    text-align: justify;
 }
 
 /* Contact list */

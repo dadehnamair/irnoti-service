@@ -3,40 +3,57 @@
 namespace App\Support;
 
 /**
- * The customer dashboard mega-menu (docs/starter.md §15). Single source of truth
- * for the panel-feature catalogue: FeaturesSeeder writes one `features` row per
- * item, the dashboard sidebar renders them grouped, and the admin panel toggles
- * / grants them. Items ship disabled (`is_active = false`) — «بزودی فعال می‌شوند».
+ * The complete customer dashboard sidebar (docs/starter.md §15) — single source
+ * of truth. FeaturesSeeder writes one `features` row per item, the sidebar
+ * (dashboard.partials.nav-features) renders them grouped in this order, and the
+ * admin panel toggles / grants them.
  *
- * `route` (when set) is the Laravel route name to link to once the item is
- * switched on and granted; leave it null for a not-yet-built page.
+ * Item value is either a plain label string, or an array:
+ *   'route'  — Laravel route name to link to
+ *   'url'    — literal href (for anchors / external), wins over `route`
+ *   'system' — built-in page: always shown once active, not gated by groups.
+ *              Implies the row ships enabled.
+ *
+ * Everything WITHOUT `system` ships disabled (`is_active = false`) — «بزودی
+ * فعال می‌شوند» — and only appears as a real link once switched on in the admin
+ * panel AND granted to the account.
  */
 class FeatureCatalog
 {
     /**
-     * @var array<string, array{label: string, items: array<string, string|array{label: string, route?: string}>}>
+     * @var array<string, array{label: string, items: array<string, string|array<string, mixed>>}>
      */
     public const GROUPS = [
-        'sms' => [
-            'label' => 'پیامک',
+        'account' => [
+            'label' => 'حساب کاربری',
             'items' => [
-                'sms.send' => 'ارسال پیامک',
+                'account.summary' => ['label' => 'خلاصه حساب', 'route' => 'dashboard', 'system' => true],
+                'account.profile' => ['label' => 'تکمیل اطلاعات', 'route' => 'dashboard.profile', 'system' => true],
+                'account.plan' => ['label' => 'پلن و اشتراک', 'route' => 'dashboard.plans', 'system' => true],
+            ],
+        ],
+
+        'sms' => [
+            'label' => 'ارسال پیامک',
+            'items' => [
+                'sms.send' => ['label' => 'ارسال پیامک', 'route' => 'dashboard.sms', 'system' => true],
+                'sms.bulk' => ['label' => 'ارسال انبوه', 'route' => 'dashboard.contacts.send', 'system' => true],
                 'sms.targeted' => 'منطقه‌ای، هدفمند',
                 'sms.gradual' => 'ارسال تدریجی',
-                'sms.peyamap' => 'پیامپ',
-                'sms.link_tracker' => 'لینک ترکر جدید',
-                'sms.filtered' => 'پیامک‌های فیلتر شده',
-                'sms.bulk' => 'ارسال انبوه',
                 'sms.smart' => 'ارسال هوشمند',
-                'sms.postal_code' => 'ارسال کدپستی جدید جدید',
                 'sms.matched' => 'ارسال متناظر',
+                'sms.peyamap' => 'پیامپ',
+                'sms.link_tracker' => 'لینک ترکر',
+                'sms.filtered' => 'پیامک‌های فیلتر شده',
+                'sms.postal_code' => 'ارسال کدپستی',
                 'sms.postal_mci' => 'کد پستی همراه اول',
                 'sms.postal_irancell' => 'کد پستی ایرانسل',
-                'sms.lba' => 'ارسال پیامک زنده (LBA) جدید',
+                'sms.lba' => 'ارسال پیامک زنده (LBA)',
                 'sms.bts' => 'BTS',
                 'sms.favorites' => 'علاقه‌مندی‌ها',
             ],
         ],
+
         'scheduled' => [
             'label' => 'ارسال زماندار',
             'items' => [
@@ -49,6 +66,7 @@ class FeatureCatalog
                 'scheduled.reminder' => 'یادآور زماندار',
             ],
         ],
+
         'messages' => [
             'label' => 'پیام‌ها',
             'items' => [
@@ -57,13 +75,22 @@ class FeatureCatalog
                 'messages.trash' => 'حذف شده',
             ],
         ],
-        'tools' => [
-            'label' => 'امکانات',
+
+        'contacts' => [
+            'label' => 'مخاطبین',
             'items' => [
-                'tools.phonebook' => 'دفترچه تلفن',
-                'tools.treasury' => 'گنجینه پیامک',
-                'tools.list_add' => 'اضافه به لیست',
-                'tools.list_remove' => 'حذف از لیست',
+                'contacts.book' => ['label' => 'دفترچه تلفن', 'route' => 'dashboard.contacts', 'system' => true],
+                'contacts.groups' => ['label' => 'گروه‌های مخاطبین', 'route' => 'dashboard.contacts.groups', 'system' => true],
+                'contacts.treasury' => 'گنجینه پیامک',
+                'contacts.list_add' => 'اضافه به لیست',
+                'contacts.list_remove' => 'حذف از لیست',
+                'contacts.special_list' => 'لیست ویژه',
+            ],
+        ],
+
+        'tools' => [
+            'label' => 'ابزارها',
+            'items' => [
                 'tools.exam' => 'آزمون',
                 'tools.survey' => 'نظرسنجی',
                 'tools.rating' => 'امتیازدهی',
@@ -71,11 +98,11 @@ class FeatureCatalog
                 'tools.code_assign' => 'کد دهی',
                 'tools.code_reader' => 'کدخوان',
                 'tools.number_assign' => 'شماره دهی',
-                'tools.content' => 'تولیدمحتوا',
-                'tools.special_list' => 'لیست ویژه',
+                'tools.content' => 'تولید محتوا',
                 'tools.international' => 'بین‌المللی',
             ],
         ],
+
         'pro' => [
             'label' => 'ابزار ویژه',
             'items' => [
@@ -89,19 +116,11 @@ class FeatureCatalog
                 'pro.mobile_send' => 'ارسال از موبایل',
                 'pro.quran' => 'ختم قرآن',
                 'pro.fax' => 'پیامک فکس',
-                'pro.subusers' => 'کاربران',
+                'pro.subusers' => 'کاربران (زیرمجموعه)',
                 'pro.business_card' => 'کارت ویزیت',
             ],
         ],
-        'developers' => [
-            'label' => 'توسعه دهندگان',
-            'items' => [
-                'developers.webservice_log' => 'لاگ فراخوانی وبسرویس',
-                'developers.api' => 'وب سرویس و API',
-                'developers.webservice_settings' => 'تنظیمات وبسرویس',
-                'developers.traffic_transfer' => 'انتقال ترافیک',
-            ],
-        ],
+
         'voice' => [
             'label' => 'پیام صوتی',
             'items' => [
@@ -110,6 +129,44 @@ class FeatureCatalog
                 'voice.files' => 'فایل‌های صوتی',
             ],
         ],
+
+        'developers' => [
+            'label' => 'توسعه دهندگان',
+            'items' => [
+                'developers.api' => 'وب سرویس و API',
+                'developers.webservice_settings' => 'تنظیمات وبسرویس',
+                'developers.webservice_log' => 'لاگ فراخوانی وبسرویس',
+                'developers.traffic_transfer' => 'انتقال ترافیک',
+            ],
+        ],
+
+        'commerce' => [
+            'label' => 'خرید و بسته‌ها',
+            'items' => [
+                'commerce.line' => ['label' => 'خرید خط اختصاصی', 'route' => 'dashboard.lines', 'system' => true],
+                'commerce.package' => ['label' => 'بسته پیامکی', 'route' => 'dashboard.packages', 'system' => true],
+                'commerce.package_change' => 'ارتقا / کاهش بسته',
+            ],
+        ],
+
+        'finance' => [
+            'label' => 'مالی',
+            'items' => [
+                'finance.wallet' => ['label' => 'کیف پول', 'route' => 'dashboard.wallet', 'system' => true],
+                'finance.transactions' => ['label' => 'سوابق مالی', 'route' => 'dashboard.transactions', 'system' => true],
+                'finance.invoices' => ['label' => 'صورت‌حساب‌ها', 'route' => 'dashboard.invoices', 'system' => true],
+                'finance.receipts' => ['label' => 'فیش‌های بانکی', 'route' => 'dashboard.receipts', 'system' => true],
+            ],
+        ],
+
+        'reports' => [
+            'label' => 'گزارش‌ها',
+            'items' => [
+                'reports.detailed' => 'گزارش ارسال تفکیکی',
+                'reports.summary' => 'گزارش کلی ارسال و هزینه',
+            ],
+        ],
+
         'support' => [
             'label' => 'پشتیبانی',
             'items' => [
@@ -120,14 +177,12 @@ class FeatureCatalog
                 'support.calls' => 'تماس‌ها',
             ],
         ],
+
         'settings' => [
             'label' => 'تنظیمات',
             'items' => [
                 'settings.general' => 'تنظیمات',
                 'settings.password' => 'تغییر رمز',
-                'settings.report_detailed' => 'گزارش ارسال تفکیکی',
-                'settings.report_summary' => 'گزارش کلی ارسال و هزینه جدید',
-                'settings.package_change' => 'ارتقا/کاهش بسته',
                 'settings.quick_texts' => 'متون سریع',
                 'settings.messenger' => 'پیام‌رسان جدید',
             ],
@@ -137,7 +192,7 @@ class FeatureCatalog
     /**
      * Flat list of every feature, ready for FeaturesSeeder.
      *
-     * @return list<array{key: string, group_key: string, group_label: string, label: string, route: ?string, sort: int}>
+     * @return list<array{key: string, group_key: string, group_label: string, label: string, route: ?string, url: ?string, system: bool, sort: int}>
      */
     public static function all(): array
     {
@@ -146,18 +201,29 @@ class FeatureCatalog
 
         foreach (self::GROUPS as $groupKey => $group) {
             foreach ($group['items'] as $key => $item) {
+                $item = is_array($item) ? $item : ['label' => $item];
+
                 $rows[] = [
                     'key' => $key,
                     'group_key' => $groupKey,
                     'group_label' => $group['label'],
-                    'label' => is_array($item) ? $item['label'] : $item,
-                    'route' => is_array($item) ? ($item['route'] ?? null) : null,
+                    'label' => $item['label'],
+                    'route' => $item['route'] ?? null,
+                    'url' => $item['url'] ?? null,
+                    'system' => (bool) ($item['system'] ?? false),
                     'sort' => $sort,
                 ];
+
                 $sort += 10;
             }
         }
 
         return $rows;
+    }
+
+    /** All feature keys defined here — used to prune stale `features` rows. */
+    public static function keys(): array
+    {
+        return array_column(self::all(), 'key');
     }
 }

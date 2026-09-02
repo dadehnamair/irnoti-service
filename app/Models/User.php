@@ -382,14 +382,20 @@ class User extends Authenticatable implements FilamentUser
         return $keys->unique()->values()->all();
     }
 
-    /** A feature is usable when it is switched on globally AND granted to the account. */
+    /**
+     * A feature is usable when it is switched on globally AND either a built-in
+     * page (`is_system`) or granted to the account via the group / overrides.
+     */
     public function canUseFeature(string $key): bool
     {
         $feature = Feature::query()->where('key', $key)->first();
 
-        return $feature !== null
-            && $feature->is_active
-            && in_array($key, $this->grantedFeatureKeys(), true);
+        if ($feature === null || ! $feature->is_active) {
+            return false;
+        }
+
+        return $feature->is_system
+            || in_array($key, $this->grantedFeatureKeys(), true);
     }
 
     /**

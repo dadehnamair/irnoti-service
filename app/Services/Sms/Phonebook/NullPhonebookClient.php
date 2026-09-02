@@ -2,10 +2,12 @@
 
 namespace App\Services\Sms\Phonebook;
 
+use App\Services\Sms\NullProvider;
+
 /**
  * Does nothing. Bound in the test environment (SMS_PROVIDER=null) so the suite
  * never touches the phonebook web service. Mirrors
- * {@see \App\Services\Sms\NullProvider}.
+ * {@see NullProvider}.
  */
 class NullPhonebookClient implements PhonebookClientInterface
 {
@@ -14,7 +16,7 @@ class NullPhonebookClient implements PhonebookClientInterface
         return [];
     }
 
-    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 200): array
+    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 100): array
     {
         return [];
     }

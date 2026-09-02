@@ -44,17 +44,22 @@ class MelipayamakPhonebookClient implements PhonebookClientInterface
         ], $rows), fn (array $g) => $g['remote_id'] > 0));
     }
 
-    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 200): array
+    /** GetContacts silently returns an empty list when `count` exceeds this. */
+    private const MAX_PAGE = 100;
+
+    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 100): array
     {
+        // Lowercase keys match Melipayamak's own SDK / WSDL. `count` MUST stay
+        // <= 100 — a larger value makes the service return zero rows.
         $body = $this->asmxPost('Contacts.asmx/GetContacts', [
-            'GroupId' => $groupId ?? 0,
-            'Keyword' => $keyword ?? '',
-            'From' => max(0, $from),
-            'Count' => max(1, $count),
+            'groupId' => $groupId ?? 0,
+            'keyword' => $keyword ?? '',
+            'from' => max(0, $from),
+            'count' => min(max(1, $count), self::MAX_PAGE),
         ]);
 
-        // The repeating record element is <ContactsGridList> (docs:
-        // https://www.melipayamak.com/api/getcontacts/ — the "خروجی" sample).
+        // The repeating record element is <ContactsGridList>; <Groups> holds
+        // comma-separated group NAMES (not ids).
         $rows = $this->xmlRecords($body, 'ContactsGridList', [
             'ContactID', 'FirstName', 'LastName', 'NickName', 'Corporation',
             'MobileNumbers', 'Email', 'Gender', 'BirthDate', 'Descriptions', 'Groups',
@@ -71,7 +76,7 @@ class MelipayamakPhonebookClient implements PhonebookClientInterface
             'gender' => $this->genderFromRemote($r['Gender']),
             'birth_date' => $this->dateFromRemote($r['BirthDate']),
             'description' => $r['Descriptions'] !== '' ? $r['Descriptions'] : null,
-            'group_ids' => $this->digitsList($r['Groups']),
+            'group_names' => $this->splitNames($r['Groups']),
         ], $rows), fn (array $c) => $c['remote_id'] > 0 && $c['mobile'] !== ''));
     }
 
@@ -188,12 +193,10 @@ class MelipayamakPhonebookClient implements PhonebookClientInterface
         }
     }
 
-    /** @return array<int, int> */
-    private function digitsList(string $value): array
+    /** Split the comma-separated `<Groups>` field into trimmed group names. */
+    private function splitNames(string $value): array
     {
-        preg_match_all('/\d+/', $value, $m);
-
-        return array_values(array_unique(array_map('intval', $m[0])));
+        return array_values(array_filter(array_map('trim', explode(',', $value)), fn ($n) => $n !== ''));
     }
 
     private function sendError(string $code): string

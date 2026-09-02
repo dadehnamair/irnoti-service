@@ -160,7 +160,7 @@ class ContactSyncTest extends TestCase
                 ['id' => 55, 'name' => 'وارداتی', 'count' => 1],
             ])),
             'api.payamak-panel.com/post/Contacts.asmx/GetContacts' => Http::response($this->contactsXml([
-                ['id' => 900, 'mobile' => '09129998877', 'first' => 'مهمان', 'groups' => '55'],
+                ['id' => 900, 'mobile' => '09129998877', 'first' => 'مهمان', 'groups' => 'وارداتی'],
             ])),
             'api.payamak-panel.com/*' => Http::response('<int>0</int>'),
         ]);

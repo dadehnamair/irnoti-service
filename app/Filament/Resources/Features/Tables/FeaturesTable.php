@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Features\Tables;
 use App\Models\Feature;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -36,7 +37,12 @@ class FeaturesTable
 
                 TextColumn::make('route')
                     ->label('مسیر')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->toggleable(),
+
+                IconColumn::make('is_system')
+                    ->label('داخلی')
+                    ->boolean(),
 
                 TextColumn::make('user_groups_count')
                     ->counts('userGroups')
@@ -44,7 +50,8 @@ class FeaturesTable
                     ->badge(),
 
                 ToggleColumn::make('is_active')
-                    ->label('فعال'),
+                    ->label('فعال')
+                    ->disabled(fn ($record) => $record->is_system),
 
                 TextColumn::make('sort')
                     ->label('ترتیب')

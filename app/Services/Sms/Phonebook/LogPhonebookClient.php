@@ -2,13 +2,14 @@
 
 namespace App\Services\Sms\Phonebook;
 
+use App\Services\Sms\LogProvider;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Credential-free phonebook driver for local dev & staging (SMS_PROVIDER=log).
  * Writes each call to the log instead of hitting the web service, and returns
  * plausible values so the panel UI is fully usable without a real Melipayamak
- * account. Mirrors {@see \App\Services\Sms\LogProvider}. Never use in production.
+ * account. Mirrors {@see LogProvider}. Never use in production.
  */
 class LogPhonebookClient implements PhonebookClientInterface
 {
@@ -19,7 +20,7 @@ class LogPhonebookClient implements PhonebookClientInterface
         return [];
     }
 
-    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 200): array
+    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 100): array
     {
         $this->log('contacts', compact('groupId', 'keyword', 'from', 'count'));
 

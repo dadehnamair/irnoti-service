@@ -26,17 +26,16 @@
 
         <form method="GET" action="{{ route('dashboard.contacts') }}" class="account-filter-form">
             <input type="search" name="keyword" value="{{ $keyword }}" placeholder="جستجوی نام یا شماره…" />
+            <select name="group">
+                <option value="">همه گروه‌ها ({{ $groups->sum('contacts_count') }})</option>
+                @foreach ($groups as $group)
+                    <option value="{{ $group->id }}" @selected($activeGroup === $group->id)>
+                        {{ $group->name }} ({{ $group->contacts_count }})
+                    </option>
+                @endforeach
+            </select>
             <button type="submit" class="btn btn-secondary btn-sm">جستجو</button>
         </form>
-
-        <div class="account-filter">
-            <a href="{{ route('dashboard.contacts', ['keyword' => $keyword ?: null]) }}"
-               @class(['is-active' => ! $activeGroup])>همه ({{ $groups->sum('contacts_count') }})</a>
-            @foreach ($groups as $group)
-                <a href="{{ route('dashboard.contacts', ['group' => $group->id, 'keyword' => $keyword ?: null]) }}"
-                   @class(['is-active' => $activeGroup === $group->id])>{{ $group->name }} ({{ $group->contacts_count }})</a>
-            @endforeach
-        </div>
 
         <details class="account-details">
             <summary>افزودن مخاطب</summary>

@@ -2,9 +2,11 @@
 
 namespace App\Services\Sms\Phonebook;
 
+use App\Services\Sms\SmsProviderInterface;
+
 /**
  * Phonebook / contacts layer (docs/starter.md §14 / §17). Parallels
- * {@see \App\Services\Sms\SmsProviderInterface}: no controller talks to the
+ * {@see SmsProviderInterface}: no controller talks to the
  * vendor phonebook API directly. The Melipayamak implementation speaks the
  * Contacts.asmx web service; per-customer instances are built by
  * {@see UserPhonebook}.
@@ -20,11 +22,11 @@ interface PhonebookClientInterface
 
     /**
      * A page of contacts, optionally filtered by group and/or a keyword
-     * (name or mobile).
+     * (name or mobile). Melipayamak caps `count` at 100.
      *
-     * @return array<int, array{remote_id:int, first_name:?string, last_name:?string, mobile:string, email:?string, company:?string, nickname:?string, gender:?string, birth_date:?string, description:?string, group_ids:array<int,int>}>
+     * @return array<int, array{remote_id:int, first_name:?string, last_name:?string, mobile:string, email:?string, company:?string, nickname:?string, gender:?string, birth_date:?string, description:?string, group_names:array<int,string>}>
      */
-    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 200): array;
+    public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 100): array;
 
     /** Create a group. Returns true on success (Melipayamak gives no new id here). */
     public function createGroup(string $name, ?string $description, bool $showToChild): bool;

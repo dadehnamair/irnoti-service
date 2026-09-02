@@ -145,7 +145,8 @@ class PhonebookSync
     {
         $client = UserPhonebook::for($user);
 
-        $groupMap = []; // remote GroupID => local ContactGroup id
+        $groupMap = [];      // remote GroupID => local ContactGroup id
+        $groupByName = [];    // lower(trimmed name) => local ContactGroup id
 
         foreach ($client->groups() as $g) {
             $group = ContactGroup::updateOrCreate(
@@ -162,6 +163,7 @@ class PhonebookSync
             );
 
             $groupMap[$g['remote_id']] = $group->id;
+            $groupByName[mb_strtolower(trim($group->name))] = $group->id;
         }
 
         /** @var array<int, array<string, mixed>> $rows  remote ContactID => payload */
@@ -169,14 +171,16 @@ class PhonebookSync
         /** @var array<int, array<int, int>> $membership  remote ContactID => local group ids */
         $membership = [];
 
-        // GetContacts needs a real GroupId, so we page each group in turn (plus a
-        // best-effort ungrouped pass). A contact seen through several groups is
-        // merged and keeps every membership. One failing group must not abort the
-        // whole import.
+        // GetContacts needs a real GroupId and caps `count` at 100, so we page
+        // each group in turn (plus a best-effort ungrouped pass). A contact seen
+        // through several groups is merged and keeps every membership (the
+        // <Groups> field carries the other group NAMES). One failing group must
+        // not abort the whole import.
+        $page = 100;
+
         foreach (array_merge(array_keys($groupMap), [null]) as $remoteGroupId) {
             try {
                 $from = 0;
-                $page = 200;
 
                 do {
                     $batch = $client->contacts($remoteGroupId, null, $from, $page);
@@ -190,9 +194,11 @@ class PhonebookSync
                             $ids[] = $groupMap[$remoteGroupId];
                         }
 
-                        foreach ($c['group_ids'] as $gid) {
-                            if (isset($groupMap[$gid])) {
-                                $ids[] = $groupMap[$gid];
+                        foreach ($c['group_names'] as $name) {
+                            $key = mb_strtolower(trim($name));
+
+                            if (isset($groupByName[$key])) {
+                                $ids[] = $groupByName[$key];
                             }
                         }
 
@@ -200,7 +206,7 @@ class PhonebookSync
                     }
 
                     $from += $page;
-                } while (count($batch) === $page && $from < 20000);
+                } while (count($batch) === $page && $from < 100000);
             } catch (\Throwable $e) {
                 Log::warning('[phonebook] import: group fetch failed', [
                     'user' => $user->id,

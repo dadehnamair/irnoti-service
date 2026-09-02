@@ -15,13 +15,14 @@ class Feature extends Model
 {
     protected $fillable = [
         'key', 'group_key', 'group_label', 'label',
-        'icon', 'route', 'url', 'description', 'sort', 'is_active',
+        'icon', 'route', 'url', 'description', 'sort', 'is_active', 'is_system',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_system' => 'boolean',
             'sort' => 'integer',
         ];
     }

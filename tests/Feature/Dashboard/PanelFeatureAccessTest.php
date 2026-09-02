@@ -11,8 +11,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Panel-feature access: access groups + per-user overrides + the global «بزودی»
- * toggle drive what the customer sees in the dashboard mega-menu (docs/starter.md §15).
+ * Panel-feature access: the built-in («is_system») pages are always available,
+ * while the «بزودی» catalogue items are gated by the access group + per-user
+ * overrides + the global toggle (docs/starter.md §15).
  */
 class PanelFeatureAccessTest extends TestCase
 {
@@ -32,24 +33,33 @@ class PanelFeatureAccessTest extends TestCase
         $this->assertSame(UserGroup::defaultId(), $user->user_group_id);
     }
 
+    public function test_system_pages_are_usable_without_any_group(): void
+    {
+        $user = User::factory()->create(['user_group_id' => null]);
+
+        $this->assertTrue($user->canUseFeature('account.summary'));
+        $this->assertTrue($user->canUseFeature('finance.wallet'));
+        $this->assertFalse($user->canUseFeature('sms.gradual'));
+    }
+
     public function test_granted_keys_combine_group_and_overrides(): void
     {
         $group = UserGroup::where('slug', 'default')->first();
+        $targeted = Feature::where('key', 'sms.targeted')->first();
         $inbox = Feature::where('key', 'messages.inbox')->first();
         $sent = Feature::where('key', 'messages.sent')->first();
-        $bulk = Feature::where('key', 'sms.bulk')->first();
 
-        $group->features()->sync([$inbox->id, $sent->id]);
+        $group->features()->sync([$targeted->id, $sent->id]);
 
         $user = User::factory()->create(['user_group_id' => $group->id]);
         // Per-user: add one the group lacks, drop one the group has.
-        $user->featureOverrides()->create(['feature_id' => $bulk->id, 'mode' => 'grant']);
+        $user->featureOverrides()->create(['feature_id' => $inbox->id, 'mode' => 'grant']);
         $user->featureOverrides()->create(['feature_id' => $sent->id, 'mode' => 'revoke']);
 
         $keys = $user->fresh()->grantedFeatureKeys();
 
+        $this->assertContains('sms.targeted', $keys);
         $this->assertContains('messages.inbox', $keys);
-        $this->assertContains('sms.bulk', $keys);
         $this->assertNotContains('messages.sent', $keys);
     }
 
@@ -76,22 +86,25 @@ class PanelFeatureAccessTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('بزودی');
-        // The «پیامک» catalogue group renders even while everything is disabled.
-        $response->assertSee('ارسال تدریجی');
+        $response->assertSee('ارسال تدریجی');           // a «بزودی» catalogue item
+        $response->assertSee(route('dashboard.wallet'), false); // a built-in page renders as a link
     }
 
     public function test_switched_on_and_granted_feature_becomes_a_real_link(): void
     {
         $group = UserGroup::where('slug', 'default')->first();
-        $feature = Feature::where('key', 'sms.send')->first();
+        $feature = Feature::where('key', 'messages.inbox')->first();
         $feature->update(['is_active' => true, 'route' => 'dashboard']);
         $group->features()->sync([$feature->id]);
 
         $user = User::factory()->create(['status' => 'active', 'user_group_id' => $group->id]);
 
+        $this->assertTrue($user->canUseFeature('messages.inbox'));
+
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertSee('href="'.route('dashboard').'"', false);
+        $response->assertSee('<a href="'.route('dashboard').'"', false);
+        $response->assertSee('دریافتی');
     }
 }

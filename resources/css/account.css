@@ -1331,6 +1331,9 @@ fieldset.wallet-topup-method {
 .account-filter-form input {
     max-width: 320px;
 }
+.account-filter-form select {
+    max-width: 240px;
+}
 
 .contact-actions {
     display: flex;

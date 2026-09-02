@@ -25,7 +25,9 @@ class FeatureForm
 
                         TextInput::make('group_label')
                             ->label('گروه منو')
-                            ->required(),
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('گروه‌بندی و ترتیب از کاتالوگ سیستم می‌آید.'),
 
                         TextInput::make('label')
                             ->label('عنوان نمایشی')
@@ -33,18 +35,19 @@ class FeatureForm
 
                         TextInput::make('route')
                             ->label('نام مسیر (route)')
-                            ->placeholder('مثلاً dashboard.sms')
-                            ->helperText('اگر خالی باشد یا صفحه‌ای برایش نباشد، فقط به‌صورت «بزودی» نمایش داده می‌شود.'),
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->placeholder('—'),
 
-                        TextInput::make('sort')
-                            ->label('ترتیب نمایش')
-                            ->numeric()
-                            ->default(0)
-                            ->required(),
+                        Toggle::make('is_system')
+                            ->label('صفحهٔ داخلی سامانه')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('صفحات داخلی همیشه برای همه کاربران فعال‌اند و به گروه وابسته نیستند.'),
 
                         Toggle::make('is_active')
                             ->label('فعال (نمایش به‌صورت لینک واقعی)')
-                            ->helperText('تا وقتی خاموش است، این آیتم برای همه کاربران «بزودی» است.'),
+                            ->helperText('تا وقتی خاموش است، این آیتم برای کاربران «بزودی» است. برای صفحات داخلی بی‌اثر است.'),
 
                         Textarea::make('description')
                             ->label('توضیح')
