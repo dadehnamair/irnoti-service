@@ -489,10 +489,16 @@ details.account-nav__group[open] > .account-nav__panel {
     font-size: 0.78rem;
     color: var(--muted);
     margin-bottom: 4px;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .account-stat strong {
     font-size: 1rem;
+    display: block;
+    white-space: nowrap;
 }
 
 .account-badge {
