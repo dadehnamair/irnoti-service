@@ -84,7 +84,7 @@ class MarketplaceController extends Controller
 
         $installation = $user->marketplaceInstallations()->create([
             'marketplace_app_id' => $app->id,
-            'status' => $app->isFree() ? 'active' : 'awaiting_payment',
+            'status' => $app->isFree() ? 'pending' : 'awaiting_payment',
             'config' => $config,
             'settings' => [],
             'price' => $app->isFree() ? 0 : (int) $app->price,
@@ -157,8 +157,15 @@ class MarketplaceController extends Controller
         $this->ensureEnabled();
         $this->authorizeOwner($request, $installation);
 
+        // Blank fields keep the stored value — so a masked secret needn't be re-typed.
+        $submitted = array_filter(
+            (array) $request->input('config', []),
+            fn ($value) => is_string($value) ? $value !== '' : $value !== null,
+        );
+        $merged = array_merge((array) $installation->config, $submitted);
+
         try {
-            $config = $installation->handler()->validateConfig($request->input('config', []));
+            $config = $installation->handler()->validateConfig($merged);
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }

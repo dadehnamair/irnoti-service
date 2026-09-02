@@ -9,6 +9,7 @@
 @endphp
 <nav class="account-nav" aria-label="ناوبری پنل کاربری">
     @include('dashboard.partials.nav-features')
+    @include('dashboard.partials.nav-marketplace')
 
     <div class="account-nav__group account-nav__group--footer">
         <a href="https://vip.irnoti.com" target="_blank" rel="noopener">
