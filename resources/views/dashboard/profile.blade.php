@@ -15,11 +15,6 @@
             @endforeach
         </ol>
 
-        @if (session('auth_status'))
-            <p class="auth-note">{{ session('auth_status') }}</p>
-        @endif
-
-
         @if ($step === 1 && $user->identityLocked())
             <p class="account-inline-note is-info">
                 نام و نام خانوادگی پس از تأیید حساب قابل ویرایش نیست؛ برای اصلاح با پشتیبانی تماس بگیرید.

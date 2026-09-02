@@ -1778,3 +1778,60 @@ select {
     justify-content: center;
     flex-wrap: wrap;
 }
+
+/* ============================================================================
+ * SweetAlert2 — match the dark brand theme (flash toasts + confirm dialogs).
+ * ==========================================================================*/
+.swal2-container {
+    padding: 1rem !important;
+}
+.swal2-popup {
+    background: var(--panel-strong, #101b2d) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md) !important;
+    font-family: "Vazirmatn", "Segoe UI", Tahoma, sans-serif !important;
+    box-shadow: var(--shadow) !important;
+}
+.swal2-toast {
+    padding: 0.9rem 1rem !important;
+}
+.swal2-title {
+    color: var(--text) !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+}
+.swal2-toast .swal2-title {
+    font-size: 0.92rem !important;
+    margin: 0 !important;
+}
+.swal2-html-container {
+    color: var(--text-soft) !important;
+    font-size: 0.92rem !important;
+}
+.swal2-actions {
+    gap: 10px;
+}
+.swal2-styled.swal2-confirm {
+    background: var(--brand-gradient) !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-brand) !important;
+    font-weight: 700 !important;
+}
+.swal2-styled.swal2-cancel {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-soft) !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+}
+.swal2-styled:focus {
+    box-shadow: 0 0 0 3px var(--primary-soft-20) !important;
+}
+.swal2-timer-progress-bar {
+    background: var(--primary-soft-20) !important;
+}
+.swal2-toast .swal2-icon {
+    margin-inline: 0 0.6rem !important;
+}
