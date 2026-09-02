@@ -31,12 +31,14 @@ class ContactGroup extends Model
         'sync_status',
         'sync_error',
         'synced_at',
+        'contacts_synced_at',
     ];
 
     protected $casts = [
         'show_to_child' => 'boolean',
         'contact_count' => 'integer',
         'synced_at' => 'datetime',
+        'contacts_synced_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -134,22 +134,16 @@ class PhonebookSync
     }
 
     /**
-     * Pull everything from Melipayamak into the local tables (upsert by
-     * remote_id). Melipayamak's GetContacts needs a real GroupId, so contacts
-     * are fetched group-by-group and their memberships unioned.
-     * Returns ['groups' => n, 'contacts' => n].
-     *
-     * @return array{groups:int, contacts:int}
+     * Pull only the group list from Melipayamak (fast — one call). Contacts are
+     * fetched later, per group, by {@see importGroupContacts()}. Returns the
+     * number of groups upserted.
      */
-    public function import(User $user): array
+    public function importGroups(User $user): int
     {
-        $client = UserPhonebook::for($user);
+        $count = 0;
 
-        $groupMap = [];      // remote GroupID => local ContactGroup id
-        $groupByName = [];    // lower(trimmed name) => local ContactGroup id
-
-        foreach ($client->groups() as $g) {
-            $group = ContactGroup::updateOrCreate(
+        foreach (UserPhonebook::for($user)->groups() as $g) {
+            ContactGroup::updateOrCreate(
                 ['user_id' => $user->id, 'remote_id' => $g['remote_id']],
                 [
                     'name' => $g['name'] !== '' ? $g['name'] : 'گروه '.$g['remote_id'],
@@ -162,83 +156,86 @@ class PhonebookSync
                 ],
             );
 
-            $groupMap[$g['remote_id']] = $group->id;
-            $groupByName[mb_strtolower(trim($group->name))] = $group->id;
+            $count++;
         }
 
-        /** @var array<int, array<string, mixed>> $rows  remote ContactID => payload */
-        $rows = [];
-        /** @var array<int, array<int, int>> $membership  remote ContactID => local group ids */
-        $membership = [];
+        return $count;
+    }
 
-        // GetContacts needs a real GroupId and caps `count` at 100, so we page
-        // each group in turn (plus a best-effort ungrouped pass). A contact seen
-        // through several groups is merged and keeps every membership (the
-        // <Groups> field carries the other group NAMES). One failing group must
-        // not abort the whole import.
+    /**
+     * Pull one group's contacts from Melipayamak (paged; `count` capped at 100).
+     * Each contact is upserted and attached to this group plus any other local
+     * group whose name appears in the remote `<Groups>` field. Returns
+     * ['contacts' => n].
+     *
+     * @return array{contacts:int}
+     */
+    public function importGroupContacts(ContactGroup $group): array
+    {
+        $user = $group->user;
+
+        if (! $user || ! $user->hasSmsPanel() || ! $group->remote_id) {
+            return ['contacts' => 0];
+        }
+
+        $client = UserPhonebook::for($user);
+
+        $groupByName = ContactGroup::query()
+            ->where('user_id', $user->id)
+            ->get()
+            ->keyBy(fn (ContactGroup $g) => mb_strtolower(trim($g->name)))
+            ->map->id
+            ->all();
+
+        $seen = 0;
+        $from = 0;
         $page = 100;
 
-        foreach (array_merge(array_keys($groupMap), [null]) as $remoteGroupId) {
-            try {
-                $from = 0;
+        do {
+            $batch = $client->contacts((int) $group->remote_id, null, $from, $page);
 
-                do {
-                    $batch = $client->contacts($remoteGroupId, null, $from, $page);
+            foreach ($batch as $c) {
+                $contact = Contact::updateOrCreate(
+                    ['user_id' => $user->id, 'remote_id' => $c['remote_id']],
+                    [
+                        'first_name' => $c['first_name'],
+                        'last_name' => $c['last_name'],
+                        'mobile' => $c['mobile'],
+                        'email' => $c['email'],
+                        'company' => $c['company'],
+                        'nickname' => $c['nickname'],
+                        'gender' => $c['gender'],
+                        'birth_date' => $c['birth_date'],
+                        'description' => $c['description'],
+                        'sync_status' => 'synced',
+                        'sync_error' => null,
+                        'synced_at' => now(),
+                    ],
+                );
 
-                    foreach ($batch as $c) {
-                        $rows[$c['remote_id']] = $c;
+                $ids = [$group->id];
 
-                        $ids = $membership[$c['remote_id']] ?? [];
+                foreach ($c['group_names'] as $name) {
+                    $key = mb_strtolower(trim($name));
 
-                        if ($remoteGroupId !== null && isset($groupMap[$remoteGroupId])) {
-                            $ids[] = $groupMap[$remoteGroupId];
-                        }
-
-                        foreach ($c['group_names'] as $name) {
-                            $key = mb_strtolower(trim($name));
-
-                            if (isset($groupByName[$key])) {
-                                $ids[] = $groupByName[$key];
-                            }
-                        }
-
-                        $membership[$c['remote_id']] = array_values(array_unique($ids));
+                    if (isset($groupByName[$key])) {
+                        $ids[] = $groupByName[$key];
                     }
+                }
 
-                    $from += $page;
-                } while (count($batch) === $page && $from < 100000);
-            } catch (\Throwable $e) {
-                Log::warning('[phonebook] import: group fetch failed', [
-                    'user' => $user->id,
-                    'group' => $remoteGroupId,
-                    'error' => $e->getMessage(),
-                ]);
+                $contact->groups()->syncWithoutDetaching(array_values(array_unique($ids)));
+                $seen++;
             }
-        }
 
-        foreach ($rows as $remoteId => $c) {
-            $contact = Contact::updateOrCreate(
-                ['user_id' => $user->id, 'remote_id' => $remoteId],
-                [
-                    'first_name' => $c['first_name'],
-                    'last_name' => $c['last_name'],
-                    'mobile' => $c['mobile'],
-                    'email' => $c['email'],
-                    'company' => $c['company'],
-                    'nickname' => $c['nickname'],
-                    'gender' => $c['gender'],
-                    'birth_date' => $c['birth_date'],
-                    'description' => $c['description'],
-                    'sync_status' => 'synced',
-                    'sync_error' => null,
-                    'synced_at' => now(),
-                ],
-            );
+            $from += $page;
+        } while (count($batch) === $page && $from < 200000);
 
-            $contact->groups()->sync($membership[$remoteId] ?? []);
-        }
+        $group->forceFill([
+            'contacts_synced_at' => now(),
+            'contact_count' => $group->contacts()->count(),
+        ])->save();
 
-        return ['groups' => count($groupMap), 'contacts' => count($rows)];
+        return ['contacts' => $seen];
     }
 
     /** Melipayamak-shaped field map for AddContact / ChangeContact2. */
