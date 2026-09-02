@@ -187,7 +187,6 @@ Route::middleware('auth')->group(function () {
      * lives in its handler class (config/marketplace.php).
      */
     Route::get('/dashboard/marketplace', [MarketplaceController::class, 'index'])->name('dashboard.marketplace');
-    Route::match(['get', 'post'], '/dashboard/marketplace/payment/callback', [MarketplaceController::class, 'callback'])->name('marketplace.payment.callback');
     Route::get('/dashboard/marketplace/app/{app:slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
     Route::post('/dashboard/marketplace/app/{app:slug}/install', [MarketplaceController::class, 'install'])->name('marketplace.install');
     Route::get('/dashboard/marketplace/i/{installation:token}', [MarketplaceController::class, 'manage'])->name('marketplace.manage');
@@ -258,6 +257,7 @@ Route::match(['get', 'post'], '/subscriptions/payment/callback', [SubscriptionCo
 // Gateway callbacks for the new payment flows (CSRF-excepted in bootstrap/app.php).
 Route::match(['get', 'post'], '/wallet/topup/callback', [WalletController::class, 'callback'])->name('wallet.topup.callback');
 Route::match(['get', 'post'], '/packages/payment/callback', [PackageOrderController::class, 'callback'])->name('package-orders.callback');
+Route::match(['get', 'post'], '/marketplace/payment/callback', [MarketplaceController::class, 'callback'])->name('marketplace.payment.callback');
 Route::match(['get', 'post'], '/invoices/payment/callback', [InvoiceController::class, 'callback'])->name('invoices.callback');
 
 // Public SMS-package catalogue, parallel to /pricing (docs/starter.md §12).

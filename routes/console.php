@@ -17,3 +17,11 @@ Schedule::command('sms:delivery-sync')
     ->everyTenMinutes()
     ->withoutOverlapping()
     ->runInBackground();
+
+/*
+ * Expire past-due «بازارچه» subscription add-ons and revoke their capabilities
+ * (docs/starter.md §15). Idempotent — safe to run daily.
+ */
+Schedule::command('marketplace:expire')
+    ->daily()
+    ->withoutOverlapping();

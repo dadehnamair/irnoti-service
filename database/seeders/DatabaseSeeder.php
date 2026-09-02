@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             UserGroupsSeeder::class,
             PlansSeeder::class,
             SmsPackagesSeeder::class,
+            MarketplaceAppsSeeder::class,
             SmsLinesSeeder::class,
             BankAccountsSeeder::class,
             DocsSeeder::class,
