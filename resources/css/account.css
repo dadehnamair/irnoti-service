@@ -332,12 +332,69 @@
     border-top: 1px solid var(--border);
 }
 
+/* ---- Accordion groups (native <details>/<summary>) ---- */
+
+details.account-nav__group {
+    display: block;
+}
+
 .account-nav__label {
-    padding: 0 0.9rem 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 12px;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.account-nav__label::-webkit-details-marker {
+    display: none;
+}
+
+.account-nav__label:hover {
+    background: var(--primary-soft-12);
+    color: color-mix(in srgb, var(--primary) 30%, #fff);
+}
+
+details.account-nav__group[open] > .account-nav__label {
+    color: color-mix(in srgb, var(--primary) 26%, #fff);
+}
+
+.account-nav__label .account-nav__chevron {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    opacity: 0.7;
+    transition: transform 0.2s ease;
+}
+
+details.account-nav__group[open] > .account-nav__label .account-nav__chevron {
+    transform: rotate(180deg);
+}
+
+.account-nav__panel {
+    display: grid;
+    gap: 4px;
+    padding-top: 4px;
+}
+
+details.account-nav__group[open] > .account-nav__panel {
+    animation: account-nav-reveal 0.18s ease;
+}
+
+@keyframes account-nav-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
 }
 
 .account-nav a {
@@ -541,29 +598,19 @@
 
     .account-nav {
         position: static;
-        gap: 10px;
+        gap: 8px;
     }
 
+    /* Accordion stays vertical on mobile — collapsed groups keep the
+       sidebar short so it doesn't bury the page content. */
     .account-nav__label {
-        display: none;
-    }
-
-    .account-nav__group {
-        grid-auto-flow: column;
-        justify-content: start;
-        gap: 6px;
-        overflow-x: auto;
+        padding: 0.65rem 0.9rem;
+        font-size: 0.8rem;
     }
 
     .account-nav__group--footer {
         margin-top: 0;
         padding-top: 10px;
-    }
-
-    .account-nav a,
-    .account-nav form {
-        flex: none;
-        white-space: nowrap;
     }
 }
 
