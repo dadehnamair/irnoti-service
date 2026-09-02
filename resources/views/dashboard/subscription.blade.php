@@ -6,15 +6,6 @@
     <div class="account-card">
         <h2>وضعیت اشتراک</h2>
 
-        @if (session('payment_success'))
-            <p class="auth-note">پرداخت با موفقیت انجام شد و پلن شما فعال است.</p>
-        @endif
-        @if (session('auth_status'))
-            <p class="auth-note">{{ session('auth_status') }}</p>
-        @endif
-        @if (session('payment_error'))
-            <div class="auth-errors"><ul><li>{{ session('payment_error') }}</li></ul></div>
-        @endif
 
         <div class="account-stat-grid">
             <div class="account-stat">

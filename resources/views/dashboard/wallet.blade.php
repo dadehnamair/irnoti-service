@@ -3,15 +3,6 @@
 @section('title', 'کیف پول')
 
 @section('content')
-    @if (session('payment_success'))
-        <div class="account-banner is-ok">شارژ کیف پول با موفقیت انجام شد.</div>
-    @endif
-    @if (session('auth_status'))
-        <div class="account-banner is-ok">{{ session('auth_status') }}</div>
-    @endif
-    @if (session('payment_error'))
-        <div class="account-banner is-warn">{{ session('payment_error') }}</div>
-    @endif
 
     <div class="account-card">
         <h2>کیف پول</h2>
@@ -47,11 +38,6 @@
     <div class="account-card">
         <h3>شارژ حساب</h3>
 
-        @if ($errors->any())
-            <div class="auth-errors">
-                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-            </div>
-        @endif
 
         <form method="POST" action="{{ route('dashboard.wallet.topup') }}" class="wallet-topup-form">
             @csrf

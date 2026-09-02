@@ -14,15 +14,6 @@
             ])>{{ $invoice->status_label }}</span>
         </div>
 
-        @if (session('payment_success'))
-            <div class="account-banner is-ok">پرداخت صورت‌حساب با موفقیت ثبت شد.</div>
-        @endif
-        @if (session('auth_status'))
-            <div class="account-banner is-ok">{{ session('auth_status') }}</div>
-        @endif
-        @if (session('payment_error'))
-            <div class="account-banner is-warn">{{ session('payment_error') }}</div>
-        @endif
 
         <p class="auth-sub">{{ $invoice->title }}</p>
         @if ($invoice->description)

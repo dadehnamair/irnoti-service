@@ -13,23 +13,11 @@
             </p>
         </div>
 
-        @if (session('auth_status'))
-            <p class="auth-note">{{ session('auth_status') }}</p>
-        @endif
 
         @if (session('otp_debug'))
             <p class="auth-note is-debug">کد تست (فقط محیط توسعه): <strong dir="ltr">{{ session('otp_debug') }}</strong></p>
         @endif
 
-        @if ($errors->any())
-            <div class="auth-errors">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         <form method="POST" action="{{ route('otp.verify') }}" class="auth-form">
             @csrf

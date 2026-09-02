@@ -19,16 +19,6 @@
             <p class="auth-note">{{ session('auth_status') }}</p>
         @endif
 
-        @if ($errors->any())
-            <div class="auth-errors">
-                <p>لطفاً خطاهای زیر را برطرف کنید:</p>
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         @if ($step === 1 && $user->identityLocked())
             <p class="account-inline-note is-info">

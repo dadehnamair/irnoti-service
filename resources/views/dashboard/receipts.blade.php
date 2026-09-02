@@ -3,9 +3,6 @@
 @section('title', 'فیش‌های بانکی')
 
 @section('content')
-    @if (session('auth_status'))
-        <div class="account-banner is-ok">{{ session('auth_status') }}</div>
-    @endif
 
     <div class="account-card">
         <div class="account-card__head">

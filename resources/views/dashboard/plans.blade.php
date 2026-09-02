@@ -6,9 +6,6 @@
     <div class="account-card">
         <h2>انتخاب پلن</h2>
 
-        @if (session('auth_status'))
-            <p class="auth-note">{{ session('auth_status') }}</p>
-        @endif
 
         @if ($user->plan)
             <p class="auth-sub">

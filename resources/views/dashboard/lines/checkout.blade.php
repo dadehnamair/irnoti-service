@@ -6,15 +6,6 @@
     <div class="account-card">
         <h2>خرید {{ $line->group_label }}</h2>
 
-        @if ($errors->any())
-            <div class="auth-errors">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         <div class="account-stat-grid">
             <div class="account-stat">

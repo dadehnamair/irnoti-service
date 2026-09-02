@@ -6,9 +6,6 @@
     @if ($justCreated)
         <div class="account-banner is-ok">سفارش شما ثبت شد. کد پیگیری: <strong dir="ltr">{{ $order->token }}</strong></div>
     @endif
-    @if (session('payment_error'))
-        <div class="account-banner is-danger">{{ session('payment_error') }}</div>
-    @endif
 
     <div class="account-card">
         <h2>{{ $order->line_label }}</h2>

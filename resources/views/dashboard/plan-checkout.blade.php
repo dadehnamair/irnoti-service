@@ -6,15 +6,6 @@
     <div class="account-card">
         <h2>تکمیل خرید پلن {{ $plan->name }}</h2>
 
-        @if ($errors->any())
-            <div class="auth-errors">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         @unless ($plan->isFree())
             <div class="period-switch" role="group" aria-label="دورهٔ صورت‌حساب">

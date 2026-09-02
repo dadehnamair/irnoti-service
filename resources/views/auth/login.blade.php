@@ -10,23 +10,8 @@
             <p class="auth-sub">با رمز عبور وارد شوید، یا کد یک‌بارمصرف دریافت کنید.</p>
         </div>
 
-        @if (session('auth_status'))
-            <p class="auth-note">{{ session('auth_status') }}</p>
-        @endif
 
-        @if (session('auth_error'))
-            <div class="auth-errors"><ul><li>{{ session('auth_error') }}</li></ul></div>
-        @endif
 
-        @if ($errors->any())
-            <div class="auth-errors">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         <form method="POST" action="{{ route('login.store') }}" class="auth-form">
             @csrf

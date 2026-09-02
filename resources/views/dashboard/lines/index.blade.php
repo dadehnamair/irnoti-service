@@ -3,9 +3,6 @@
 @section('title', 'خرید خط')
 
 @section('content')
-    @if (session('payment_error'))
-        <div class="account-banner is-danger">{{ session('payment_error') }}</div>
-    @endif
 
     @if ($myOrders->isNotEmpty())
         <div class="account-card">

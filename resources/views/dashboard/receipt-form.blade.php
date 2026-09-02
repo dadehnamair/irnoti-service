@@ -20,11 +20,6 @@
             بررسی و تأیید کارشناسان اعمال می‌شود.
         </p>
 
-        @if ($errors->any())
-            <div class="auth-errors">
-                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-            </div>
-        @endif
 
         <form method="POST" action="{{ route('receipts.store') }}" enctype="multipart/form-data" class="receipt-form">
             @csrf

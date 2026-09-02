@@ -6,15 +6,6 @@
     <div class="account-card">
         <h2>سفارش بسته پیامکی</h2>
 
-        @if (session('payment_success'))
-            <div class="account-banner is-ok">پرداخت با موفقیت انجام شد و اعتبار پیامکی شما افزایش یافت.</div>
-        @endif
-        @if (session('auth_status'))
-            <div class="account-banner is-ok">{{ session('auth_status') }}</div>
-        @endif
-        @if (session('payment_error'))
-            <div class="account-banner is-warn">{{ session('payment_error') }}</div>
-        @endif
 
         <div class="account-stat-grid">
             <div class="account-stat"><span>بسته</span><strong>{{ $order->package_name }}</strong></div>

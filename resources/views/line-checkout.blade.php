@@ -86,15 +86,6 @@
                             @csrf
                             <input type="hidden" name="sms_line_id" value="{{ $line->id }}" />
 
-                            @if ($errors->any())
-                                <div class="line-order-errors">
-                                    <ul>
-                                        @foreach ($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
 
                             <div class="line-order-grid">
                                 <label>
