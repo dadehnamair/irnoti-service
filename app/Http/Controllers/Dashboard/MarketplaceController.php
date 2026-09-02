@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Marketplace\AppRegistry;
 use App\Marketplace\Contracts\SyncsContacts;
 use App\Models\MarketplaceApp;
 use App\Models\MarketplaceInstallation;
@@ -72,7 +73,7 @@ class MarketplaceController extends Controller
                     ->with('auth_status', 'این افزونه قبلاً برای حساب شما نصب شده است.');
         }
 
-        $handler = app(\App\Marketplace\AppRegistry::class)->for($app);
+        $handler = app(AppRegistry::class)->for($app);
 
         try {
             $config = $handler->validateConfig($request->input('config', []));

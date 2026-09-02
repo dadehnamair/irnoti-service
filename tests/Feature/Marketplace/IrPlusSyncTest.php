@@ -5,6 +5,7 @@ namespace Tests\Feature\Marketplace;
 use App\Models\Contact;
 use App\Models\ContactGroup;
 use App\Models\MarketplaceApp;
+use App\Models\MarketplaceInstallation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,7 +15,7 @@ class IrPlusSyncTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function installIrPlus(User $user): \App\Models\MarketplaceInstallation
+    private function installIrPlus(User $user): MarketplaceInstallation
     {
         $app = MarketplaceApp::create([
             'name' => 'ایرپلاس',
