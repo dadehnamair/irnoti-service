@@ -87,7 +87,10 @@ class MelipayamakProvider implements SmsProviderInterface
 
     /**
      * Remaining credit as a number of SMS
-     * (https://www.melipayamak.com/api/getusercredit/).
+     * (https://www.melipayamak.com/api/getcredit/). Send.asmx/GetCredit returns
+     * the count for valid credentials and "0" for invalid ones — so a 0 is
+     * cross-checked against GetUserCredit2 (which answers -1 on a bad login)
+     * before we decide it's really an error.
      */
     public function credit(): ?int
     {
@@ -95,25 +98,25 @@ class MelipayamakProvider implements SmsProviderInterface
             return null; // api_key mode has no equivalent here
         }
 
-        $value = $this->soap('Users.asmx/GetUserCredit', [
-            'targetUsername' => $this->config['username'] ?? '',
-        ]);
-
-        if ((string) $value === '-1') {
-            throw new RuntimeException('دریافت اعتبار ناموفق بود: نام کاربری یا رمز عبور پنل پیامک نادرست است.');
-        }
+        $value = $this->soap('Send.asmx/GetCredit', []);
 
         if (! is_numeric($value)) {
             throw new RuntimeException('پاسخ نامعتبر از ملی‌پیامک هنگام دریافت اعتبار: '.$value);
         }
 
-        return (int) round((float) $value);
+        $count = (float) $value;
+
+        if ($count <= 0 && (string) $this->soap('Users.asmx/GetUserCredit2', []) === '-1') {
+            throw new RuntimeException('دریافت اعتبار ناموفق بود: نام کاربری یا رمز عبور پنل پیامک نادرست است.');
+        }
+
+        return (int) round(max($count, 0));
     }
 
     /**
      * Remaining credit as a Rial amount
-     * (https://www.melipayamak.com/api/getusercredit2/). Best-effort: any failure
-     * returns null rather than throwing.
+     * (https://www.melipayamak.com/api/getusercredit2/). Best-effort: -1 (bad
+     * login) or any failure returns null rather than throwing.
      */
     public function creditRial(): ?int
     {
@@ -205,7 +208,7 @@ class MelipayamakProvider implements SmsProviderInterface
     private function sendError(string $code): string
     {
         return match ($code) {
-            '0' => 'خطای نامشخص در ارسال.',
+            '0' => 'نام کاربری یا رمز عبور پنل پیامک نادرست است، یا خطای نامشخص.',
             '-1' => 'نام کاربری یا رمز عبور پنل پیامک نادرست است.',
             '-2' => 'اعتبار پنل پیامک کافی نیست.',
             '-3' => 'محدودیت تعداد پیامک روزانه.',
