@@ -2,6 +2,7 @@
 
 namespace App\Services\Sms;
 
+use App\Models\SmsMessage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -74,15 +75,26 @@ class MelipayamakProvider implements SmsProviderInterface
         return $this->restRecId($response);
     }
 
+    /**
+     * Delivery receipt for one previously sent message
+     * (https://www.melipayamak.com/api/getdelivery2/). Returns the raw provider
+     * code as a string — "0"/"8" = still in transit, "1" = delivered, "2"/"16" =
+     * undelivered, "3"/"5"/"100" = carrier error; null when the panel has no
+     * report yet or reporting is disabled. {@see SmsMessage::mapDeliveryStatus()}.
+     */
     public function deliveryStatus(string $recId): ?string
     {
         if ($this->usesCredentials()) {
-            return $this->soap('Send.asmx/GetDeliveries2', ['recId' => $recId]) ?: null;
+            $value = $this->soap('Send.asmx/GetDelivery2', ['recId' => $recId]);
+
+            return $value === '' || strcasecmp($value, 'null') === 0 ? null : $value;
         }
 
         $response = $this->postWithKey('receive/status', ['recId' => $recId]);
 
-        return $response['status'] ?? null;
+        $status = $response['status'] ?? $response['value'] ?? null;
+
+        return $status !== null ? (string) $status : null;
     }
 
     /**

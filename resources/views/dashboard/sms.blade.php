@@ -150,6 +150,7 @@
                                 <th>متن</th>
                                 <th>تعداد</th>
                                 <th>وضعیت</th>
+                                <th>تحویل</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -164,6 +165,15 @@
                                         <span class="account-badge {{ $msg->status === 'sent' ? 'is-ok' : ($msg->status === 'failed' ? 'is-danger' : 'is-warn') }}">
                                             {{ $msg->status_label }}
                                         </span>
+                                    </td>
+                                    <td>
+                                        @if ($msg->delivery_status)
+                                            <span class="account-badge {{ $msg->delivery_status === 'delivered' ? 'is-ok' : (in_array($msg->delivery_status, ['undelivered', 'failed']) ? 'is-danger' : 'is-warn') }}">
+                                                {{ $msg->delivery_status_label }}
+                                            </span>
+                                        @else
+                                            <span class="field-hint">—</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

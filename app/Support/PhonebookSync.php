@@ -101,7 +101,7 @@ class PhonebookSync
                 throw new \RuntimeException('ملی‌پیامک ثبت مخاطب را نپذیرفت.');
             }
 
-            $remoteId = $this->matchRemoteContactId($client, $contact->mobile);
+            $remoteId = $this->matchRemoteContactId($client, $contact->mobile, $remoteGroupIds->all());
 
             $contact->forceFill([
                 'remote_id' => $remoteId,
@@ -135,7 +135,9 @@ class PhonebookSync
 
     /**
      * Pull everything from Melipayamak into the local tables (upsert by
-     * remote_id). Returns ['groups' => n, 'contacts' => n].
+     * remote_id). Melipayamak's GetContacts needs a real GroupId, so contacts
+     * are fetched group-by-group and their memberships unioned.
+     * Returns ['groups' => n, 'contacts' => n].
      *
      * @return array{groups:int, contacts:int}
      */
@@ -144,7 +146,6 @@ class PhonebookSync
         $client = UserPhonebook::for($user);
 
         $groupMap = []; // remote GroupID => local ContactGroup id
-        $groupCount = 0;
 
         foreach ($client->groups() as $g) {
             $group = ContactGroup::updateOrCreate(
@@ -161,48 +162,67 @@ class PhonebookSync
             );
 
             $groupMap[$g['remote_id']] = $group->id;
-            $groupCount++;
         }
 
-        $contactCount = 0;
-        $from = 0;
-        $page = 200;
+        /** @var array<int, array<string, mixed>> $rows  remote ContactID => payload */
+        $rows = [];
+        /** @var array<int, array<int, int>> $membership  remote ContactID => local group ids */
+        $membership = [];
 
-        do {
-            $batch = $client->contacts(null, null, $from, $page);
+        // One pass per group (plus a best-effort ungrouped pass) — a contact seen
+        // through several groups is merged and keeps every membership.
+        foreach (array_merge(array_keys($groupMap), [null]) as $remoteGroupId) {
+            $from = 0;
+            $page = 200;
 
-            foreach ($batch as $c) {
-                $contact = Contact::updateOrCreate(
-                    ['user_id' => $user->id, 'remote_id' => $c['remote_id']],
-                    [
-                        'first_name' => $c['first_name'],
-                        'last_name' => $c['last_name'],
-                        'mobile' => $c['mobile'],
-                        'email' => $c['email'],
-                        'company' => $c['company'],
-                        'nickname' => $c['nickname'],
-                        'gender' => $c['gender'],
-                        'birth_date' => $c['birth_date'],
-                        'description' => $c['description'],
-                        'sync_status' => 'synced',
-                        'sync_error' => null,
-                        'synced_at' => now(),
-                    ],
-                );
+            do {
+                $batch = $client->contacts($remoteGroupId, null, $from, $page);
 
-                $localGroupIds = array_values(array_filter(array_map(
-                    fn ($remoteId) => $groupMap[$remoteId] ?? null,
-                    $c['group_ids'],
-                )));
+                foreach ($batch as $c) {
+                    $rows[$c['remote_id']] = $c;
 
-                $contact->groups()->sync($localGroupIds);
-                $contactCount++;
-            }
+                    $ids = $membership[$c['remote_id']] ?? [];
 
-            $from += $page;
-        } while (count($batch) === $page && $from < 10000);
+                    if ($remoteGroupId !== null && isset($groupMap[$remoteGroupId])) {
+                        $ids[] = $groupMap[$remoteGroupId];
+                    }
 
-        return ['groups' => $groupCount, 'contacts' => $contactCount];
+                    foreach ($c['group_ids'] as $gid) {
+                        if (isset($groupMap[$gid])) {
+                            $ids[] = $groupMap[$gid];
+                        }
+                    }
+
+                    $membership[$c['remote_id']] = array_values(array_unique($ids));
+                }
+
+                $from += $page;
+            } while (count($batch) === $page && $from < 20000);
+        }
+
+        foreach ($rows as $remoteId => $c) {
+            $contact = Contact::updateOrCreate(
+                ['user_id' => $user->id, 'remote_id' => $remoteId],
+                [
+                    'first_name' => $c['first_name'],
+                    'last_name' => $c['last_name'],
+                    'mobile' => $c['mobile'],
+                    'email' => $c['email'],
+                    'company' => $c['company'],
+                    'nickname' => $c['nickname'],
+                    'gender' => $c['gender'],
+                    'birth_date' => $c['birth_date'],
+                    'description' => $c['description'],
+                    'sync_status' => 'synced',
+                    'sync_error' => null,
+                    'synced_at' => now(),
+                ],
+            );
+
+            $contact->groups()->sync($membership[$remoteId] ?? []);
+        }
+
+        return ['groups' => count($groupMap), 'contacts' => count($rows)];
     }
 
     /** Melipayamak-shaped field map for AddContact / ChangeContact2. */
@@ -242,11 +262,22 @@ class PhonebookSync
         return null;
     }
 
-    private function matchRemoteContactId(PhonebookClientInterface $client, string $mobile): ?int
+    /**
+     * Find the Melipayamak ContactID of a just-created contact. GetContacts needs
+     * a real GroupId, so we search within each group the contact was added to
+     * (plus a best-effort ungrouped lookup).
+     *
+     * @param  array<int, int|string>  $groupRemoteIds
+     */
+    private function matchRemoteContactId(PhonebookClientInterface $client, string $mobile, array $groupRemoteIds): ?int
     {
-        foreach ($client->contacts(null, $mobile, 0, 50) as $c) {
-            if (normalize_mobile($c['mobile']) === normalize_mobile($mobile)) {
-                return $c['remote_id'];
+        $target = normalize_mobile($mobile);
+
+        foreach (array_merge(array_map('intval', $groupRemoteIds), [null]) as $groupId) {
+            foreach ($client->contacts($groupId, $mobile, 0, 50) as $c) {
+                if (normalize_mobile($c['mobile']) === $target) {
+                    return $c['remote_id'];
+                }
             }
         }
 

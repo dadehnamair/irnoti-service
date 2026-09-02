@@ -16,20 +16,11 @@
         <form method="POST" action="{{ route('dashboard.contacts.send.post') }}" class="account-form">
             @csrf
 
-            <fieldset class="contact-form__groups">
-                <legend>گروه‌ها</legend>
-                @forelse ($groups as $group)
-                    <label class="contact-form__check">
-                        <input type="checkbox" name="groups[]" value="{{ $group->id }}"
-                               @checked(collect(old('groups'))->contains($group->id))>
-                        <span>{{ $group->name }} ({{ $group->contacts_count }})
-                            @unless ($group->remote_id)<em class="auth-sub">— همگام‌نشده</em>@endunless
-                        </span>
-                    </label>
-                @empty
-                    <p class="auth-sub">هنوز گروهی نساخته‌اید.</p>
-                @endforelse
-            </fieldset>
+            @include('dashboard.contacts.partials.group-picker', [
+                'selectedGroupIds' => collect(old('groups', [])),
+                'withCounts' => true,
+                'markUnsynced' => true,
+            ])
 
             <label>
                 <span>شماره‌های اضافی (فقط حالت محلی — با فاصله یا کاما جدا کنید)</span>

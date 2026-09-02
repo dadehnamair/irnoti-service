@@ -48,6 +48,21 @@ class SmsMessagesTable
                     })
                     ->formatStateUsing(fn (string $state) => SmsMessage::STATUSES[$state] ?? $state),
 
+                TextColumn::make('delivery_status')
+                    ->label('تحویل')
+                    ->badge()
+                    ->placeholder('—')
+                    ->color(fn (?string $state) => match ($state) {
+                        'delivered' => 'success',
+                        'undelivered', 'failed' => 'danger',
+                        'pending' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state) => SmsMessage::DELIVERY_STATUSES[$state] ?? $state)
+                    ->description(fn (SmsMessage $record) => $record->delivery_checked_at
+                        ? 'آخرین بررسی: '.$record->delivery_checked_at->format('Y-m-d H:i')
+                        : null),
+
                 TextColumn::make('rec_id')
                     ->label('کد پیام')
                     ->placeholder('—')
@@ -63,6 +78,10 @@ class SmsMessagesTable
                 SelectFilter::make('status')
                     ->label('وضعیت')
                     ->options(SmsMessage::STATUSES),
+
+                SelectFilter::make('delivery_status')
+                    ->label('وضعیت تحویل')
+                    ->options(SmsMessage::DELIVERY_STATUSES),
             ]);
     }
 }

@@ -56,16 +56,7 @@
     </label>
 
     @if ($groups->isNotEmpty())
-        <fieldset class="contact-form__groups">
-            <legend>گروه‌ها</legend>
-            @foreach ($groups as $group)
-                <label class="contact-form__check">
-                    <input type="checkbox" name="groups[]" value="{{ $group->id }}"
-                           @checked($selectedGroups->contains($group->id))>
-                    <span>{{ $group->name }}</span>
-                </label>
-            @endforeach
-        </fieldset>
+        @include('dashboard.contacts.partials.group-picker', ['selectedGroupIds' => $selectedGroups])
     @else
         <p class="auth-sub">
             هنوز گروهی نساخته‌اید. برای همگام‌سازی مخاطب با ملی‌پیامک، ابتدا یک

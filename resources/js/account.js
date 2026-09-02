@@ -125,10 +125,73 @@ function moneyInputs() {
     });
 }
 
+/*
+ * Compact multi-select for phonebook groups (docs/starter.md §17). A select-style
+ * <button> opens a searchable checklist; the button label reflects the selection.
+ * Works without JS too (the checklist just renders open-ish inline is avoided by
+ * the [hidden] panel — with JS off the toggle does nothing, so keep groups few
+ * OR rely on this). Progressive: only enhances [data-group-picker].
+ */
+function groupPickers() {
+    const toFa = (n) => String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+    document.querySelectorAll('[data-group-picker]').forEach((root) => {
+        const toggle = root.querySelector('[data-group-picker-toggle]');
+        const panel = root.querySelector('[data-group-picker-panel]');
+        const label = root.querySelector('[data-group-picker-label]');
+        const search = root.querySelector('[data-group-picker-search]');
+        if (!toggle || !panel || !label) return;
+
+        const opts = () => Array.from(root.querySelectorAll('[data-group-picker-option]'));
+
+        const syncLabel = () => {
+            const chosen = opts().filter((o) => o.querySelector('input')?.checked);
+            if (chosen.length === 0) label.textContent = 'انتخاب گروه‌ها';
+            else if (chosen.length === 1)
+                label.textContent = chosen[0]
+                    .querySelector('.group-picker__name')
+                    .textContent.trim();
+            else label.textContent = `${toFa(chosen.length)} گروه انتخاب شد`;
+        };
+
+        const open = () => {
+            panel.hidden = false;
+            toggle.setAttribute('aria-expanded', 'true');
+            if (search) search.focus();
+        };
+        const close = () => {
+            panel.hidden = true;
+            toggle.setAttribute('aria-expanded', 'false');
+        };
+
+        toggle.addEventListener('click', () => (panel.hidden ? open() : close()));
+        panel.addEventListener('change', syncLabel);
+        document.addEventListener('click', (e) => {
+            if (!root.contains(e.target)) close();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') close();
+        });
+
+        if (search) {
+            search.addEventListener('input', () => {
+                const q = search.value.trim().toLowerCase();
+                opts().forEach((o) => {
+                    o.hidden = !(o.dataset.name || '').toLowerCase().includes(q);
+                });
+            });
+        }
+
+        close();
+        syncLabel();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     otpResendCountdown();
     otpInput();
     planPeriodSwitch();
     smsCounter();
     moneyInputs();
+    groupPickers();
 });
