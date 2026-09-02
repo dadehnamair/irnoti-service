@@ -3,7 +3,7 @@
  * Loaded on /register, /login, /verify and /dashboard* only.
  *   - OTP resend countdown
  *   - auto-advance / numeric-only on the OTP input
- *   - SweetAlert2 flash toasts (via ./flash.js)
+ *   - flash toasts + confirm dialogs (via ./flash.js)
  */
 
 import './flash.js';

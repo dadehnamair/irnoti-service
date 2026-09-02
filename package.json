@@ -15,7 +15,6 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "highlight.js": "^11.12.0",
-        "sweetalert2": "^11.26.25"
+        "highlight.js": "^11.12.0"
     }
 }

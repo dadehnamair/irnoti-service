@@ -87,7 +87,11 @@ select {
  * this only catches fields that would otherwise render with the OS default.
  */
 :where(
-    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not(
+            [type="button"]
+        ):not([type="reset"]):not([type="range"]):not([type="color"]):not(
+            [type="file"]
+        ),
     select,
     textarea
 ) {
@@ -1780,58 +1784,201 @@ select {
 }
 
 /* ============================================================================
- * SweetAlert2 — match the dark brand theme (flash toasts + confirm dialogs).
+ * Flash toasts — frameless glassy cards that slide in from the page edge.
+ * Rendered by resources/js/flash.js (docs/starter.md §15). Confirm / validation
+ * dialogs still use SweetAlert2, themed further down.
  * ==========================================================================*/
-.swal2-container {
-    padding: 1rem !important;
+.toast-stack {
+    position: fixed;
+    top: max(6rem, env(safe-area-inset-top));
+    right: 2rem;
+    z-index: 2147483000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-width: min(500px, calc(100vw - 1.7rem));
+    pointer-events: none;
 }
-.swal2-popup {
-    background: var(--panel-strong, #101b2d) !important;
-    color: var(--text) !important;
+.toast {
+    --toast-accent: var(--primary);
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--toast-accent) 20%, var(--border));
+    border-inline-start: 2px solid var(--toast-accent);
+    background: color-mix(in srgb, var(--panel-strong) 42%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 10px 28px rgba(9, 15, 26, 0.38);
+    color: var(--text);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    transform: translateX(120%);
+    opacity: 0;
+    transition:
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.28s ease;
+}
+.toast.is-in {
+    transform: translateX(0);
+    opacity: 1;
+}
+.toast.is-out {
+    transform: translateX(120%);
+    opacity: 0;
+}
+.toast--success {
+    --toast-accent: var(--secondary);
+}
+.toast--error {
+    --toast-accent: #f2506e;
+}
+.toast--warning {
+    --toast-accent: #f5b544;
+}
+.toast--info {
+    --toast-accent: var(--primary);
+}
+.toast__icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    margin-top: 2px;
+    color: var(--toast-accent);
+}
+.toast__icon svg {
+    width: 100%;
+    height: 100%;
+}
+.toast__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.toast__title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+.toast__text {
+    margin: 0;
+    color: var(--text-soft);
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+.toast--rich {
+    font-size: 0.8rem;
+}
+.toast--rich .toast__text {
+    margin-top: 0.15rem;
+}
+.toast__close {
+    flex: 0 0 auto;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.toast__close:hover {
+    color: var(--text);
+}
+@media (prefers-reduced-motion: reduce) {
+    .toast,
+    .toast.is-out {
+        transition: opacity 0.2s ease;
+        transform: none;
+    }
+}
+
+/* ============================================================================
+ * Confirm dialog — glassy centered card ([data-confirm], rendered by flash.js).
+ * ==========================================================================*/
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483200;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgba(5, 10, 18, 0.55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.confirm-overlay.is-in {
+    opacity: 1;
+}
+.confirm-card {
+    width: min(360px, 100%);
+    padding: 1.15rem 1.2rem 1rem;
+    border-radius: 16px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md) !important;
-    font-family: "Vazirmatn", "Segoe UI", Tahoma, sans-serif !important;
-    box-shadow: var(--shadow) !important;
+    background: color-mix(in srgb, var(--panel-strong) 88%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    backdrop-filter: blur(20px) saturate(150%);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    transform: translateY(8px) scale(0.98);
+    transition:
+        transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.2s ease;
 }
-.swal2-toast {
-    padding: 0.9rem 1rem !important;
+.confirm-overlay.is-in .confirm-card {
+    transform: translateY(0) scale(1);
 }
-.swal2-title {
-    color: var(--text) !important;
-    font-size: 1.05rem !important;
-    font-weight: 700 !important;
+.confirm-card__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
 }
-.swal2-toast .swal2-title {
-    font-size: 0.92rem !important;
-    margin: 0 !important;
+.confirm-card__text {
+    margin: 0.4rem 0 0;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+    line-height: 1.7;
 }
-.swal2-html-container {
-    color: var(--text-soft) !important;
-    font-size: 0.92rem !important;
+.confirm-card__actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.1rem;
 }
-.swal2-actions {
-    gap: 10px;
+.confirm-card__btn {
+    flex: 1 1 0;
+    padding: 0.6rem 0.8rem;
+    border-radius: 11px;
+    border: 0;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
 }
-.swal2-styled.swal2-confirm {
-    background: var(--brand-gradient) !important;
-    border: 0 !important;
-    border-radius: 12px !important;
-    box-shadow: var(--shadow-brand) !important;
-    font-weight: 700 !important;
+.confirm-card__btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
-.swal2-styled.swal2-cancel {
-    background: transparent !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text-soft) !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
+.confirm-card__btn--yes {
+    background: var(--brand-gradient);
+    color: #fff;
+    box-shadow: var(--shadow-brand);
 }
-.swal2-styled:focus {
-    box-shadow: 0 0 0 3px var(--primary-soft-20) !important;
+.confirm-card__btn--yes[data-danger] {
+    background: linear-gradient(135deg, #f2506e, #e11d48);
+    box-shadow: 0 14px 32px rgba(225, 29, 72, 0.35);
 }
-.swal2-timer-progress-bar {
-    background: var(--primary-soft-20) !important;
-}
-.swal2-toast .swal2-icon {
-    margin-inline: 0 0.6rem !important;
+.confirm-card__btn--no {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-soft);
 }
