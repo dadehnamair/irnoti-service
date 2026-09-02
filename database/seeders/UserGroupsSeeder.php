@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use App\Models\UserGroup;
 use Illuminate\Database\Seeder;
 
@@ -13,7 +14,7 @@ class UserGroupsSeeder extends Seeder
 {
     public function run(): void
     {
-        UserGroup::firstOrCreate(
+        $default = UserGroup::firstOrCreate(
             ['slug' => 'default'],
             [
                 'name' => 'کاربر عادی',
@@ -22,5 +23,11 @@ class UserGroupsSeeder extends Seeder
                 'sort' => 0,
             ],
         );
+
+        // Drop existing customers without a group into the default one.
+        User::query()
+            ->where('is_admin', false)
+            ->whereNull('user_group_id')
+            ->update(['user_group_id' => $default->id]);
     }
 }
