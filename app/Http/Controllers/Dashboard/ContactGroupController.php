@@ -28,10 +28,24 @@ class ContactGroupController extends Controller
 
         $user = $request->user();
 
+        $groups = $user->contactGroups()->ordered()->withCount('contacts')->get();
+
         return view('dashboard.contacts.groups', [
-            'groups' => $user->contactGroups()->ordered()->withCount('contacts')->get(),
+            'groups' => $groups,
             'hasPanel' => $user->hasSmsPanel(),
+            'pullingIds' => $groups
+                ->filter(fn (ContactGroup $g) => (bool) Cache::get(ImportGroupContactsJob::lockKey($g->id)))
+                ->pluck('id')
+                ->all(),
         ]);
+    }
+
+    public function edit(Request $request, ContactGroup $group): View
+    {
+        $this->ensureEnabled();
+        abort_unless($group->user_id === $request->user()->id, 403);
+
+        return view('dashboard.contacts.group-edit', ['group' => $group]);
     }
 
     public function store(Request $request, PhonebookSync $sync): RedirectResponse
@@ -59,6 +73,38 @@ class ContactGroupController extends Controller
             $group->remote_id
                 ? 'گروه ویرایش شد. توجه: تغییر نام گروه در ملی‌پیامک اعمال نمی‌شود.'
                 : 'گروه ویرایش شد.',
+        );
+    }
+
+    /** Queue a pull of this one group's contacts from Melipayamak. */
+    public function pullContacts(Request $request, ContactGroup $group): RedirectResponse
+    {
+        $this->ensureEnabled();
+        abort_unless($group->user_id === $request->user()->id, 403);
+
+        if (! $request->user()->hasSmsPanel()) {
+            return redirect()->route('dashboard.contacts.groups')
+                ->with('error', 'پنل پیامک شما هنوز فعال نشده است.');
+        }
+
+        if (! $group->remote_id) {
+            return redirect()->route('dashboard.contacts.groups')
+                ->with('warning', 'ابتدا این گروه را با ملی‌پیامک همگام کنید.');
+        }
+
+        $lock = ImportGroupContactsJob::lockKey($group->id);
+
+        if (Cache::get($lock)) {
+            return redirect()->route('dashboard.contacts.groups')
+                ->with('warning', 'دریافت مخاطبین این گروه در حال انجام است.');
+        }
+
+        Cache::put($lock, true, now()->addMinutes(30));
+        ImportGroupContactsJob::dispatch($group->id);
+
+        return redirect()->route('dashboard.contacts.groups')->with(
+            'status',
+            'دریافت مخاطبین گروه «'.$group->name.'» آغاز شد. بسته به تعداد مخاطبین ممکن است چند دقیقه طول بکشد.',
         );
     }
 
@@ -92,11 +138,11 @@ class ContactGroupController extends Controller
     }
 
     /**
-     * Queue a full pull of groups + contacts from the customer's Melipayamak
-     * panel. A large phonebook is hundreds of paged calls, so it runs in the
-     * background ({@see ImportPhonebookJob}); rows appear as they land.
+     * Pull just the group list from the customer's Melipayamak panel (one call,
+     * synchronous). Contacts are pulled afterwards, per group, from the group
+     * row ({@see pullContacts()}).
      */
-    public function import(Request $request): RedirectResponse
+    public function importGroups(Request $request, PhonebookSync $sync): RedirectResponse
     {
         $this->ensureEnabled();
 
@@ -107,20 +153,21 @@ class ContactGroupController extends Controller
                 ->with('error', 'پنل پیامک شما هنوز فعال نشده است؛ امکان دریافت از ملی‌پیامک وجود ندارد.');
         }
 
-        $lock = ImportPhonebookJob::lockKey($user->id);
+        try {
+            $count = $sync->importGroups($user);
 
-        if (Cache::get($lock)) {
+            return redirect()->route('dashboard.contacts.groups')->with(
+                'status',
+                sprintf('%d گروه از ملی‌پیامک دریافت شد. برای هر گروه، دکمهٔ «دریافت مخاطبین» را بزنید.', $count),
+            );
+        } catch (SmsPanelNotConfiguredException $e) {
+            return redirect()->route('dashboard.contacts.groups')->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('[phonebook] group import failed', ['user' => $user->id, 'error' => $e->getMessage()]);
+
             return redirect()->route('dashboard.contacts.groups')
-                ->with('warning', 'یک درخواست دریافت از ملی‌پیامک در حال انجام است. لطفاً کمی صبر کنید.');
+                ->with('error', 'دریافت گروه‌ها ناموفق بود: '.$e->getMessage());
         }
-
-        Cache::put($lock, true, now()->addMinutes(30));
-        ImportPhonebookJob::dispatch($user->id);
-
-        return redirect()->route('dashboard.contacts.groups')->with(
-            'status',
-            'دریافت از ملی‌پیامک آغاز شد. بسته به تعداد مخاطبین ممکن است چند دقیقه طول بکشد؛ این صفحه را بعداً تازه کنید.',
-        );
     }
 
     /** @return array<string, mixed> */

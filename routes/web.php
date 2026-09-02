@@ -212,11 +212,14 @@ Route::middleware('auth')->group(function () {
             ->middleware('throttle:10,1')->name('dashboard.contacts.send.post');
         Route::get('/dashboard/contacts/groups', [ContactGroupController::class, 'index'])->name('dashboard.contacts.groups');
         Route::post('/dashboard/contacts/groups', [ContactGroupController::class, 'store'])->name('dashboard.contacts.groups.store');
+        Route::get('/dashboard/contacts/groups/{group}/edit', [ContactGroupController::class, 'edit'])->name('dashboard.contacts.groups.edit');
         Route::put('/dashboard/contacts/groups/{group}', [ContactGroupController::class, 'update'])->name('dashboard.contacts.groups.update');
         Route::delete('/dashboard/contacts/groups/{group}', [ContactGroupController::class, 'destroy'])->name('dashboard.contacts.groups.destroy');
         Route::post('/dashboard/contacts/groups/{group}/sync', [ContactGroupController::class, 'sync'])->name('dashboard.contacts.groups.sync');
-        Route::post('/dashboard/contacts/import', [ContactGroupController::class, 'import'])
-            ->middleware('throttle:4,1')->name('dashboard.contacts.import');
+        Route::post('/dashboard/contacts/groups/{group}/contacts', [ContactGroupController::class, 'pullContacts'])
+            ->middleware('throttle:20,1')->name('dashboard.contacts.groups.pull');
+        Route::post('/dashboard/contacts/import', [ContactGroupController::class, 'importGroups'])
+            ->middleware('throttle:6,1')->name('dashboard.contacts.import');
         Route::get('/dashboard/contacts/{contact}/edit', [ContactController::class, 'edit'])->name('dashboard.contacts.edit');
         Route::put('/dashboard/contacts/{contact}', [ContactController::class, 'update'])->name('dashboard.contacts.update');
         Route::delete('/dashboard/contacts/{contact}', [ContactController::class, 'destroy'])->name('dashboard.contacts.destroy');
