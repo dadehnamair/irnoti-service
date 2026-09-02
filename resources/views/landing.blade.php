@@ -452,7 +452,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                             <p>{{ \Illuminate\Support\Str::of($post->excerpt)->squish()->limit(120) }}</p>
                             @endif
                             <div class="home-blog-meta">
-                                <time datetime="{{ optional($post->published_date)->toDateString() }}">{{ optional($post->published_date)->format('Y/m/d') }}</time>
+                                <time datetime="{{ optional($post->published_date)->toDateString() }}">@jdate($post->published_date)</time>
                                 <span>·</span>
                                 <span>{{ $post->reading_minutes }} دقیقه مطالعه</span>
                             </div>

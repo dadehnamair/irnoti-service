@@ -63,9 +63,17 @@
             @if ($user->plan_expires_at)
                 <div class="account-stat">
                     <span>انقضای پلن</span>
-                    <strong>{{ $user->plan_expires_at->format('Y/m/d') }}</strong>
+                    <strong>@jdate($user->plan_expires_at)</strong>
                 </div>
             @endif
+            <div class="account-stat">
+                <span>موجودی کیف پول</span>
+                <strong>@toman($user->walletBalance()) تومان</strong>
+            </div>
+            <div class="account-stat">
+                <span>اعتبار پیامکی</span>
+                <strong>@toman($user->sms_credit) پیامک</strong>
+            </div>
         </div>
 
         @if ($user->documents_status === 'rejected' && $user->documents_reject_reason)
@@ -74,6 +82,16 @@
                 <a href="{{ route('dashboard.profile.step', ['step' => 3]) }}">بارگذاری مجدد مدارک</a>
             </p>
         @endif
+    </div>
+
+    <div class="account-card">
+        <h2>کیف پول و مالی</h2>
+        <p class="auth-sub">حساب خود را شارژ کنید، بسته پیامکی بخرید یا صورت‌حساب‌ها را پرداخت کنید.</p>
+        <div class="account-actions">
+            <a class="btn btn-primary" href="{{ route('dashboard.wallet') }}">شارژ حساب</a>
+            <a class="btn btn-secondary" href="{{ route('dashboard.packages') }}">خرید بسته پیامکی</a>
+            <a class="btn btn-ghost" href="{{ route('dashboard.transactions') }}">سوابق مالی</a>
+        </div>
     </div>
 
     @unless ($user->isProfileComplete())

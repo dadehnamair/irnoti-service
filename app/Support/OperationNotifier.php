@@ -3,10 +3,14 @@
 namespace App\Support;
 
 use App\Jobs\SendSmsJob;
+use App\Models\BankReceipt;
+use App\Models\Invoice;
 use App\Models\LineOrder;
+use App\Models\PackageOrder;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Models\WalletTopup;
 
 /**
  * Central place that turns an app event into SMS notifications for the customer
@@ -133,6 +137,94 @@ class OperationNotifier
             $order->line_label,
             $order->status_label,
             $order->token,
+        ));
+    }
+
+    /** Wallet was topped up — online, or an approved receipt (docs/starter.md §23). */
+    public function walletToppedUp(User $user, int $amount): void
+    {
+        $this->toUser($user->mobile, sprintf(
+            'کیف پول شما در %s به مبلغ %s تومان شارژ شد.',
+            $this->brand(),
+            number_format($amount),
+        ));
+
+        $this->toAdmin(sprintf('شارژ کیف پول — %s: %s تومان', $user->mobile, number_format($amount)));
+    }
+
+    /** Customer submitted a bank receipt for review (docs/starter.md §22). */
+    public function bankReceiptSubmitted(BankReceipt $receipt): void
+    {
+        $this->toAdmin(sprintf(
+            'فیش بانکی جدید در %s — %s: %s تومان، پیگیری %s. نیازمند بررسی.',
+            $this->brand(),
+            $receipt->user?->mobile ?? '—',
+            number_format((int) $receipt->amount),
+            $receipt->tracking_code,
+        ));
+    }
+
+    public function bankReceiptApproved(BankReceipt $receipt): void
+    {
+        $this->toUser($receipt->user?->mobile, sprintf(
+            'فیش بانکی شما در %s تأیید شد. مبلغ: %s تومان.',
+            $this->brand(),
+            number_format((int) $receipt->amount),
+        ));
+    }
+
+    public function bankReceiptRejected(BankReceipt $receipt): void
+    {
+        $this->toUser($receipt->user?->mobile, trim(sprintf(
+            'فیش بانکی شما در %s تأیید نشد. %s',
+            $this->brand(),
+            $receipt->admin_note ? 'توضیح: '.$receipt->admin_note : 'لطفاً با پشتیبانی تماس بگیرید.',
+        )));
+    }
+
+    /** An SMS package purchase settled — credit added (docs/starter.md §12). */
+    public function packageActivated(PackageOrder $order): void
+    {
+        $this->toUser($order->user?->mobile, sprintf(
+            'بسته «%s» (%s پیامک) برای حساب شما در %s فعال شد.',
+            $order->package_name,
+            number_format((int) $order->sms_count),
+            $this->brand(),
+        ));
+
+        $this->toAdmin(sprintf(
+            'خرید بسته پیامکی در %s — %s → «%s» (%s تومان)',
+            $this->brand(),
+            $order->user?->mobile ?? '—',
+            $order->package_name,
+            number_format((int) $order->price),
+        ));
+    }
+
+    /** Admin issued an invoice (docs/starter.md §22). */
+    public function invoiceIssued(Invoice $invoice): void
+    {
+        $this->toUser($invoice->user?->mobile, sprintf(
+            'صورت‌حساب %s به مبلغ %s تومان برای شما در %s صادر شد. برای پرداخت به پنل کاربری مراجعه کنید.',
+            $invoice->number,
+            number_format((int) $invoice->total),
+            $this->brand(),
+        ));
+    }
+
+    public function invoicePaid(Invoice $invoice): void
+    {
+        $this->toUser($invoice->user?->mobile, sprintf(
+            'پرداخت صورت‌حساب %s در %s با موفقیت ثبت شد.',
+            $invoice->number,
+            $this->brand(),
+        ));
+
+        $this->toAdmin(sprintf(
+            'پرداخت صورت‌حساب %s — %s: %s تومان',
+            $invoice->number,
+            $invoice->user?->mobile ?? '—',
+            number_format((int) $invoice->total),
         ));
     }
 

@@ -5,10 +5,14 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\Dashboard\BankReceiptController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\InvoiceController;
 use App\Http\Controllers\Dashboard\LineOrderController as DashboardLineOrderController;
+use App\Http\Controllers\Dashboard\PackageOrderController;
 use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
+use App\Http\Controllers\Dashboard\WalletController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\PricingController;
@@ -129,6 +133,35 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/plan/order', [SubscriptionController::class, 'order'])->name('subscriptions.order');
     Route::get('/dashboard/subscription/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
     Route::get('/dashboard/subscription/{subscription}/pay', [SubscriptionController::class, 'pay'])->name('subscriptions.pay');
+    Route::post('/dashboard/subscription/{subscription}/wallet', [SubscriptionController::class, 'payFromWallet'])->name('subscriptions.wallet');
+
+    /*
+     * Wallet & financial history (docs/starter.md §22 / §23): "شارژ حساب" to any
+     * amount, the immutable ledger, plus bank-receipt submission and admin-issued
+     * invoices. All money is integer Toman; dates render Jalali.
+     */
+    Route::get('/dashboard/wallet', [WalletController::class, 'show'])->name('dashboard.wallet');
+    Route::post('/dashboard/wallet/topup', [WalletController::class, 'topup'])->name('dashboard.wallet.topup');
+    Route::get('/dashboard/wallet/topup/{topup}/pay', [WalletController::class, 'pay'])->name('wallet.topup.pay');
+    Route::get('/dashboard/transactions', [WalletController::class, 'transactions'])->name('dashboard.transactions');
+
+    Route::get('/dashboard/receipts', [BankReceiptController::class, 'index'])->name('dashboard.receipts');
+    Route::get('/dashboard/receipts/create', [BankReceiptController::class, 'create'])->name('dashboard.receipts.create');
+    Route::post('/dashboard/receipts', [BankReceiptController::class, 'store'])->name('receipts.store');
+
+    // SMS credit bundles (docs/starter.md §12).
+    Route::get('/dashboard/packages', [PackageOrderController::class, 'index'])->name('dashboard.packages');
+    Route::get('/dashboard/packages/{package}/checkout', [PackageOrderController::class, 'checkout'])->name('dashboard.packages.checkout');
+    Route::post('/dashboard/packages/order', [PackageOrderController::class, 'order'])->name('package-orders.order');
+    Route::get('/dashboard/packages/order/{order}', [PackageOrderController::class, 'show'])->name('package-orders.show');
+    Route::get('/dashboard/packages/order/{order}/pay', [PackageOrderController::class, 'pay'])->name('package-orders.pay');
+    Route::post('/dashboard/packages/order/{order}/wallet', [PackageOrderController::class, 'payFromWallet'])->name('package-orders.wallet');
+
+    // Admin-issued invoices (docs/starter.md §22 / §51).
+    Route::get('/dashboard/invoices', [InvoiceController::class, 'index'])->name('dashboard.invoices');
+    Route::get('/dashboard/invoices/{invoice}', [InvoiceController::class, 'show'])->name('dashboard.invoices.show');
+    Route::get('/dashboard/invoices/{invoice}/pay', [InvoiceController::class, 'pay'])->name('invoices.pay');
+    Route::post('/dashboard/invoices/{invoice}/wallet', [InvoiceController::class, 'payFromWallet'])->name('invoices.wallet');
 
     /*
      * Panel features that need a fully approved account (docs/starter.md §39):
@@ -145,11 +178,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/dashboard/lines/order', [DashboardLineOrderController::class, 'order'])->name('dashboard.lines.order');
         Route::get('/dashboard/lines/order/{order}', [DashboardLineOrderController::class, 'show'])->name('dashboard.lines.show');
         Route::get('/dashboard/lines/order/{order}/pay', [DashboardLineOrderController::class, 'pay'])->name('dashboard.lines.pay');
+        Route::post('/dashboard/lines/order/{order}/wallet', [DashboardLineOrderController::class, 'payFromWallet'])->name('dashboard.lines.wallet');
     });
 });
 
 Route::match(['get', 'post'], '/subscriptions/payment/callback', [SubscriptionController::class, 'paymentCallback'])
     ->name('subscriptions.payment.callback');
+
+// Gateway callbacks for the new payment flows (CSRF-excepted in bootstrap/app.php).
+Route::match(['get', 'post'], '/wallet/topup/callback', [WalletController::class, 'callback'])->name('wallet.topup.callback');
+Route::match(['get', 'post'], '/packages/payment/callback', [PackageOrderController::class, 'callback'])->name('package-orders.callback');
+Route::match(['get', 'post'], '/invoices/payment/callback', [InvoiceController::class, 'callback'])->name('invoices.callback');
+
+// Public SMS-package catalogue, parallel to /pricing (docs/starter.md §12).
+Route::get('/sms-packages', [PricingController::class, 'packages'])->name('sms-packages');
 
 Route::get('/sitemap.xml', function () {
     $today = now()->toDateString();

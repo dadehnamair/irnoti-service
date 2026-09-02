@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plan;
+use App\Models\SmsPackage;
 use Illuminate\Contracts\View\View;
 
 class PricingController extends Controller
@@ -18,6 +19,22 @@ class PricingController extends Controller
 
         return view('pricing', [
             'plans' => $plans,
+        ]);
+    }
+
+    /**
+     * Public SMS credit-bundle catalogue ("/sms-packages"). Bundles are managed
+     * from the Filament admin panel; buying one is done from the customer panel
+     * (docs/starter.md §12).
+     */
+    public function packages(): View
+    {
+        return view('sms-packages', [
+            'packages' => rescue(
+                fn () => SmsPackage::query()->active()->ordered()->get(),
+                collect(),
+                report: false,
+            ),
         ]);
     }
 }

@@ -85,9 +85,47 @@ function smsCounter() {
     update();
 }
 
+/*
+ * Thousands separators on money inputs (docs/starter.md §22). Any
+ * <input data-money-input> shows 1,234,567 while typing; a sibling hidden input
+ * named "<name>" carries the raw integer, and the visible field is renamed to
+ * "<name>_display" so only digits reach the server.
+ */
+function moneyInputs() {
+    const nf = new Intl.NumberFormat('en-US');
+    const toDigits = (s) =>
+        String(s)
+            .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+            .replace(/[^\d]/g, '');
+
+    document.querySelectorAll('input[data-money-input]').forEach((input) => {
+        const name = input.getAttribute('name');
+        let hidden = null;
+
+        if (name) {
+            hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = name;
+            input.setAttribute('name', `${name}_display`);
+            input.after(hidden);
+        }
+
+        const sync = () => {
+            const raw = toDigits(input.value);
+            input.value = raw ? nf.format(Number(raw)) : '';
+            if (hidden) hidden.value = raw;
+        };
+
+        input.setAttribute('inputmode', 'numeric');
+        input.addEventListener('input', sync);
+        sync();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     otpResendCountdown();
     otpInput();
     planPeriodSwitch();
     smsCounter();
+    moneyInputs();
 });

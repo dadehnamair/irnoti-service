@@ -45,6 +45,12 @@ class SmsManager
         return $this->provider->credit();
     }
 
+    /** Remaining panel credit as a Rial amount, or null when unavailable. */
+    public function creditRial(): ?int
+    {
+        return $this->provider->creditRial();
+    }
+
     public function sender(): ?string
     {
         return $this->senderOverride ?: config('services.sms.melipayamak.sender');

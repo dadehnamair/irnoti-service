@@ -37,7 +37,22 @@ $primary = config('theme.primary');
                     <a href="{{ route('dashboard.profile') }}" @class(['is-active'=> request()->routeIs('dashboard.profile*')])>تکمیل اطلاعات</a>
                     @endif
                     @if (Route::has('dashboard.plans'))
-                    <a href="{{ route('dashboard.plans') }}" @class(['is-active'=> request()->routeIs('dashboard.plan*')])>پلن و اشتراک</a>
+                    <a href="{{ route('dashboard.plans') }}" @class(['is-active'=> request()->routeIs('dashboard.plan*') || request()->routeIs('subscriptions.*')])>پلن و اشتراک</a>
+                    @endif
+                    @if (Route::has('dashboard.wallet'))
+                    <a href="{{ route('dashboard.wallet') }}" @class(['is-active'=> request()->routeIs('dashboard.wallet') || request()->routeIs('wallet.*')])>کیف پول</a>
+                    @endif
+                    @if (Route::has('dashboard.transactions'))
+                    <a href="{{ route('dashboard.transactions') }}" @class(['is-active'=> request()->routeIs('dashboard.transactions')])>سوابق مالی</a>
+                    @endif
+                    @if (Route::has('dashboard.packages'))
+                    <a href="{{ route('dashboard.packages') }}" @class(['is-active'=> request()->routeIs('dashboard.packages*') || request()->routeIs('package-orders.*')])>بسته پیامکی</a>
+                    @endif
+                    @if (Route::has('dashboard.invoices'))
+                    <a href="{{ route('dashboard.invoices') }}" @class(['is-active'=> request()->routeIs('dashboard.invoices*')])>صورت‌حساب‌ها</a>
+                    @endif
+                    @if (Route::has('dashboard.receipts'))
+                    <a href="{{ route('dashboard.receipts') }}" @class(['is-active'=> request()->routeIs('dashboard.receipts*')])>فیش‌های بانکی</a>
                     @endif
                     @if (Route::has('dashboard.sms'))
                     <a href="{{ route('dashboard.sms') }}" @class(['is-active'=> request()->routeIs('dashboard.sms*')])>ارسال پیامک</a>

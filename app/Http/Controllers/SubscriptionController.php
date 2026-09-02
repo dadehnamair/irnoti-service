@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Models\Subscription;
 use App\Support\HandlesGatewayPayment;
 use App\Support\OperationNotifier;
+use App\Support\PayableSettlement;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -164,7 +165,33 @@ class SubscriptionController extends Controller
         return view('dashboard.subscription', [
             'subscription' => $subscription,
             'canPayOnline' => $this->onlinePaymentEnabled() && $subscription->isPayable(),
+            'walletBalance' => $request->user()->wallet()->balance,
+            'receiptEnabled' => (bool) Setting::get('receipt_payment_enabled', true)
+                && (bool) Setting::get('receipt_for_plans', true)
+                && $subscription->isPayable(),
         ]);
+    }
+
+    /** Pay a pending paid plan straight from the wallet balance (docs/starter.md §23). */
+    public function payFromWallet(Request $request, Subscription $subscription, PayableSettlement $settlement): RedirectResponse
+    {
+        abort_unless($subscription->user_id === $request->user()->id, 403);
+
+        if (! $subscription->isPayable()) {
+            return redirect()->route('subscriptions.show', $subscription);
+        }
+
+        $wallet = $request->user()->wallet();
+
+        if (! $wallet->hasSufficient((int) $subscription->price)) {
+            return redirect()->route('subscriptions.show', $subscription)
+                ->with('payment_error', 'موجودی کیف پول کافی نیست. ابتدا حساب خود را شارژ کنید.');
+        }
+
+        $wallet->debit((int) $subscription->price, 'plan_purchase', $subscription, 'خرید پلن «'.$subscription->plan_name.'»', "subscription:{$subscription->id}");
+        $settlement->settle($subscription, ['method' => 'wallet']);
+
+        return redirect()->route('subscriptions.show', $subscription)->with('payment_success', true);
     }
 
     /** Mark active, roll the plan onto the user, notify (docs/starter.md §44). */
@@ -181,6 +208,11 @@ class SubscriptionController extends Controller
                 'plan_id' => $subscription->plan_id,
                 'plan_expires_at' => $subscription->expires_at,
             ])->save();
+
+            // A plan that bundles SMS also tops up the internal credit (docs/starter.md §12).
+            if ((int) ($subscription->plan?->sms_count ?? 0) > 0) {
+                $user->increment('sms_credit', (int) $subscription->plan->sms_count);
+            }
 
             // Buying a plan doesn't activate the account — an admin still has to
             // approve it (docs/starter.md §39). This only moves pending accounts

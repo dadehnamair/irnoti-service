@@ -9,6 +9,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -76,6 +77,7 @@ class User extends Authenticatable implements FilamentUser
         'sms_username',
         'sms_password',
         'sms_sender',
+        'sms_credit',
     ];
 
     /**
@@ -103,7 +105,10 @@ class User extends Authenticatable implements FilamentUser
             'profile_completed_at' => 'datetime',
             'approved_at' => 'datetime',
             'documents_reviewed_at' => 'datetime',
-            'sms_password' => 'encrypted',
+            'sms_credit' => 'integer',
+            // NOT hashed / NOT encrypted — Melipayamak's SendSMS API needs the raw
+            // panel password, and the admin sets this value straight in the DB
+            // (docs/starter.md §12, https://www.melipayamak.com/api/sendsimplesms2/).
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
@@ -132,6 +137,47 @@ class User extends Authenticatable implements FilamentUser
     public function lineOrders(): HasMany
     {
         return $this->hasMany(LineOrder::class);
+    }
+
+    public function walletRelation(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    /** The customer's wallet, created on first access (docs/starter.md §23). */
+    public function wallet(): Wallet
+    {
+        return $this->walletRelation()->firstOrCreate([]);
+    }
+
+    public function walletBalance(): int
+    {
+        return (int) ($this->walletRelation?->balance ?? $this->walletRelation()->value('balance') ?? 0);
+    }
+
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class)->latest('id');
+    }
+
+    public function walletTopups(): HasMany
+    {
+        return $this->hasMany(WalletTopup::class);
+    }
+
+    public function packageOrders(): HasMany
+    {
+        return $this->hasMany(PackageOrder::class);
+    }
+
+    public function bankReceipts(): HasMany
+    {
+        return $this->hasMany(BankReceipt::class)->latest('id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class)->latest('id');
     }
 
     public function isProfileComplete(): bool

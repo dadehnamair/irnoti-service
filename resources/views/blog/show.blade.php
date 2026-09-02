@@ -92,7 +92,7 @@
             <div class="blog-post-meta">
                 <span>{{ $authorName }}</span>
                 <span>·</span>
-                <time datetime="{{ optional($article->published_date)->toDateString() }}">{{ optional($article->published_date)->format('Y/m/d') }}</time>
+                <time datetime="{{ optional($article->published_date)->toDateString() }}">@jdate($article->published_date)</time>
                 <span>·</span>
                 <span>{{ $article->reading_minutes }} دقیقه مطالعه</span>
             </div>
@@ -143,7 +143,7 @@
                             @endif
                             <h3><a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a></h3>
                             <div class="blog-card-meta">
-                                <time datetime="{{ optional($post->published_date)->toDateString() }}">{{ optional($post->published_date)->format('Y/m/d') }}</time>
+                                <time datetime="{{ optional($post->published_date)->toDateString() }}">@jdate($post->published_date)</time>
                                 <span>·</span>
                                 <span>{{ $post->reading_minutes }} دقیقه</span>
                             </div>

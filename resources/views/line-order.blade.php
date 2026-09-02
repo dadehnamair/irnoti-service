@@ -76,7 +76,7 @@
                         </div>
                         <div class="order-row">
                             <span>تاریخ ثبت</span>
-                            <strong>{{ $order->created_at->format('Y-m-d H:i') }}</strong>
+                            <strong>@jdatetime($order->created_at)</strong>
                         </div>
                         <div class="order-row">
                             <span>وضعیت</span>

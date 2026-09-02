@@ -23,19 +23,26 @@ class SmsController extends Controller
     {
         $user = $request->user();
 
-        $credit = null;
+        $credit = null;       // number of SMS (getusercredit)
+        $creditRial = null;   // Rial balance (getusercredit2)
         $creditError = null;
 
         if ($user->hasSmsPanel()) {
             try {
-                $credit = Cache::remember(
-                    "sms_credit:{$user->id}",
-                    now()->addSeconds(60),
-                    fn () => UserSmsGateway::for($user)->credit(),
-                );
+                // Don't cache failures — only a real number.
+                $cached = Cache::get("sms_credit:{$user->id}");
+
+                if (is_array($cached)) {
+                    [$credit, $creditRial] = [$cached['sms'] ?? null, $cached['rial'] ?? null];
+                } else {
+                    $gateway = UserSmsGateway::for($user);
+                    $credit = $gateway->credit();
+                    $creditRial = $gateway->creditRial();
+                    Cache::put("sms_credit:{$user->id}", ['sms' => $credit, 'rial' => $creditRial], now()->addSeconds(60));
+                }
             } catch (\Throwable $e) {
                 Log::warning('SMS credit read failed', ['user' => $user->id, 'error' => $e->getMessage()]);
-                $creditError = 'اعتبار پنل در دسترس نیست.';
+                $creditError = $e->getMessage();
             }
         }
 
@@ -43,6 +50,7 @@ class SmsController extends Controller
             'user' => $user,
             'hasPanel' => $user->hasSmsPanel(),
             'credit' => $credit,
+            'creditRial' => $creditRial,
             'creditError' => $creditError,
             'messages' => SmsMessage::query()
                 ->where('user_id', $user->id)

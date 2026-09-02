@@ -27,8 +27,14 @@ interface SmsProviderInterface
     public function deliveryStatus(string $recId): ?string;
 
     /**
-     * Remaining panel credit (number of SMS), or null when the driver can't
+     * Remaining panel credit as a number of SMS, or null when the driver can't
      * report it (docs/starter.md §12). Shown in the customer panel.
      */
     public function credit(): ?int;
+
+    /**
+     * Remaining panel credit as a Rial amount, or null when the driver can't
+     * report it (docs/starter.md §12).
+     */
+    public function creditRial(): ?int;
 }

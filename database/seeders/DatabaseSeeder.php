@@ -27,7 +27,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SettingsSeeder::class,
             PlansSeeder::class,
+            SmsPackagesSeeder::class,
             SmsLinesSeeder::class,
+            BankAccountsSeeder::class,
             DocsSeeder::class,
             BlogSeeder::class,
         ]);

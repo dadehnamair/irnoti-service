@@ -87,7 +87,7 @@
                             <p>{{ $post->excerpt }}</p>
                         @endif
                         <div class="blog-card-meta">
-                            <time datetime="{{ optional($post->published_date)->toDateString() }}">{{ optional($post->published_date)->format('Y/m/d') }}</time>
+                            <time datetime="{{ optional($post->published_date)->toDateString() }}">@jdate($post->published_date)</time>
                             <span>·</span>
                             <span>{{ $post->reading_minutes }} دقیقه مطالعه</span>
                         </div>

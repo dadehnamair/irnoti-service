@@ -36,7 +36,7 @@
             @if ($subscription->expires_at)
                 <div class="account-stat">
                     <span>اعتبار تا</span>
-                    <strong>{{ $subscription->expires_at->format('Y/m/d') }}</strong>
+                    <strong>@jdate($subscription->expires_at)</strong>
                 </div>
             @endif
             @if ($subscription->reference_id)
@@ -47,8 +47,21 @@
             @endif
         </div>
 
-        @if ($canPayOnline)
-            <a class="btn btn-primary" style="margin-top:16px" href="{{ route('subscriptions.pay', $subscription) }}">پرداخت</a>
+        @if ($subscription->isPayable())
+            <div class="account-actions" style="margin-top:16px">
+                @if ($walletBalance >= $subscription->price)
+                    <form method="POST" action="{{ route('subscriptions.wallet', $subscription) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">پرداخت از کیف پول (@toman($walletBalance) تومان)</button>
+                    </form>
+                @endif
+                @if ($canPayOnline)
+                    <a class="btn btn-secondary" href="{{ route('subscriptions.pay', $subscription) }}">پرداخت آنلاین</a>
+                @endif
+                @if ($receiptEnabled)
+                    <a class="btn btn-ghost" href="{{ route('dashboard.receipts.create', ['for' => 'plan', 'ref' => $subscription->token]) }}">ثبت فیش بانکی</a>
+                @endif
+            </div>
         @endif
 
         <a class="checkout-back" href="{{ route('dashboard') }}">بازگشت به پنل</a>

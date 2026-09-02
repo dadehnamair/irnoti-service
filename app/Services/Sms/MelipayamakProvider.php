@@ -7,19 +7,26 @@ use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Melipayamak REST driver (docs/starter.md §13). Works in two modes:
+ * Melipayamak driver (docs/starter.md §13). Two independent modes:
  *
- *  - api_key mode  — config('services.sms.melipayamak.api_key') is set. Uses the
- *    key-in-URL endpoints: send/simple/{key}, send/shared/{key}, receive/status/{key}.
+ *  - api_key mode — config('services.sms.melipayamak.api_key') is set. Uses the
+ *    JSON REST host rest.melipayamak.com (send/simple/{key}, …).
  *
- *  - username/password mode — used for a customer's own panel ({@see UserSmsGateway}),
- *    where credentials come from the users table, not config. Uses the classic
- *    SendSMS/* endpoints that take {username, password, ...} in the body and can
- *    also report the panel credit (SendSMS/GetCredit).
+ *  - username/password mode — a customer's own panel ({@see UserSmsGateway}),
+ *    credentials from the users table. Uses the classic ASMX web service on
+ *    api.payamak-panel.com, which takes plain form fields and returns a bare
+ *    XML scalar. This host is what the official docs describe and it resolves
+ *    even where rest.melipayamak.com does not:
+ *      - Send  : /post/Send.asmx/SendSimpleSMS2  (https://www.melipayamak.com/api/sendsimplesms2/)
+ *      - Count : /post/Users.asmx/GetUserCredit  (https://www.melipayamak.com/api/getusercredit/)
+ *      - Rial  : /post/Users.asmx/GetUserCredit2 (https://www.melipayamak.com/api/getusercredit2/)
+ *    All of them answer `-1` for wrong credentials.
  */
 class MelipayamakProvider implements SmsProviderInterface
 {
-    private const BASE = 'https://rest.melipayamak.com/api';
+    private const REST = 'https://rest.melipayamak.com/api';
+
+    private const SOAP = 'https://api.payamak-panel.com/post';
 
     /** @param  array<string, string|null>  $config */
     public function __construct(private readonly array $config) {}
@@ -27,14 +34,14 @@ class MelipayamakProvider implements SmsProviderInterface
     public function send(string $to, string $message, ?string $from = null): ?string
     {
         if ($this->usesCredentials()) {
-            $response = $this->postWithCredentials('SendSMS/SendSMS', [
+            $value = $this->soap('Send.asmx/SendSimpleSMS2', [
                 'to' => $to,
                 'from' => $from ?: ($this->config['sender'] ?? ''),
                 'text' => $message,
-                'isFlash' => false,
+                'isflash' => 'false',
             ]);
 
-            return $this->recId($response);
+            return $this->sendResult($value);
         }
 
         $response = $this->postWithKey('send/simple', [
@@ -43,19 +50,19 @@ class MelipayamakProvider implements SmsProviderInterface
             'text' => $message,
         ]);
 
-        return $this->recId($response);
+        return $this->restRecId($response);
     }
 
     public function sendPattern(string $to, string $bodyId, array $variables): ?string
     {
         if ($this->usesCredentials()) {
-            $response = $this->postWithCredentials('SendSMS/BaseServiceNumber', [
+            $value = $this->soap('Send.asmx/SendByBaseNumber', [
                 'text' => implode(';', array_values($variables)),
                 'to' => $to,
                 'bodyId' => (int) $bodyId,
             ]);
 
-            return $this->recId($response);
+            return $this->sendResult($value);
         }
 
         $response = $this->postWithKey('send/shared', [
@@ -64,15 +71,13 @@ class MelipayamakProvider implements SmsProviderInterface
             'args' => array_values($variables),
         ]);
 
-        return $this->recId($response);
+        return $this->restRecId($response);
     }
 
     public function deliveryStatus(string $recId): ?string
     {
         if ($this->usesCredentials()) {
-            $response = $this->postWithCredentials('SendSMS/GetDeliveries2', ['recId' => $recId]);
-
-            return isset($response['Value']) ? (string) $response['Value'] : null;
+            return $this->soap('Send.asmx/GetDeliveries2', ['recId' => $recId]) ?: null;
         }
 
         $response = $this->postWithKey('receive/status', ['recId' => $recId]);
@@ -80,25 +85,144 @@ class MelipayamakProvider implements SmsProviderInterface
         return $response['status'] ?? null;
     }
 
+    /**
+     * Remaining credit as a number of SMS
+     * (https://www.melipayamak.com/api/getusercredit/).
+     */
     public function credit(): ?int
     {
         if (! $this->usesCredentials()) {
-            return null; // the api_key endpoints don't expose credit here
+            return null; // api_key mode has no equivalent here
         }
 
-        $response = $this->postWithCredentials('SendSMS/GetCredit', []);
+        $value = $this->soap('Users.asmx/GetUserCredit', [
+            'targetUsername' => $this->config['username'] ?? '',
+        ]);
 
-        if (! array_key_exists('Value', $response)) {
+        if ((string) $value === '-1') {
+            throw new RuntimeException('دریافت اعتبار ناموفق بود: نام کاربری یا رمز عبور پنل پیامک نادرست است.');
+        }
+
+        if (! is_numeric($value)) {
+            throw new RuntimeException('پاسخ نامعتبر از ملی‌پیامک هنگام دریافت اعتبار: '.$value);
+        }
+
+        return (int) round((float) $value);
+    }
+
+    /**
+     * Remaining credit as a Rial amount
+     * (https://www.melipayamak.com/api/getusercredit2/). Best-effort: any failure
+     * returns null rather than throwing.
+     */
+    public function creditRial(): ?int
+    {
+        if (! $this->usesCredentials()) {
             return null;
         }
 
-        return (int) round((float) $response['Value']);
+        try {
+            $value = $this->soap('Users.asmx/GetUserCredit2', []);
+
+            if (is_numeric($value) && (float) $value >= 0) {
+                return (int) round((float) $value);
+            }
+        } catch (\Throwable $e) {
+            Log::debug('[sms:melipayamak] rial credit read failed', ['error' => $e->getMessage()]);
+        }
+
+        return null;
     }
 
     private function usesCredentials(): bool
     {
         return filled($this->config['username'] ?? null) && filled($this->config['password'] ?? null);
     }
+
+    /* -------------------------- username/password (ASMX) -------------------------- */
+
+    /**
+     * POST a form to an api.payamak-panel.com ASMX method and return the inner
+     * text of the XML scalar it replies with (`<string>…</string>` etc.).
+     *
+     * @param  array<string, mixed>  $params
+     */
+    private function soap(string $method, array $params): string
+    {
+        $payload = array_merge([
+            'username' => $this->config['username'] ?? '',
+            'password' => $this->config['password'] ?? '',
+        ], $params);
+
+        try {
+            $response = Http::asForm()->timeout(20)->acceptJson()->post(self::SOAP.'/'.$method, $payload);
+        } catch (\Throwable $e) {
+            Log::error('[sms:melipayamak] connection failed', ['method' => $method, 'error' => $e->getMessage()]);
+
+            throw new RuntimeException('اتصال به سرور ملی‌پیامک برقرار نشد: '.$e->getMessage());
+        }
+
+        $scalar = $this->xmlScalar($response->body());
+
+        Log::debug('[sms:melipayamak] '.$method, [
+            'sent' => ['username' => $payload['username']] + array_diff_key($payload, ['username' => 1, 'password' => 1]),
+            'http' => $response->status(),
+            'value' => $scalar,
+        ]);
+
+        if ($response->failed()) {
+            throw new RuntimeException(sprintf(
+                'ملی‌پیامک با کد %d پاسخ داد: %s',
+                $response->status(),
+                mb_substr($response->body(), 0, 300) ?: 'بدون بدنه',
+            ));
+        }
+
+        return $scalar;
+    }
+
+    /** Inner text of a .NET ASMX scalar response, or the trimmed body if it isn't wrapped. */
+    private function xmlScalar(string $body): string
+    {
+        if (preg_match('~<(?:string|double|int|long|boolean)[^>]*>(.*?)</(?:string|double|int|long|boolean)>~s', $body, $m)) {
+            return trim(html_entity_decode($m[1]));
+        }
+
+        return trim(strip_tags($body));
+    }
+
+    /** SendSimpleSMS2 returns a long recId on success, or a small/zero/negative status code. */
+    private function sendResult(string $value): ?string
+    {
+        // A real message id is a long run of digits; anything short/≤0 is a status code.
+        if (preg_match('/^\d{6,}$/', $value)) {
+            return $value;
+        }
+
+        throw new RuntimeException($this->sendError($value));
+    }
+
+    private function sendError(string $code): string
+    {
+        return match ($code) {
+            '0' => 'خطای نامشخص در ارسال.',
+            '-1' => 'نام کاربری یا رمز عبور پنل پیامک نادرست است.',
+            '-2' => 'اعتبار پنل پیامک کافی نیست.',
+            '-3' => 'محدودیت تعداد پیامک روزانه.',
+            '-4' => 'محدودیت حجم پیامک روزانه.',
+            '-5' => 'شمارهٔ فرستنده معتبر نیست یا به این حساب تعلق ندارد.',
+            '-6' => 'سامانه در حال بروزرسانی است؛ کمی بعد دوباره تلاش کنید.',
+            '-7' => 'متن پیام حاوی کلمات فیلترشده است.',
+            '-8' => 'شمارهٔ گیرنده نامعتبر است.',
+            '-9' => 'ارسال از خطوط عمومی از طریق وب‌سرویس ممکن نیست.',
+            '-10' => 'کاربر پنل پیامک فعال نیست یا مدارکش کامل نیست.',
+            '-11' => 'ارسال انجام نشد.',
+            '-12' => 'اعتبار ریالی پنل پیامک کافی نیست.',
+            default => 'ارسال پیامک ناموفق بود (کد: '.$code.').',
+        };
+    }
+
+    /* ------------------------------ api_key (REST) ------------------------------ */
 
     /**
      * @param  array<string, mixed>  $payload
@@ -112,75 +236,24 @@ class MelipayamakProvider implements SmsProviderInterface
             throw new RuntimeException('پیکربندی ملی‌پیامک ناقص است (MELIPAYAMAK_API_KEY تنظیم نشده).');
         }
 
-        return $this->request($path.'/'.$key, $payload);
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
-     */
-    private function postWithCredentials(string $path, array $payload): array
-    {
-        return $this->request($path, array_merge([
-            'username' => $this->config['username'] ?? '',
-            'password' => $this->config['password'] ?? '',
-        ], $payload));
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
-     */
-    private function request(string $path, array $payload): array
-    {
-        $response = Http::asJson()
-            ->timeout(15)
-            ->post(self::BASE.'/'.$path, $payload);
+        try {
+            $response = Http::asJson()->timeout(15)->post(self::REST.'/'.$path.'/'.$key, $payload);
+        } catch (\Throwable $e) {
+            throw new RuntimeException('اتصال به سرور ملی‌پیامک برقرار نشد: '.$e->getMessage());
+        }
 
         if ($response->failed()) {
-            Log::error('[sms:melipayamak] request failed', [
-                'path' => $path,
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-
-            throw new RuntimeException('ارتباط با ملی‌پیامک ناموفق بود.');
+            throw new RuntimeException('ارسال از طریق ملی‌پیامک ناموفق بود (کد '.$response->status().').');
         }
 
         return (array) $response->json();
     }
 
     /** @param  array<string, mixed>  $response */
-    private function recId(array $response): ?string
+    private function restRecId(array $response): ?string
     {
-        // username/password mode returns {Value: <recId|errorCode>, RetStatus: 1}
-        if (array_key_exists('RetStatus', $response)) {
-            $status = (int) $response['RetStatus'];
-            $value = $response['Value'] ?? null;
-
-            if ($status !== 1) {
-                throw new RuntimeException($this->credentialError($value));
-            }
-
-            return $value !== null ? (string) $value : null;
-        }
-
         $recId = $response['recId'] ?? $response['value'] ?? null;
 
         return $recId !== null ? (string) $recId : null;
-    }
-
-    private function credentialError(mixed $value): string
-    {
-        return match ((string) $value) {
-            '0' => 'نام کاربری یا رمز عبور پنل پیامک نادرست است.',
-            '2' => 'اعتبار پنل پیامک کافی نیست.',
-            '3' => 'محدودیت ارسال روزانه.',
-            '6' => 'سامانه در حال بروزرسانی است؛ کمی بعد دوباره تلاش کنید.',
-            '7' => 'متن پیام حاوی کلمات فیلترشده است.',
-            '10' => 'شمارهٔ خط فرستنده معتبر نیست.',
-            '11' => 'ارسال ناموفق بود.',
-            default => 'ارسال پیامک از طریق ملی‌پیامک ناموفق بود (کد '.$value.').',
-        };
     }
 }

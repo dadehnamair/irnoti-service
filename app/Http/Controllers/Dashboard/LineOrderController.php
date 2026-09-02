@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\SmsLine;
 use App\Support\HandlesGatewayPayment;
 use App\Support\OperationNotifier;
+use App\Support\PayableSettlement;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -95,7 +96,31 @@ class LineOrderController extends Controller
             'order' => $order,
             'justCreated' => (bool) session('order_created'),
             'canPayOnline' => $this->onlinePaymentEnabled() && $order->isPayable(),
+            'walletBalance' => $request->user()->wallet()->balance,
+            'receiptEnabled' => (bool) Setting::get('receipt_payment_enabled', true) && (bool) Setting::get('receipt_for_lines', true),
         ]);
+    }
+
+    /** Pay a pending line order from the wallet balance (docs/starter.md §23). */
+    public function payFromWallet(Request $request, LineOrder $order, PayableSettlement $settlement): RedirectResponse
+    {
+        abort_unless($order->user_id === $request->user()->id, 403);
+
+        if (! $order->isPayable()) {
+            return redirect()->route('dashboard.lines.show', $order);
+        }
+
+        $wallet = $request->user()->wallet();
+
+        if (! $wallet->hasSufficient((int) $order->price)) {
+            return redirect()->route('dashboard.lines.show', $order)
+                ->with('payment_error', 'موجودی کیف پول کافی نیست. ابتدا حساب خود را شارژ کنید.');
+        }
+
+        $wallet->debit((int) $order->price, 'line_purchase', $order, 'خرید خط '.$order->line_label, "line_order:{$order->id}");
+        $settlement->settle($order, ['method' => 'wallet']);
+
+        return redirect()->route('dashboard.lines.show', $order)->with('payment_success', true);
     }
 
     public function pay(Request $request, LineOrder $order)

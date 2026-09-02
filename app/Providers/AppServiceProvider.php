@@ -9,6 +9,8 @@ use App\Services\Sms\LogProvider;
 use App\Services\Sms\MelipayamakProvider;
 use App\Services\Sms\NullProvider;
 use App\Services\Sms\SmsProviderInterface;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +32,49 @@ class AppServiceProvider extends ServiceProvider
 
         // SMS the buyer when a line order's status changes (docs/starter.md §44).
         LineOrder::observe(LineOrderObserver::class);
+
+        $this->registerBladeDirectives();
+        $this->registerFilamentColumnMacros();
+    }
+
+    /**
+     * Jalali dates + comma-grouped Toman for Blade. Backed by the helpers in
+     * app/Support/helpers.php so views can do @jdate($x) / @toman($x).
+     */
+    private function registerBladeDirectives(): void
+    {
+        Blade::directive('jdate', fn ($expr) => "<?php echo e(jalali_date($expr)); ?>");
+        Blade::directive('jdatetime', fn ($expr) => "<?php echo e(jalali_datetime($expr)); ?>");
+        Blade::directive('toman', fn ($expr) => "<?php echo e(toman($expr)); ?>");
+    }
+
+    /**
+     * Same two concerns for Filament admin tables: ->jalaliDate() / ->jalaliDateTime()
+     * on date columns and ->toman() on money columns, so every *Table.php stays a
+     * one-liner and the whole panel reads Shamsi + 1,234,567.
+     */
+    private function registerFilamentColumnMacros(): void
+    {
+        if (! class_exists(TextColumn::class)) {
+            return;
+        }
+
+        TextColumn::macro('jalaliDate', function () {
+            /** @var TextColumn $this */
+            return $this->formatStateUsing(fn ($state) => jalali_date($state))->tooltip(fn ($state) => $state);
+        });
+
+        TextColumn::macro('jalaliDateTime', function () {
+            /** @var TextColumn $this */
+            return $this->formatStateUsing(fn ($state) => jalali_datetime($state))->tooltip(fn ($state) => $state);
+        });
+
+        TextColumn::macro('toman', function (bool $withUnit = true) {
+            /** @var TextColumn $this */
+            return $this->formatStateUsing(fn ($state) => $state === null || $state === ''
+                ? '—'
+                : toman($state, $withUnit));
+        });
     }
 
     /**

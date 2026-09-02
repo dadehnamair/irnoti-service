@@ -50,4 +50,9 @@ class LogProvider implements SmsProviderInterface
         // A fake balance so the panel UI is usable without a real gateway.
         return 1000;
     }
+
+    public function creditRial(): ?int
+    {
+        return 5_000_000;
+    }
 }

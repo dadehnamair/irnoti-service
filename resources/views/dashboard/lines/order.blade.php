@@ -24,12 +24,12 @@
             </div>
             <div class="account-stat">
                 <span>مبلغ</span>
-                <strong>{{ number_format($order->price) }} تومان</strong>
+                <strong>@toman($order->price) تومان</strong>
             </div>
             @if ($order->paid_at)
                 <div class="account-stat">
                     <span>پرداخت</span>
-                    <strong>{{ $order->paid_at->format('Y/m/d H:i') }}</strong>
+                    <strong>@jdatetime($order->paid_at)</strong>
                 </div>
             @endif
         </div>
@@ -38,9 +38,18 @@
             <p class="account-inline-note is-info">{{ $order->admin_note }}</p>
         @endif
 
-        <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap">
+        <div class="account-actions" style="margin-top:16px">
+            @if ($order->isPayable() && $walletBalance >= $order->price)
+                <form method="POST" action="{{ route('dashboard.lines.wallet', $order) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-primary">پرداخت از کیف پول (@toman($walletBalance) تومان)</button>
+                </form>
+            @endif
             @if ($canPayOnline)
-                <a class="btn btn-primary" href="{{ route('dashboard.lines.pay', $order) }}">پرداخت آنلاین</a>
+                <a class="btn btn-secondary" href="{{ route('dashboard.lines.pay', $order) }}">پرداخت آنلاین</a>
+            @endif
+            @if ($receiptEnabled && $order->isPayable())
+                <a class="btn btn-ghost" href="{{ route('dashboard.receipts.create', ['for' => 'line', 'ref' => $order->token]) }}">ثبت فیش بانکی</a>
             @endif
             <a class="btn btn-ghost" href="{{ route('dashboard.lines') }}">بازگشت به خطوط</a>
         </div>

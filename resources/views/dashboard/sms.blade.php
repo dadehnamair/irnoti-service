@@ -21,18 +21,34 @@
     @else
         <div class="account-card">
             <h2>اعتبار پنل</h2>
+
+            @if ($creditError)
+                <div class="account-banner is-danger">
+                    اتصال به پنل ملی‌پیامک برقرار نشد:<br>
+                    <span dir="auto">{{ $creditError }}</span>
+                </div>
+            @endif
+
             <div class="account-stat-grid">
                 <div class="account-stat">
-                    <span>اعتبار باقی‌مانده</span>
+                    <span>اعتبار باقی‌مانده (تعداد پیامک)</span>
                     <strong>
-                        @if ($creditError)
-                            {{ $creditError }}
-                        @elseif ($credit !== null)
+                        @if ($credit !== null)
                             {{ number_format($credit) }} پیامک
                         @else
                             —
                         @endif
                     </strong>
+                </div>
+                @if (!is_null($creditRial))
+                    <div class="account-stat">
+                        <span>اعتبار ریالی</span>
+                        <strong>{{ number_format($creditRial) }} ریال</strong>
+                    </div>
+                @endif
+                <div class="account-stat">
+                    <span>نام کاربری پنل</span>
+                    <strong dir="ltr">{{ $user->sms_username }}</strong>
                 </div>
                 @if ($user->sms_sender)
                     <div class="account-stat">
@@ -90,7 +106,7 @@
                         <tbody>
                             @foreach ($messages as $msg)
                                 <tr>
-                                    <td>{{ $msg->created_at->format('Y/m/d H:i') }}</td>
+                                    <td>@jdatetime($msg->created_at)</td>
                                     <td dir="ltr">{{ $msg->to }}</td>
                                     <td>{{ \Illuminate\Support\Str::limit($msg->body, 40) }}</td>
                                     <td>{{ $msg->parts }}</td>

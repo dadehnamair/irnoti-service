@@ -14,7 +14,7 @@
             <p class="auth-sub">
                 پلن فعلی شما: <strong>{{ $user->plan->name }}</strong>
                 @if ($user->plan_expires_at)
-                    — تا {{ $user->plan_expires_at->format('Y/m/d') }}
+                    — تا @jdate($user->plan_expires_at)
                 @endif
             </p>
         @endif

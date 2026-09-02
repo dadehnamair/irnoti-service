@@ -51,10 +51,49 @@ class PanelGateTest extends TestCase
         $this->actingAs($user)->get(route('dashboard.sms'))->assertOk();
     }
 
+    public function test_credit_is_shown_from_both_endpoints(): void
+    {
+        Http::fake([
+            'api.payamak-panel.com/post/Users.asmx/GetUserCredit' => Http::response('<?xml version="1.0"?><double xmlns="http://tempuri.org/">842</double>', 200),
+            'api.payamak-panel.com/post/Users.asmx/GetUserCredit2' => Http::response('<?xml version="1.0"?><double xmlns="http://tempuri.org/">1560000</double>', 200),
+        ]);
+
+        $user = User::factory()->create([
+            'status' => 'active',
+            'approved_at' => now(),
+            'sms_username' => 'panel-user',
+            'sms_password' => 'panel-pass',
+        ]);
+
+        $this->actingAs($user)->get(route('dashboard.sms'))
+            ->assertOk()
+            ->assertSee('842 پیامک')
+            ->assertSee('اعتبار ریالی');
+    }
+
+    public function test_bad_credentials_show_a_readable_error(): void
+    {
+        Http::fake([
+            'api.payamak-panel.com/*' => Http::response('<double>-1</double>', 200),
+        ]);
+
+        $user = User::factory()->create([
+            'status' => 'active',
+            'approved_at' => now(),
+            'sms_username' => 'wrong',
+            'sms_password' => 'wrong',
+        ]);
+
+        $this->actingAs($user)->get(route('dashboard.sms'))
+            ->assertOk()
+            ->assertSee('نام کاربری یا رمز عبور پنل پیامک نادرست است.');
+    }
+
     public function test_approved_user_with_panel_credentials_sends_and_logs(): void
     {
         Http::fake([
-            'rest.melipayamak.com/*' => Http::response(['RetStatus' => 1, 'Value' => '987654321'], 200),
+            'api.payamak-panel.com/post/Send.asmx/SendSimpleSMS2' => Http::response('<string xmlns="http://tempuri.org/">25025255138</string>', 200),
+            'api.payamak-panel.com/*' => Http::response('<double>0</double>', 200),
         ]);
 
         $user = User::factory()->create([
@@ -77,7 +116,7 @@ class PanelGateTest extends TestCase
             'user_id' => $user->id,
             'to' => '09121234567',
             'status' => 'sent',
-            'rec_id' => '987654321',
+            'rec_id' => '25025255138',
         ]);
         $this->assertSame(1, SmsMessage::where('user_id', $user->id)->count());
     }

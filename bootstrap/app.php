@@ -15,6 +15,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'lines/payment/callback',
             'subscriptions/payment/callback',
+            'wallet/topup/callback',
+            'packages/payment/callback',
+            'invoices/payment/callback',
         ]);
 
         // Panel features stay locked until an admin approves the account (docs/starter.md §39).

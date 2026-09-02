@@ -36,6 +36,20 @@ class SettingsSeeder extends Seeder
             // خطوط اختصاصی و پلن‌ها — روش تکمیل خرید
             ['commerce', 'line_payment_online', '0', 'bool', 'خرید آنلاین خطوط (اتصال به درگاه پرداخت)'],
             ['commerce', 'plan_payment_online', '0', 'bool', 'خرید آنلاین پلن‌ها (اتصال به درگاه پرداخت)'],
+            ['commerce', 'package_payment_online', '0', 'bool', 'خرید آنلاین بسته‌های پیامکی (اتصال به درگاه پرداخت)'],
+
+            // کیف پول و امور مالی (docs/starter.md §22 / §23)
+            ['commerce', 'wallet_enabled', '1', 'bool', 'فعال بودن کیف پول و شارژ حساب'],
+            ['commerce', 'wallet_min_topup', '10000', 'string', 'حداقل مبلغ شارژ کیف پول (تومان)'],
+            ['commerce', 'invoice_number_prefix', 'INV', 'string', 'پیشوند شماره صورت‌حساب'],
+
+            // ثبت فیش بانکی — روش پرداخت آفلاین (docs/starter.md §22)
+            ['commerce', 'receipt_payment_enabled', '1', 'bool', 'فعال بودن ثبت فیش بانکی'],
+            ['commerce', 'receipt_for_topup', '1', 'bool', 'ثبت فیش برای شارژ کیف پول'],
+            ['commerce', 'receipt_for_plans', '1', 'bool', 'ثبت فیش برای خرید پلن'],
+            ['commerce', 'receipt_for_lines', '1', 'bool', 'ثبت فیش برای خرید خط'],
+            ['commerce', 'receipt_for_packages', '1', 'bool', 'ثبت فیش برای خرید بسته پیامکی'],
+            ['commerce', 'receipt_for_invoices', '1', 'bool', 'ثبت فیش برای صورت‌حساب'],
 
             // ثبت‌نام و اطلاع‌رسانی پیامکی (docs/starter.md §26 / §44)
             ['account', 'registration_enabled', '1', 'bool', 'فعال بودن ثبت‌نام کاربران'],
