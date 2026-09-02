@@ -7,7 +7,7 @@
 @php
     // Which accordion group owns the current route (so it opens on load).
     $navAccount = request()->routeIs('dashboard', 'dashboard.profile*', 'dashboard.plan*', 'subscriptions.*');
-    $navSms = request()->routeIs('dashboard.sms*', 'dashboard.lines*', 'dashboard.packages*', 'package-orders.*');
+    $navSms = request()->routeIs('dashboard.sms*', 'dashboard.contacts*', 'dashboard.lines*', 'dashboard.packages*', 'package-orders.*');
     $navFinance = request()->routeIs('dashboard.wallet', 'wallet.*', 'dashboard.transactions', 'dashboard.invoices*', 'dashboard.receipts*');
     // Fall back to the first group when nothing matched (e.g. a route not in the nav).
     $navAccount = $navAccount || (! $navSms && ! $navFinance);
@@ -51,6 +51,18 @@
                 <a href="{{ route('dashboard.sms') }}#senders">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 15h5"/></svg>
                     <span>سرشماره‌ها</span>
+                </a>
+            @endif
+
+            @if (Route::has('dashboard.contacts') && \App\Models\Setting::get('phonebook_enabled', true))
+                <a href="{{ route('dashboard.contacts') }}" @class(['is-active' => request()->routeIs('dashboard.contacts') || request()->routeIs('dashboard.contacts.groups') || request()->routeIs('dashboard.contacts.edit')])>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>دفترچه تلفن</span>
+                </a>
+
+                <a href="{{ route('dashboard.contacts.send') }}" @class(['is-active' => request()->routeIs('dashboard.contacts.send')])>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    <span>ارسال گروهی</span>
                 </a>
             @endif
 

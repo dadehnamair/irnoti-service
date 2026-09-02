@@ -57,6 +57,9 @@ class SettingsSeeder extends Seeder
             ['account', 'admin_mobile', env('ADMIN_MOBILE', ''), 'string', 'موبایل مدیر برای اطلاع‌رسانی'],
             ['account', 'require_admin_approval', '1', 'bool', 'نیاز به تأیید مدیر برای فعال‌سازی امکانات پنل'],
 
+            // دفترچه تلفن (docs/starter.md §17)
+            ['account', 'phonebook_enabled', '1', 'bool', 'فعال بودن دفترچه تلفن و ارسال گروهی'],
+
             ['social', 'social_instagram', '', 'url', 'اینستاگرام'],
             ['social', 'social_telegram', '', 'url', 'تلگرام'],
             ['social', 'social_linkedin', '', 'url', 'لینکدین'],

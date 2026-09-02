@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContactGroup;
+use App\Models\Setting;
 use App\Models\SmsMessage;
 use App\Models\User;
+use App\Services\Sms\Phonebook\UserPhonebook;
 use App\Services\Sms\SmsPanelNotConfiguredException;
 use App\Services\Sms\UserSmsGateway;
 use Illuminate\Contracts\View\View;
@@ -106,6 +109,193 @@ class SmsController extends Controller
 
             return redirect()->route('dashboard.sms')
                 ->with('sms_error', 'ارسال پیامک ناموفق بود: '.$e->getMessage());
+        }
+    }
+
+    /* ------------------------- group send (docs/starter.md §17/§18) ------------------------- */
+
+    /** Max recipients per "local" group send — anything larger must use Melipayamak group send. */
+    private const LOCAL_BULK_CAP = 200;
+
+    public function bulk(Request $request): View
+    {
+        abort_unless((bool) Setting::get('phonebook_enabled', true), 404);
+
+        $user = $request->user();
+
+        return view('dashboard.contacts.send', [
+            'groups' => $user->contactGroups()->ordered()->withCount('contacts')->get(),
+            'numbers' => $user->availableSmsNumbers(),
+            'defaultSender' => $user->sms_sender,
+            'hasPanel' => $user->hasSmsPanel(),
+            'localCap' => self::LOCAL_BULK_CAP,
+        ]);
+    }
+
+    public function sendBulk(Request $request): RedirectResponse
+    {
+        abort_unless((bool) Setting::get('phonebook_enabled', true), 404);
+
+        $user = $request->user();
+
+        if (! $user->hasSmsPanel()) {
+            return redirect()->route('dashboard.contacts.send')
+                ->with('sms_error', 'پنل پیامک شما هنوز فعال نشده است.');
+        }
+
+        $data = $request->validate([
+            'mode' => ['required', Rule::in(['local', 'melipayamak'])],
+            'groups' => ['array'],
+            'groups.*' => [Rule::exists('contact_groups', 'id')->where('user_id', $user->id)],
+            'numbers' => ['nullable', 'string', 'max:20000'],
+            'message' => ['required', 'string', 'max:600'],
+            'from' => ['nullable', 'string', Rule::in($user->availableSmsNumbers())],
+            'schedule_at' => ['nullable', 'date'],
+        ], [
+            'from.in' => 'سرشمارهٔ انتخاب‌شده متعلق به پنل شما نیست.',
+        ], [
+            'message' => 'متن پیام',
+            'from' => 'سرشماره فرستنده',
+            'schedule_at' => 'زمان ارسال',
+        ]);
+
+        $groups = $user->contactGroups()->whereKey($data['groups'] ?? [])->withCount('contacts')->get();
+        $from = $data['from'] ?? $user->sms_sender;
+
+        if ($groups->isEmpty() && blank($data['numbers'] ?? null)) {
+            return back()->withInput()->with('sms_error', 'حداقل یک گروه یا فهرستی از شماره‌ها را وارد کنید.');
+        }
+
+        return $data['mode'] === 'melipayamak'
+            ? $this->sendBulkViaMelipayamak($user, $groups, $data, $from)
+            : $this->sendBulkLocally($user, $groups, $data, $from);
+    }
+
+    /** Resolve groups + pasted numbers to a de-duped list and send one-by-one via our gateway. */
+    private function sendBulkLocally(User $user, $groups, array $data, ?string $from): RedirectResponse
+    {
+        $recipients = $groups
+            ->flatMap(fn (ContactGroup $g) => $g->contacts()->pluck('mobile'))
+            ->merge($this->parseNumbers($data['numbers'] ?? ''))
+            ->map(fn ($m) => normalize_mobile($m))
+            ->filter(fn ($m) => preg_match('/^09\d{9}$/', $m))
+            ->unique()
+            ->values();
+
+        if ($recipients->isEmpty()) {
+            return back()->withInput()->with('sms_error', 'هیچ شمارهٔ معتبری برای ارسال پیدا نشد.');
+        }
+
+        if ($recipients->count() > self::LOCAL_BULK_CAP) {
+            return back()->withInput()->with('sms_error', sprintf(
+                'تعداد گیرندگان (%d) بیش از حد مجاز برای ارسال محلی است (%d). از حالت «ارسال از طریق ملی‌پیامک» استفاده کنید.',
+                $recipients->count(),
+                self::LOCAL_BULK_CAP,
+            ));
+        }
+
+        $parts = max(1, (int) ceil(mb_strlen($data['message']) / 70));
+        $sent = 0;
+        $failed = 0;
+
+        try {
+            $gateway = UserSmsGateway::for($user);
+        } catch (SmsPanelNotConfiguredException $e) {
+            return back()->withInput()->with('sms_error', $e->getMessage());
+        }
+
+        foreach ($recipients as $mobile) {
+            $message = SmsMessage::create([
+                'user_id' => $user->id,
+                'to' => $mobile,
+                'from' => $from,
+                'body' => $data['message'],
+                'parts' => $parts,
+                'status' => 'queued',
+            ]);
+
+            try {
+                $recId = $gateway->send($mobile, $data['message'], $from);
+                $message->update(['status' => 'sent', 'rec_id' => $recId]);
+                $sent++;
+            } catch (\Throwable $e) {
+                $message->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 250)]);
+                $failed++;
+            }
+        }
+
+        Cache::forget("sms_credit:{$user->id}");
+
+        return redirect()->route('dashboard.contacts.send')->with(
+            $failed > 0 ? 'warning' : 'sms_status',
+            sprintf('ارسال گروهی انجام شد: %d موفق، %d ناموفق.', $sent, $failed),
+        );
+    }
+
+    /** Hand the whole job to Melipayamak's SendSmsToContact (remote group ids). */
+    private function sendBulkViaMelipayamak(User $user, $groups, array $data, ?string $from): RedirectResponse
+    {
+        $unsynced = $groups->whereNull('remote_id');
+
+        if ($groups->isEmpty()) {
+            return back()->withInput()->with('sms_error', 'برای ارسال از طریق ملی‌پیامک باید حداقل یک گروه انتخاب کنید.');
+        }
+
+        if ($unsynced->isNotEmpty()) {
+            return back()->withInput()->with('sms_error', 'همهٔ گروه‌های انتخاب‌شده باید با ملی‌پیامک همگام شده باشند: '.$unsynced->pluck('name')->implode('، '));
+        }
+
+        if ($groups->count() > 5) {
+            return back()->withInput()->with('sms_error', 'حداکثر ۵ گروه در هر ارسال از طریق ملی‌پیامک مجاز است.');
+        }
+
+        $message = SmsMessage::create([
+            'user_id' => $user->id,
+            'to' => 'گروه: '.$groups->pluck('name')->implode('، '),
+            'from' => $from,
+            'body' => $data['message'],
+            'parts' => max(1, (int) ceil(mb_strlen($data['message']) / 70)),
+            'status' => 'queued',
+        ]);
+
+        try {
+            $bulkId = UserPhonebook::for($user)->sendToGroups(
+                $groups->pluck('remote_id')->all(),
+                $data['message'],
+                $from,
+                null,
+                $this->melipayamakSchedule($data['schedule_at'] ?? null),
+            );
+
+            $message->update(['status' => 'sent', 'rec_id' => $bulkId]);
+            Cache::forget("sms_credit:{$user->id}");
+
+            return redirect()->route('dashboard.contacts.send')
+                ->with('sms_status', 'ارسال گروهی به ملی‌پیامک سپرده شد. کد پیگیری: '.$bulkId);
+        } catch (\Throwable $e) {
+            Log::error('[phonebook] group send failed', ['user' => $user->id, 'error' => $e->getMessage()]);
+            $message->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 250)]);
+
+            return back()->withInput()->with('sms_error', 'ارسال گروهی ناموفق بود: '.$e->getMessage());
+        }
+    }
+
+    /** @return array<int, string> */
+    private function parseNumbers(string $raw): array
+    {
+        return array_values(array_filter(preg_split('/[\s,;]+/', trim($raw)) ?: []));
+    }
+
+    private function melipayamakSchedule(?string $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        try {
+            return \Illuminate\Support\Carbon::parse($value)->format('Y-m-d H:i:s');
+        } catch (\Throwable) {
+            return null;
         }
     }
 

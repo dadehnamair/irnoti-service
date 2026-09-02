@@ -38,8 +38,22 @@ class User extends Authenticatable implements FilamentUser
         'rejected' => 'رد شده',
     ];
 
-    /** Identity fields the customer may no longer edit once the account is approved. */
-    public const LOCKED_IDENTITY_FIELDS = ['first_name', 'last_name', 'national_code', 'birth_cert_number'];
+    /** Natural person vs. registered company (docs/starter.md §26). */
+    public const ACCOUNT_TYPES = [
+        'individual' => 'شخص حقیقی',
+        'legal' => 'شخص حقوقی',
+    ];
+
+    /**
+     * Identity fields the customer may no longer edit once the account is approved.
+     * The company_* entries only apply to a legal account (docs/starter.md §26) —
+     * the plain optional `company` freetext on an individual account stays editable.
+     */
+    public const LOCKED_IDENTITY_FIELDS = [
+        'first_name', 'last_name', 'national_code', 'birth_cert_number',
+        'account_type', 'company_type', 'company_national_id',
+        'company_registration_number', 'company_registered_at', 'company_economic_code',
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -55,9 +69,19 @@ class User extends Authenticatable implements FilamentUser
         'mobile_verified_at',
         'status',
         'last_login_at',
+        'account_type',
         'first_name',
         'last_name',
         'company',
+        'company_type',
+        'company_national_id',
+        'company_registration_number',
+        'company_registered_at',
+        'company_economic_code',
+        'company_phone',
+        'company_postal_code',
+        'company_address',
+        'rep_role',
         'phone',
         'country',
         'province',
@@ -70,6 +94,9 @@ class User extends Authenticatable implements FilamentUser
         'national_card_image',
         'national_card_back_image',
         'identity_doc_image',
+        'company_registration_doc',
+        'company_changes_doc',
+        'company_extra_docs',
         'plan_id',
         'plan_expires_at',
         'profile_completed_at',
@@ -110,6 +137,7 @@ class User extends Authenticatable implements FilamentUser
             'profile_completed_at' => 'datetime',
             'approved_at' => 'datetime',
             'documents_reviewed_at' => 'datetime',
+            'company_extra_docs' => 'array',
             'sms_numbers' => 'array',
             'sms_numbers_synced_at' => 'datetime',
             'sms_credit' => 'integer',
@@ -298,6 +326,17 @@ class User extends Authenticatable implements FilamentUser
         return self::DOCUMENT_STATUSES[$this->documents_status] ?? (string) $this->documents_status;
     }
 
+    public function getAccountTypeLabelAttribute(): string
+    {
+        return self::ACCOUNT_TYPES[$this->account_type] ?? self::ACCOUNT_TYPES['individual'];
+    }
+
+    /** Account belongs to a registered company (docs/starter.md §26). */
+    public function isLegal(): bool
+    {
+        return $this->account_type === 'legal';
+    }
+
     /**
      * Move the account between "pending" and "awaiting_approval" as the customer
      * completes the prerequisites (docs/starter.md §39). Never touches an account
@@ -319,9 +358,23 @@ class User extends Authenticatable implements FilamentUser
 
     public function getFullNameAttribute(): string
     {
+        // A legal account is identified by its company name; the natural-person
+        // fields describe the signing representative (docs/starter.md §26).
+        if ($this->isLegal() && filled($this->company)) {
+            return $this->company;
+        }
+
         $full = trim(($this->first_name ?? '').' '.($this->last_name ?? ''));
 
         return $full !== '' ? $full : ($this->name ?: ($this->mobile ?? ''));
+    }
+
+    /** The natural person on the account — the representative for a legal account. */
+    public function getContactNameAttribute(): string
+    {
+        $full = trim(($this->first_name ?? '').' '.($this->last_name ?? ''));
+
+        return $full !== '' ? $full : ($this->mobile ?? '');
     }
 
     public function getStatusLabelAttribute(): string
@@ -333,8 +386,11 @@ class User extends Authenticatable implements FilamentUser
     protected static function booted(): void
     {
         static::saving(function (User $user) {
-            if ($user->isDirty(['first_name', 'last_name']) || blank($user->name)) {
-                $full = trim(($user->first_name ?? '').' '.($user->last_name ?? ''));
+            if ($user->isDirty(['first_name', 'last_name', 'company', 'account_type']) || blank($user->name)) {
+                // Legal account → show the company; otherwise the person's full name.
+                $full = $user->account_type === 'legal' && filled($user->company)
+                    ? trim($user->company)
+                    : trim(($user->first_name ?? '').' '.($user->last_name ?? ''));
                 $user->name = $full !== '' ? $full : ($user->name ?: 'کاربر '.Str::of($user->mobile ?? '')->substr(-4));
             }
         });
