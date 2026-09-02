@@ -11,9 +11,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Panel-feature access: the built-in («is_system») pages are always available,
- * while the «بزودی» catalogue items are gated by the access group + per-user
- * overrides + the global toggle (docs/starter.md §15).
+ * Panel-feature access: the built-in («is_system») pages are always available;
+ * every other catalogue item is hidden from the sidebar unless the account has
+ * it (access group + per-user overrides), and once it does it shows «بزودی»
+ * until the global toggle switches it on (docs/starter.md §15).
  */
 class PanelFeatureAccessTest extends TestCase
 {
@@ -78,16 +79,24 @@ class PanelFeatureAccessTest extends TestCase
         $this->assertTrue($user->fresh()->canUseFeature('messages.inbox'));
     }
 
-    public function test_sidebar_shows_soon_badge_until_a_feature_is_switched_on(): void
+    public function test_ungranted_catalogue_items_are_hidden_until_granted(): void
     {
         $user = User::factory()->create(['status' => 'active']);
 
+        // Nothing granted: the sidebar shows only the built-in pages — no «بزودی» stubs.
         $response = $this->actingAs($user)->get(route('dashboard'));
-
         $response->assertOk();
+        $response->assertDontSee('ارسال تدریجی');               // ungranted catalogue item — hidden entirely
+        $response->assertSee(route('dashboard.wallet'), false); // a built-in page still renders as a link
+
+        // Grant it through the group but leave it switched off → now visible as «بزودی».
+        UserGroup::where('slug', 'default')->first()
+            ->features()->sync([Feature::where('key', 'sms.gradual')->first()->id]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response->assertOk();
+        $response->assertSee('ارسال تدریجی');
         $response->assertSee('بزودی');
-        $response->assertSee('ارسال تدریجی');           // a «بزودی» catalogue item
-        $response->assertSee(route('dashboard.wallet'), false); // a built-in page renders as a link
     }
 
     public function test_switched_on_and_granted_feature_becomes_a_real_link(): void

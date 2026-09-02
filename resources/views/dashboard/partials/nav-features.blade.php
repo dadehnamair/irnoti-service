@@ -1,9 +1,11 @@
 {{--
     Panel sidebar menu (docs/starter.md §15), rendered from the `features`
-    catalogue grouped by `group_label`. An item is a real link when it is
-    switched on (`is_active`) AND reachable (has a `url` or a routable `route`)
-    AND either a built-in page (`is_system`) or granted to the account (access
-    group + per-user overrides). Otherwise it shows disabled as «بزودی».
+    catalogue grouped by `group_label`. Only items the account actually has are
+    listed: a built-in page (`is_system`) or one granted through its access group
+    / per-user overrides. Anything else is hidden entirely (no «بزودی» stub), and
+    a group with nothing left to show is dropped. A visible item is a real link
+    when it is switched on (`is_active`) AND reachable (has a `url` or a routable
+    `route`); otherwise it shows disabled as «بزودی».
     `$navChevron` comes from the parent partial (dashboard.partials.nav).
 --}}
 @php
@@ -18,6 +20,11 @@
     $grantedKeys = $featureUser
         ? rescue(fn () => array_flip($featureUser->grantedFeatureKeys()), [], false)
         : [];
+
+    // Drop features the account doesn't have — system pages plus granted items stay.
+    $featureRows = $featureRows->filter(
+        fn ($f) => $f->is_system || isset($grantedKeys[$f->key]),
+    );
 
     $featureGroups = $featureRows->groupBy('group_key');
 
@@ -46,9 +53,9 @@
                             ? route($feature->route)
                             : null);
 
-                    $unlocked = $feature->is_active
-                        && $target
-                        && ($feature->is_system || isset($grantedKeys[$feature->key]));
+                    // Rows are already filtered to what the account has; here it's
+                    // just "launched yet?" — switched on and reachable.
+                    $unlocked = $feature->is_active && $target;
                 @endphp
 
                 @if ($unlocked)
