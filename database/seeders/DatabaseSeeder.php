@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             SettingsSeeder::class,
+            FeaturesSeeder::class,
+            UserGroupsSeeder::class,
             PlansSeeder::class,
             SmsPackagesSeeder::class,
             SmsLinesSeeder::class,

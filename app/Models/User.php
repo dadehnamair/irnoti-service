@@ -98,6 +98,7 @@ class User extends Authenticatable implements FilamentUser
         'company_changes_doc',
         'company_extra_docs',
         'plan_id',
+        'user_group_id',
         'plan_expires_at',
         'profile_completed_at',
         'approved_at',
@@ -157,6 +158,18 @@ class User extends Authenticatable implements FilamentUser
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    /** The customer's access group — the base set of panel features (docs/starter.md §15). */
+    public function userGroup(): BelongsTo
+    {
+        return $this->belongsTo(UserGroup::class);
+    }
+
+    /** Per-user grant/revoke exceptions on top of the group (docs/starter.md §15). */
+    public function featureOverrides(): HasMany
+    {
+        return $this->hasMany(UserFeatureOverride::class);
     }
 
     public function subscriptions(): HasMany
@@ -338,6 +351,48 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * The panel-feature keys this account is granted (docs/starter.md §15):
+     * the access group's features, then per-user overrides applied on top
+     * (grant adds, revoke removes). Independent of the global «بزودی» toggle —
+     * use canUseFeature() when you also need the feature switched on.
+     *
+     * @return array<int, string>
+     */
+    public function grantedFeatureKeys(): array
+    {
+        $keys = collect(
+            $this->user_group_id
+                ? UserGroup::query()->whereKey($this->user_group_id)
+                    ->first()?->features()->pluck('features.key')->all() ?? []
+                : []
+        );
+
+        foreach ($this->featureOverrides()->with('feature:id,key')->get() as $override) {
+            $key = $override->feature?->key;
+
+            if ($key === null) {
+                continue;
+            }
+
+            $keys = $override->mode === 'revoke'
+                ? $keys->reject(fn ($k) => $k === $key)
+                : $keys->push($key);
+        }
+
+        return $keys->unique()->values()->all();
+    }
+
+    /** A feature is usable when it is switched on globally AND granted to the account. */
+    public function canUseFeature(string $key): bool
+    {
+        $feature = Feature::query()->where('key', $key)->first();
+
+        return $feature !== null
+            && $feature->is_active
+            && in_array($key, $this->grantedFeatureKeys(), true);
+    }
+
+    /**
      * Move the account between "pending" and "awaiting_approval" as the customer
      * completes the prerequisites (docs/starter.md §39). Never touches an account
      * that is already active/suspended/blocked — those are admin-owned states.
@@ -385,6 +440,14 @@ class User extends Authenticatable implements FilamentUser
     /** Keep `name` (used by Filament / notifications) in sync with the profile fields. */
     protected static function booted(): void
     {
+        // New customers land in the default access group (docs/starter.md §15);
+        // rescue() keeps registration working on a fresh DB / mid-migration.
+        static::creating(function (User $user) {
+            if ($user->user_group_id === null && ! $user->is_admin) {
+                $user->user_group_id = rescue(fn () => UserGroup::defaultId(), null, false);
+            }
+        });
+
         static::saving(function (User $user) {
             if ($user->isDirty(['first_name', 'last_name', 'company', 'account_type']) || blank($user->name)) {
                 // Legal account → show the company; otherwise the person's full name.
