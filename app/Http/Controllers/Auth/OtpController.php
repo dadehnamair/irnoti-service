@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\OtpCode;
+use App\Models\Plan;
 use App\Models\User;
 use App\Support\OperationNotifier;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -103,10 +105,10 @@ class OtpController extends Controller
     /** Where to land after login — the plan chosen on /pricing wins, else the dashboard. */
     private function destination(): string
     {
-        if (session('intended_plan') && \Illuminate\Support\Facades\Route::has('dashboard.plan.checkout')) {
+        if (session('intended_plan') && Route::has('dashboard.plan.checkout')) {
             $slug = session('intended_plan')['slug'] ?? null;
 
-            if ($slug && ($plan = \App\Models\Plan::where('slug', $slug)->first())) {
+            if ($slug && ($plan = Plan::where('slug', $slug)->first())) {
                 return route('dashboard.plan.checkout', $plan);
             }
         }

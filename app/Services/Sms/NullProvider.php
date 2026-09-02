@@ -2,9 +2,11 @@
 
 namespace App\Services\Sms;
 
+use App\Jobs\SendSmsJob;
+
 /**
  * Does nothing. Bound in the test environment so the suite never touches a
- * gateway; assertions go through Bus::fake() on {@see \App\Jobs\SendSmsJob}
+ * gateway; assertions go through Bus::fake() on {@see SendSmsJob}
  * or a spy swapped in for this binding.
  */
 class NullProvider implements SmsProviderInterface

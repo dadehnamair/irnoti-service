@@ -5,17 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\LineOrder;
 use App\Models\Setting;
 use App\Models\SmsLine;
+use App\Support\HandlesGatewayPayment;
+use App\Support\OperationNotifier;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Shetabit\Multipay\Exceptions\InvalidPaymentException;
-use Shetabit\Multipay\Invoice;
-use Shetabit\Payment\Facade\Payment;
 
 class LineController extends Controller
 {
+    use HandlesGatewayPayment;
+
     /**
      * Public dedicated-lines catalogue ("/lines") — docs/starter.md §9 / §80.
      * Lines are grouped by prefix into tabs; filtering by digits / type / rond
@@ -59,7 +61,7 @@ class LineController extends Controller
      * enabled and the line has a price, the buyer is sent to the gateway;
      * otherwise the order lands for the admin to process.
      */
-    public function order(Request $request): RedirectResponse
+    public function order(Request $request, OperationNotifier $notifier): RedirectResponse
     {
         $data = $request->validate([
             'sms_line_id' => ['required', Rule::exists('sms_lines', 'id')->where('is_active', true)],
@@ -92,6 +94,9 @@ class LineController extends Controller
             'status' => $line->requires_inquiry ? 'pending' : 'awaiting_payment',
         ]);
 
+        // Notify the buyer + admin that a request was captured (docs/starter.md §44).
+        $notifier->lineOrderCreated($order);
+
         if ($payOnline) {
             return redirect()->route('lines.pay', $order);
         }
@@ -111,18 +116,15 @@ class LineController extends Controller
             return redirect()->route('lines.track', $order);
         }
 
-        $invoice = (new Invoice)->amount((int) $order->price);
-
         try {
-            return Payment::purchase(
-                $invoice,
-                function ($driver, $transactionId) use ($order) {
-                    $order->update([
-                        'transaction_id' => $transactionId,
-                        'payment_driver' => config('payment.default'),
-                    ]);
-                }
-            )->pay()->render();
+            return $this->purchaseViaGateway(
+                (int) $order->price,
+                route('lines.payment.callback'),
+                fn ($transactionId) => $order->update([
+                    'transaction_id' => $transactionId,
+                    'payment_driver' => config('payment.default'),
+                ]),
+            );
         } catch (\Throwable $e) {
             Log::error('Line payment purchase failed', ['order' => $order->id, 'error' => $e->getMessage()]);
 
@@ -133,13 +135,9 @@ class LineController extends Controller
     }
 
     /** Gateway callback — verify the transaction and mark the order paid. */
-    public function paymentCallback(Request $request): RedirectResponse
+    public function paymentCallback(Request $request, OperationNotifier $notifier): RedirectResponse
     {
-        // "transactionId" = local driver; "Authority" = zarinpal; others vary.
-        $transactionId = $request->input('transactionId')
-            ?? $request->input('transaction_id')
-            ?? $request->input('Authority')
-            ?? $request->input('authority');
+        $transactionId = $this->gatewayTransactionId($request);
 
         $order = LineOrder::query()
             ->when($transactionId, fn ($q) => $q->where('transaction_id', $transactionId))
@@ -150,23 +148,22 @@ class LineController extends Controller
             return redirect()->route('lines')->with('payment_error', 'سفارش مربوط به این پرداخت پیدا نشد.');
         }
 
-        // Buyer cancelled on the gateway (local: ?cancel=true, zarinpal: Status=NOK).
-        if ($request->boolean('cancel') || $request->input('Status') === 'NOK') {
+        if ($this->gatewayPaymentCancelled($request)) {
             return redirect()
                 ->route('lines.track', $order)
                 ->with('payment_error', 'پرداخت توسط شما لغو شد. می‌توانید دوباره تلاش کنید.');
         }
 
         try {
-            $receipt = Payment::amount((int) $order->price)
-                ->transactionId($order->transaction_id)
-                ->verify();
+            $receipt = $this->verifyViaGateway((int) $order->price, $order->transaction_id);
 
             $order->update([
                 'status' => 'paid',
                 'reference_id' => $receipt->getReferenceId(),
                 'paid_at' => now(),
             ]);
+
+            $notifier->lineOrderPaid($order);
 
             return redirect()
                 ->route('lines.track', $order)

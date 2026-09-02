@@ -6,9 +6,11 @@ use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\PricingController;
+use App\Http\Controllers\SubscriptionController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use Illuminate\Support\Facades\Response;
@@ -108,7 +110,27 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LogoutController::class, 'store'])->name('logout');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Stepped identity-profile completion (docs/starter.md §26).
+    Route::get('/dashboard/profile', [ProfileController::class, 'index'])->name('dashboard.profile');
+    Route::get('/dashboard/profile/step/{step}', [ProfileController::class, 'edit'])
+        ->whereNumber('step')->name('dashboard.profile.step');
+    Route::put('/dashboard/profile/step/{step}', [ProfileController::class, 'update'])
+        ->whereNumber('step')->name('dashboard.profile.update');
+
+    /*
+     * Plan selection & purchase (docs/starter.md §8 / §24). Free plans activate
+     * instantly; paid plans use the same gateway flow as line orders.
+     */
+    Route::get('/dashboard/plans', [SubscriptionController::class, 'plans'])->name('dashboard.plans');
+    Route::get('/dashboard/plan/{plan}/checkout', [SubscriptionController::class, 'checkout'])->name('dashboard.plan.checkout');
+    Route::post('/dashboard/plan/order', [SubscriptionController::class, 'order'])->name('subscriptions.order');
+    Route::get('/dashboard/subscription/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
+    Route::get('/dashboard/subscription/{subscription}/pay', [SubscriptionController::class, 'pay'])->name('subscriptions.pay');
 });
+
+Route::match(['get', 'post'], '/subscriptions/payment/callback', [SubscriptionController::class, 'paymentCallback'])
+    ->name('subscriptions.payment.callback');
 
 Route::get('/sitemap.xml', function () {
     $today = now()->toDateString();

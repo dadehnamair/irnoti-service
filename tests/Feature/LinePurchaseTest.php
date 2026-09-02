@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendSmsJob;
 use App\Models\LineOrder;
 use App\Models\Setting;
 use App\Models\SmsLine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
@@ -126,6 +128,40 @@ class LinePurchaseTest extends TestCase
             ->assertRedirect(route('lines.track', $order));
 
         $this->assertSame('paid', $order->fresh()->status);
+    }
+
+    public function test_order_creation_notifies_buyer_and_admin(): void
+    {
+        Bus::fake();
+        config(['services.sms.admin_mobile' => '09000000000']);
+        $this->setOnlinePayment(false);
+        $line = $this->line();
+
+        $this->post('/lines/order', [
+            'sms_line_id' => $line->id,
+            'customer_name' => 'علی تست',
+            'customer_phone' => '09120000000',
+        ]);
+
+        Bus::assertDispatched(SendSmsJob::class, 2); // buyer + admin
+    }
+
+    public function test_admin_status_change_notifies_the_buyer(): void
+    {
+        Bus::fake();
+        $line = $this->line();
+        $order = LineOrder::create([
+            'sms_line_id' => $line->id,
+            'line_label' => 'خطوط 3000',
+            'price' => $line->price,
+            'customer_name' => 'x',
+            'customer_phone' => '09120000000',
+            'status' => 'pending',
+        ]);
+
+        $order->update(['status' => 'processing']);
+
+        Bus::assertDispatched(SendSmsJob::class, 1);
     }
 
     public function test_requires_inquiry_line_never_goes_online(): void

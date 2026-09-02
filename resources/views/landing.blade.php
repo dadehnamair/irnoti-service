@@ -348,7 +348,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                                 <li>{{ $feature }}</li>
                                 @endforeach
                             </ul>
-                            <a href="{{ $plan->cta_url ?: '#cta' }}" class="btn {{ $plan->cta_style }} full">{{ $plan->cta_label }}</a>
+                            @include('partials.plan-cta', ['plan' => $plan])
                         </article>
                         @empty
                         <p class="pricing-empty">به‌زودی پلن‌های تعرفه در این بخش نمایش داده می‌شوند.</p>

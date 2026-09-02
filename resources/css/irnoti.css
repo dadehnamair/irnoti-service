@@ -280,8 +280,8 @@ select {
 }
 .hero-copy h1 {
     margin: 20px 0 18px;
-    font-size: clamp(2.5rem, 5vw, 5rem);
-    line-height: 1.08;
+    font-size: clamp(1.5rem, 3vw, 3rem);
+    line-height: 1.5;
     letter-spacing: -0.06em;
 }
 .hero-copy p {
@@ -480,7 +480,7 @@ select {
 
 /* Section headings --------------------------------------------------- */
 .section-heading {
-    max-width: 700px;
+    max-width: 800px;
     margin-bottom: 36px;
 }
 .section-heading.center {
@@ -489,7 +489,7 @@ select {
 }
 .section-heading h2 {
     margin: 18px 0 0;
-    font-size: clamp(2rem, 3vw, 3rem);
+    font-size: clamp(1rem, 2vw, 2rem);
     line-height: 1.2;
     letter-spacing: -0.05em;
 }
@@ -822,6 +822,7 @@ select {
     align-items: stretch;
 }
 .code-block {
+    direction: ltr !important;
     padding: 18px 18px 10px;
     border-radius: 22px;
     background: rgba(10, 18, 30, 0.9);
@@ -921,7 +922,7 @@ select {
 }
 .cta-box h2 {
     margin: 12px 0 0;
-    font-size: clamp(1.8rem, 2.7vw, 2.8rem);
+    font-size: clamp(1.8rem, 2.7vw, 1.8rem);
     letter-spacing: -0.05em;
 }
 .kicker.light {
@@ -1105,6 +1106,7 @@ select {
     margin: 0;
     color: var(--text-soft);
     font-size: 0.95rem;
+    text-align: justify;
 }
 .home-blog-cat {
     align-self: flex-start;

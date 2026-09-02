@@ -62,9 +62,25 @@ class Plan extends Model
         });
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /** Price in Toman for a billing period; 0 means the plan is free. */
+    public function priceFor(string $period): int
+    {
+        return (int) ($period === 'yearly' ? $this->price_yearly : $this->price_monthly);
+    }
+
+    public function isFree(): bool
+    {
+        return (int) $this->price_monthly === 0;
     }
 
     public function scopeOrdered(Builder $query): Builder

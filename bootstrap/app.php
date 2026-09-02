@@ -14,6 +14,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // The payment gateway posts the result back here without a CSRF token.
         $middleware->validateCsrfTokens(except: [
             'lines/payment/callback',
+            'subscriptions/payment/callback',
         ]);
 
         // Customer auth entry points (docs/starter.md §26/§27).

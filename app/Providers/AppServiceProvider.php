@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\LineOrder;
 use App\Models\Setting;
+use App\Observers\LineOrderObserver;
 use App\Services\Sms\LogProvider;
 use App\Services\Sms\MelipayamakProvider;
 use App\Services\Sms\NullProvider;
@@ -25,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->overlaySettingsOnConfig();
+
+        // SMS the buyer when a line order's status changes (docs/starter.md §44).
+        LineOrder::observe(LineOrderObserver::class);
     }
 
     /**

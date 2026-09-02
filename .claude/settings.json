@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./vendor/bin/pint app/ tests/ database/ config/services.php)",
+      "Bash(echo \"exit $?\")",
+      "Bash(./vendor/bin/pint app/Http/Controllers/Auth app/Http/Controllers/Dashboard app/Http/Controllers/SubscriptionController.php app/Http/Controllers/LineController.php app/Models app/Services app/Support app/Jobs app/Observers app/Providers/AppServiceProvider.php app/Filament/Resources/Users app/Filament/Resources/Subscriptions database/seeders/DatabaseSeeder.php database/seeders/SettingsSeeder.php database/migrations/2026_09_02_100001_add_customer_fields_to_users_table.php database/migrations/2026_09_02_100002_create_otp_codes_table.php database/migrations/2026_09_02_100003_create_subscriptions_table.php database/factories tests)",
+      "Bash(./vendor/bin/pint --test app/Http/Controllers/Auth app/Http/Controllers/Dashboard app/Http/Controllers/SubscriptionController.php app/Http/Controllers/LineController.php app/Services app/Support app/Jobs app/Observers app/Models/OtpCode.php app/Models/Subscription.php app/Models/User.php app/Models/Plan.php app/Filament/Resources/Users app/Filament/Resources/Subscriptions app/Providers/AppServiceProvider.php database/migrations/2026_09_02_100001_add_customer_fields_to_users_table.php database/migrations/2026_09_02_100002_create_otp_codes_table.php database/migrations/2026_09_02_100003_create_subscriptions_table.php tests/Feature/Auth tests/Feature/Dashboard)"
+    ]
+  }
+}

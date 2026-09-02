@@ -1,0 +1,76 @@
+@extends('layouts.account')
+
+@section('title', 'تکمیل خرید پلن')
+
+@section('content')
+    <div class="account-card">
+        <h2>تکمیل خرید پلن {{ $plan->name }}</h2>
+
+        @if ($errors->any())
+            <div class="auth-errors">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="account-stat-grid">
+            <div class="account-stat">
+                <span>پلن</span>
+                <strong>{{ $plan->name }}</strong>
+            </div>
+            <div class="account-stat">
+                <span>دوره</span>
+                <strong>{{ $period === 'yearly' ? 'سالانه' : 'ماهانه' }}</strong>
+            </div>
+            <div class="account-stat">
+                <span>مبلغ</span>
+                <strong>
+                    @if ($price > 0)
+                        {{ number_format($price) }} تومان
+                    @else
+                        رایگان
+                    @endif
+                </strong>
+            </div>
+        </div>
+
+        @if ($plan->feature_list)
+            <ul class="checkout-features" style="margin-top:16px">
+                @foreach ($plan->feature_list as $feature)
+                    <li>{{ $feature }}</li>
+                @endforeach
+            </ul>
+        @endif
+
+        <form method="POST" action="{{ route('subscriptions.order') }}" style="margin-top:20px">
+            @csrf
+            <input type="hidden" name="plan" value="{{ $plan->slug }}" />
+            <input type="hidden" name="period" value="{{ $period }}" />
+
+            <button type="submit" class="btn btn-primary full">
+                @if ($price > 0 && $onlinePayment)
+                    پرداخت و فعال‌سازی
+                @elseif ($price > 0)
+                    ثبت درخواست پلن
+                @else
+                    فعال‌سازی رایگان
+                @endif
+            </button>
+
+            <p class="auth-sub" style="margin-top:10px; text-align:center">
+                @if ($price > 0 && $onlinePayment)
+                    پس از ثبت به درگاه پرداخت منتقل می‌شوید.
+                @elseif ($price > 0)
+                    خرید آنلاین پلن غیرفعال است؛ کارشناسان برای هماهنگی پرداخت تماس می‌گیرند.
+                @else
+                    این پلن رایگان است و بلافاصله فعال می‌شود.
+                @endif
+            </p>
+        </form>
+
+        <a class="checkout-back" href="{{ route('dashboard.plans') }}">بازگشت به فهرست پلن‌ها</a>
+    </div>
+@endsection
