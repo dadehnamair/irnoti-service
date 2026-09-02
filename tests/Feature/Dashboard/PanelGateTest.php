@@ -54,7 +54,7 @@ class PanelGateTest extends TestCase
     public function test_credit_is_shown_from_both_endpoints(): void
     {
         Http::fake([
-            'api.payamak-panel.com/post/Users.asmx/GetUserCredit' => Http::response('<?xml version="1.0"?><double xmlns="http://tempuri.org/">842</double>', 200),
+            'api.payamak-panel.com/post/Send.asmx/GetCredit' => Http::response('<?xml version="1.0"?><double xmlns="http://tempuri.org/">842</double>', 200),
             'api.payamak-panel.com/post/Users.asmx/GetUserCredit2' => Http::response('<?xml version="1.0"?><double xmlns="http://tempuri.org/">1560000</double>', 200),
         ]);
 
