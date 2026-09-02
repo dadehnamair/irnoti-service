@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Invoice;
 use App\Models\LineOrder;
+use App\Models\MarketplaceInstallation;
 use App\Models\PackageOrder;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -31,6 +32,7 @@ class PayableSettlement
             $payable instanceof Subscription => $this->settleSubscription($payable, $payment),
             $payable instanceof LineOrder => $this->settleLineOrder($payable, $payment),
             $payable instanceof PackageOrder => $this->settlePackageOrder($payable, $payment),
+            $payable instanceof MarketplaceInstallation => $this->settleMarketplaceInstallation($payable, $payment),
             $payable instanceof Invoice => $this->settleInvoice($payable, $payment),
             default => throw new \InvalidArgumentException('Unsupported payable: '.$payable::class),
         };
@@ -132,6 +134,48 @@ class PayableSettlement
         }
 
         $this->notifier->packageActivated($order);
+    }
+
+    /**
+     * A «بازارچه» add-on purchase settled (docs/starter.md §15). Runs the handler's
+     * onActivate() (create groups, grant capability features) and pushes the
+     * subscription expiry forward. Idempotent while still active & unexpired.
+     */
+    private function settleMarketplaceInstallation(MarketplaceInstallation $installation, array $payment): void
+    {
+        if ($installation->status === 'active' && ! $installation->isExpired()) {
+            return;
+        }
+
+        $installation->forceFill([
+            'status' => 'active',
+            'transaction_id' => $payment['transaction_id'] ?? $installation->transaction_id,
+            'reference_id' => $payment['reference_id'] ?? $installation->reference_id,
+            'payment_driver' => $payment['payment_driver'] ?? $installation->payment_driver,
+            'paid_at' => (int) $installation->price > 0 ? now() : $installation->paid_at,
+            'activated_at' => $installation->activated_at ?? now(),
+            'expires_at' => $this->marketplaceExpiryFrom($installation),
+        ])->save();
+
+        $installation->handler()->onActivate($installation);
+
+        $this->notifier->marketplaceAppActivated($installation);
+    }
+
+    private function marketplaceExpiryFrom(MarketplaceInstallation $installation): ?Carbon
+    {
+        if ($installation->billing_type !== 'subscription') {
+            return null;
+        }
+
+        // Renewals extend from the current expiry when it is still in the future.
+        $from = $installation->expires_at && $installation->expires_at->isFuture()
+            ? $installation->expires_at->copy()
+            : now();
+
+        return $installation->billing_period === 'yearly'
+            ? $from->addYear()
+            : $from->addMonth();
     }
 
     private function settleInvoice(Invoice $invoice, array $payment): void

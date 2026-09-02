@@ -201,7 +201,7 @@ Route::middleware('auth')->group(function () {
 
         /*
          * Phonebook (docs/starter.md §17): contacts + groups CRUD, mirrored to the
-         * customer's own Melipayamak panel, plus group SMS. Static segments are
+         * customer's own SMS panel, plus group SMS. Static segments are
          * declared before the {contact} routes.
          */
         Route::get('/dashboard/contacts', [ContactController::class, 'index'])->name('dashboard.contacts');

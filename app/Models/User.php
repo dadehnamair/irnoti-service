@@ -177,6 +177,22 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Subscription::class);
     }
 
+    /** The customer's «بازارچه» add-on installations (docs/starter.md §15). */
+    public function marketplaceInstallations(): HasMany
+    {
+        return $this->hasMany(MarketplaceInstallation::class);
+    }
+
+    /** Does the account have this add-on installed and currently usable? */
+    public function hasAppInstalled(string $slug): bool
+    {
+        return $this->marketplaceInstallations()
+            ->where('status', 'active')
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->whereHas('app', fn ($q) => $q->where('slug', $slug))
+            ->exists();
+    }
+
     public function smsMessages(): HasMany
     {
         return $this->hasMany(SmsMessage::class);

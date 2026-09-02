@@ -24,6 +24,8 @@ class Contact extends Model
 
     protected $fillable = [
         'user_id',
+        'marketplace_installation_id',
+        'source',
         'remote_id',
         'first_name',
         'last_name',
@@ -56,6 +58,12 @@ class Contact extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Set when a «بازارچه» add-on synced this contact (docs/starter.md §15). */
+    public function marketplaceInstallation(): BelongsTo
+    {
+        return $this->belongsTo(MarketplaceInstallation::class);
     }
 
     public function groups(): BelongsToMany

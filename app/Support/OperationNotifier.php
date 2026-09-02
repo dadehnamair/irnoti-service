@@ -6,6 +6,7 @@ use App\Jobs\SendSmsJob;
 use App\Models\BankReceipt;
 use App\Models\Invoice;
 use App\Models\LineOrder;
+use App\Models\MarketplaceInstallation;
 use App\Models\PackageOrder;
 use App\Models\Setting;
 use App\Models\Subscription;
@@ -197,6 +198,33 @@ class OperationNotifier
             $order->user?->mobile ?? '—',
             $order->package_name,
             number_format((int) $order->price),
+        ));
+    }
+
+    /** A «بازارچه» add-on became active — free (instant) or paid (docs/starter.md §15). */
+    public function marketplaceAppActivated(MarketplaceInstallation $installation): void
+    {
+        $user = $installation->user;
+        $name = $installation->app?->name ?? 'افزونه';
+        $price = (int) $installation->price === 0
+            ? 'رایگان'
+            : number_format((int) $installation->price).' تومان';
+
+        if ($user?->mobile) {
+            $this->toUser($user->mobile, sprintf(
+                'افزونه «%s» برای حساب شما در %s فعال شد. مبلغ: %s',
+                $name,
+                $this->brand(),
+                $price,
+            ));
+        }
+
+        $this->toAdmin(sprintf(
+            'خرید افزونه در %s — %s → «%s» (%s)',
+            $this->brand(),
+            $user?->mobile ?? '—',
+            $name,
+            $price,
         ));
     }
 

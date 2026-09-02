@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Marketplace\AppRegistry;
 use App\Models\LineOrder;
 use App\Models\Setting;
 use App\Observers\LineOrderObserver;
@@ -24,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->bindSmsProvider();
         $this->bindPhonebookClient();
+
+        // «بازارچه افزونه‌ها» handler registry (docs/starter.md §15).
+        $this->app->singleton(AppRegistry::class, fn () => new AppRegistry);
     }
 
     /**
