@@ -141,6 +141,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(SmsMessage::class);
     }
 
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(Contact::class);
+    }
+
+    public function contactGroups(): HasMany
+    {
+        return $this->hasMany(ContactGroup::class);
+    }
+
     public function lineOrders(): HasMany
     {
         return $this->hasMany(LineOrder::class);

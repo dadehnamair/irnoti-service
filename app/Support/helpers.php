@@ -51,6 +51,31 @@ if (! function_exists('toman')) {
     }
 }
 
+if (! function_exists('normalize_mobile')) {
+    /**
+     * Normalise an Iranian mobile number to the local "09xxxxxxxxx" form the SMS
+     * gateway and the Melipayamak phonebook expect. Leaves anything it doesn't
+     * recognise untouched. Mirrors App\Services\Sms\SmsManager::normalize().
+     */
+    function normalize_mobile(mixed $number): string
+    {
+        $number = (string) $number;
+        $digits = preg_replace('/\D+/', '', $number) ?? '';
+
+        if (str_starts_with($digits, '0098')) {
+            $digits = substr($digits, 4);
+        } elseif (str_starts_with($digits, '98') && strlen($digits) === 12) {
+            $digits = substr($digits, 2);
+        }
+
+        if (strlen($digits) === 10 && str_starts_with($digits, '9')) {
+            $digits = '0'.$digits;
+        }
+
+        return $digits !== '' ? $digits : $number;
+    }
+}
+
 if (! function_exists('rial_to_toman')) {
     /**
      * Convert a Rial amount to integer Toman for display. Some upstreams (the

@@ -8,6 +8,9 @@ use App\Observers\LineOrderObserver;
 use App\Services\Sms\LogProvider;
 use App\Services\Sms\MelipayamakProvider;
 use App\Services\Sms\NullProvider;
+use App\Services\Sms\Phonebook\LogPhonebookClient;
+use App\Services\Sms\Phonebook\NullPhonebookClient;
+use App\Services\Sms\Phonebook\PhonebookClientInterface;
 use App\Services\Sms\SmsProviderInterface;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Blade;
@@ -21,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->bindSmsProvider();
+        $this->bindPhonebookClient();
     }
 
     /**
@@ -89,6 +93,22 @@ class AppServiceProvider extends ServiceProvider
                 'melipayamak' => new MelipayamakProvider((array) config('services.sms.melipayamak')),
                 'null' => new NullProvider,
                 default => new LogProvider,
+            };
+        });
+    }
+
+    /**
+     * The phonebook client (docs/starter.md §17). The real, per-customer path
+     * always builds its own instance via App\Services\Sms\Phonebook\UserPhonebook
+     * from the customer's panel credentials — this container binding only serves
+     * tests (SMS_PROVIDER=null) and the credential-free dev default.
+     */
+    private function bindPhonebookClient(): void
+    {
+        $this->app->singleton(PhonebookClientInterface::class, function () {
+            return match ((string) config('services.sms.provider', 'log')) {
+                'null' => new NullPhonebookClient,
+                default => new LogPhonebookClient,
             };
         });
     }
