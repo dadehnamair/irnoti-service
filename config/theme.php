@@ -81,4 +81,75 @@ return [
         // 'instagram' => 'https://instagram.com/...',
         // 'linkedin' => 'https://linkedin.com/company/...',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Footer — docs/starter.md §67/§81
+    |--------------------------------------------------------------------------
+    |
+    | Link columns rendered in the public-site footer (partials/site-footer).
+    | Kept here (not hard-coded in Blade) so copy/links can later move into the
+    | settings table. `trust` lists the Iranian e-commerce seals; `image` is a
+    | local placeholder until the real badge markup/scripts are pasted in
+    | (enamad + samandehi ship an <a><img></a> snippet — swap `html` in then).
+    |
+    */
+
+    'footer' => [
+        'about' => 'پلتفرم حرفه‌ای ارسال پیامک انبوه، خطوط اختصاصی و وب‌سرویس پیامک برای کسب‌وکارها و فروشگاه‌های آنلاین. گزارش لحظه‌ای، پشتیبانی ۲۴/۷ و API استاندارد.',
+        'columns' => [
+            [
+                'title' => 'محصولات',
+                'links' => [
+                    ['label' => 'پنل پیامک', 'href' => '/#features'],
+                    ['label' => 'تعرفه‌ها و پلن‌ها', 'href' => '/pricing'],
+                    ['label' => 'خطوط اختصاصی', 'href' => '/lines'],
+                    ['label' => 'بسته‌های پیامکی', 'href' => '/pricing#packages'],
+                    ['label' => 'وب‌سرویس و API', 'href' => '/developers'],
+                ],
+            ],
+            [
+                'title' => 'شرکت',
+                'links' => [
+                    ['label' => 'درباره ما', 'href' => '/#about'],
+                    ['label' => 'وبلاگ', 'href' => '/blog'],
+                    ['label' => 'سوالات متداول', 'href' => '/#faq'],
+                    ['label' => 'تماس با ما', 'href' => '/#cta'],
+                ],
+            ],
+            [
+                'title' => 'راهنما و پشتیبانی',
+                'links' => [
+                    ['label' => 'مستندات فنی', 'href' => '/developers'],
+                    ['label' => 'قوانین و مقررات', 'href' => '/terms'],
+                    ['label' => 'حریم خصوصی', 'href' => '/privacy'],
+                    ['label' => 'ورود به پنل', 'href' => '/login'],
+                ],
+            ],
+        ],
+    ],
+
+    'trust' => [
+        [
+            'key' => 'enamad',
+            'label' => 'نماد اعتماد الکترونیکی',
+            'href' => 'https://www.enamad.ir/',
+            'image' => '/trust/enamad.svg',
+            'html' => null, // paste the eNamad <a id="..."><img ...></a> snippet here
+        ],
+        [
+            'key' => 'samandehi',
+            'label' => 'نماد ساماندهی',
+            'href' => 'https://logo.samandehi.ir/',
+            'image' => '/trust/samandehi.svg',
+            'html' => null, // paste the Samandehi snippet here
+        ],
+        [
+            'key' => 'kasbokar',
+            'label' => 'اتحادیه کسب‌وکارهای مجازی',
+            'href' => 'https://ecunion.ir/',
+            'image' => '/trust/kasbokar.svg',
+            'html' => null,
+        ],
+    ],
 ];
