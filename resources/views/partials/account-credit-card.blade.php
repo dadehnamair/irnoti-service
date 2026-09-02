@@ -11,6 +11,12 @@
     $ccHasPanel = $ccPanel['rial'] !== null || $ccPanel['sms'] !== null;
     $ccAmount = $ccPanel['rial'] !== null ? rial_to_toman($ccPanel['rial']) : $ccWallet;
     $ccInitial = mb_substr(trim((string) $ccUser?->full_name), 0, 1) ?: 'ک';
+
+    // انقضای پلن پنل — تاریخ جلالی + شمارش روزهای باقی‌مانده (docs/starter.md §8/§15)
+    $ccPlanExpires = $ccUser?->plan_expires_at;
+    $ccPlanDays = $ccPlanExpires
+        ? (int) ceil(now()->startOfDay()->diffInDays($ccPlanExpires->copy()->startOfDay(), false))
+        : null;
 @endphp
 
 @if ($ccUser)
@@ -45,6 +51,29 @@
                 <circle cx="16.5" cy="12.5" r="1.6" fill="currentColor" />
             </svg>
         </div>
+
+        @if ($ccUser->plan_id)
+            <div class="credit-card__plan">
+                <span class="credit-card__plan-name">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z" />
+                    </svg>
+                    <span>{{ $ccUser->plan?->name ?? 'پلن فعال' }}</span>
+                </span>
+
+                @if ($ccPlanExpires === null)
+                    <span class="credit-card__plan-days">بدون محدودیت زمانی</span>
+                @elseif ($ccPlanDays < 0)
+                    <span class="credit-card__plan-days is-expired">منقضی شده</span>
+                    <span class="credit-card__plan-date">{{ jalali_date($ccPlanExpires) }}</span>
+                @elseif ($ccPlanDays === 0)
+                    <span class="credit-card__plan-days is-soon">امروز منقضی می‌شود</span>
+                @else
+                    <span class="credit-card__plan-days{{ $ccPlanDays <= 7 ? ' is-soon' : '' }}">{{ number_format($ccPlanDays) }} روز مانده</span>
+                    <span class="credit-card__plan-date">تا {{ jalali_date($ccPlanExpires) }}</span>
+                @endif
+            </div>
+        @endif
 
         <div class="credit-card__foot">
             @if (Route::has('dashboard.wallet'))

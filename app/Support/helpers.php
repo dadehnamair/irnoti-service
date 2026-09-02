@@ -79,12 +79,31 @@ if (! function_exists('normalize_mobile')) {
 if (! function_exists('rial_to_toman')) {
     /**
      * Convert a Rial amount to integer Toman for display. Some upstreams (the
-     * Melipayamak panel API, GetUserCredit2) only speak Rial; the whole UI
-     * shows Toman, so every such value passes through here first. Integer
-     * division — never a float, never a fractional Toman.
+     * SMS panel API, GetUserCredit2) only speak Rial; the whole UI shows
+     * Toman, so every such value passes through here first. Integer division
+     * — never a float, never a fractional Toman.
      */
     function rial_to_toman(mixed $rial): int
     {
         return intdiv((int) $rial, 10);
+    }
+}
+
+if (! function_exists('sms_provider_label')) {
+    /**
+     * Brand-neutral name for the SMS backend, shown to customers wherever the
+     * provider is mentioned. The real vendor name is never surfaced — this
+     * resolves through the same cascade as config('theme.*'): the
+     * `sms_provider_label` setting (admin panel) wins, else config('sms.label').
+     */
+    function sms_provider_label(): string
+    {
+        try {
+            $label = \App\Models\Setting::get('sms_provider_label');
+        } catch (Throwable) {
+            $label = null;
+        }
+
+        return (string) ($label ?: config('sms.label', 'سامانه پیامک'));
     }
 }

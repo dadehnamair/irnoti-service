@@ -6,8 +6,6 @@ use App\Models\LineOrder;
 use App\Models\Setting;
 use App\Observers\LineOrderObserver;
 use App\Services\Sms\LogProvider;
-use App\Services\Sms\MelipayamakProvider;
-use App\Services\Sms\NullProvider;
 use App\Services\Sms\Phonebook\LogPhonebookClient;
 use App\Services\Sms\Phonebook\NullPhonebookClient;
 use App\Services\Sms\Phonebook\PhonebookClientInterface;
@@ -82,18 +80,20 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Resolve the SMS driver from config('services.sms.provider') — docs/starter.md
-     * §12/§13. "log" is the credential-free default (mirrors PAYMENT_DRIVER=local);
-     * tests get the no-op NullProvider.
+     * Resolve the SMS driver from the config('sms.providers.*') registry, keyed
+     * by config('sms.provider') — docs/starter.md §12/§13. "log" is the
+     * credential-free default (mirrors PAYMENT_DRIVER=local); tests get the
+     * no-op "null" driver. The registry maps an opaque codename to a driver
+     * class + credentials, so no vendor name leaks into config or logs.
      */
     private function bindSmsProvider(): void
     {
         $this->app->singleton(SmsProviderInterface::class, function () {
-            return match ((string) config('services.sms.provider', 'log')) {
-                'melipayamak' => new MelipayamakProvider((array) config('services.sms.melipayamak')),
-                'null' => new NullProvider,
-                default => new LogProvider,
-            };
+            $key = (string) config('sms.provider', 'log');
+            $config = (array) config('sms.providers.'.$key);
+            $driver = $config['driver'] ?? LogProvider::class;
+
+            return new $driver($config);
         });
     }
 

@@ -334,6 +334,58 @@
     background: rgba(255, 255, 255, 0.28);
 }
 
+.credit-card__plan {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    font-size: 0.78rem;
+}
+
+.credit-card__plan-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 700;
+    opacity: 0.92;
+}
+
+.credit-card__plan-name svg {
+    width: 15px;
+    height: 15px;
+    opacity: 0.8;
+}
+
+.credit-card__plan-days {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.credit-card__plan-days.is-soon {
+    background: rgba(255, 193, 7, 0.28);
+}
+
+.credit-card__plan-days.is-expired {
+    background: rgba(244, 67, 54, 0.32);
+}
+
+.credit-card__plan-date {
+    flex-basis: 100%;
+    text-align: end;
+    font-weight: 500;
+    opacity: 0.72;
+}
+
 .account-nav__group {
     display: grid;
     gap: 4px;
