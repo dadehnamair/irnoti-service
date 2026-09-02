@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Credential-free phonebook driver for local dev & staging (SMS_PROVIDER=log).
  * Writes each call to the log instead of hitting the web service, and returns
- * plausible values so the panel UI is fully usable without a real Melipayamak
+ * plausible values so the panel UI is fully usable without a real provider
  * account. Mirrors {@see LogProvider}. Never use in production.
  */
 class LogPhonebookClient implements PhonebookClientInterface

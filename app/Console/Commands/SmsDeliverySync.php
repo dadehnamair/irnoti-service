@@ -12,10 +12,9 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Poll Melipayamak for the carrier delivery receipt of messages sent from the
- * customer panel (docs/starter.md §12/§14). Uses GetDelivery2
- * (https://www.melipayamak.com/api/getdelivery2/) through each customer's own
- * panel credentials. A message whose receipt is already final
+ * Poll the SMS provider for the carrier delivery receipt of messages sent from
+ * the customer panel (docs/starter.md §12/§14). Uses GetDelivery2 through each
+ * customer's own panel credentials. A message whose receipt is already final
  * ({@see SmsMessage::DELIVERY_FINAL}) is skipped, so the job is cheap to run
  * often — it is scheduled every ten minutes in routes/console.php.
  *
@@ -29,7 +28,7 @@ class SmsDeliverySync extends Command
         {--max-age=5 : نادیده‌گرفتن پیام‌های قدیمی‌تر از این تعداد روز}
         {--user= : محدود کردن به یک کاربر (شناسه یا موبایل)}';
 
-    protected $description = 'وضعیت تحویل پیامک‌های ارسالی را از ملی‌پیامک می‌گیرد و پیام‌های نهایی‌شده را دیگر بررسی نمی‌کند';
+    protected $description = 'وضعیت تحویل پیامک‌های ارسالی را از سامانه پیامک می‌گیرد و پیام‌های نهایی‌شده را دیگر بررسی نمی‌کند';
 
     public function handle(): int
     {

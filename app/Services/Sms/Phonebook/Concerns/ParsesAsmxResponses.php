@@ -2,15 +2,15 @@
 
 namespace App\Services\Sms\Phonebook\Concerns;
 
+use App\Services\Sms\PasargadProvider;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Shared plumbing for the api.payamak-panel.com ASMX phonebook web service
- * (docs/starter.md §13). Same host and request style as
- * {@see \App\Services\Sms\MelipayamakProvider} — plain form fields in, a bare
- * XML scalar or a repeating record list back.
+ * Shared plumbing for the ASMX phonebook web service (docs/starter.md §13).
+ * Same host and request style as {@see PasargadProvider} —
+ * plain form fields in, a bare XML scalar or a repeating record list back.
  */
 trait ParsesAsmxResponses
 {
@@ -51,7 +51,7 @@ trait ParsesAsmxResponses
         } catch (\Throwable $e) {
             Log::error('[sms:phonebook] connection failed', ['method' => $method, 'error' => $e->getMessage()]);
 
-            throw new RuntimeException('اتصال به سرور ملی‌پیامک برقرار نشد: '.$e->getMessage());
+            throw new RuntimeException('اتصال به '.sms_provider_label().' برقرار نشد: '.$e->getMessage());
         }
 
         Log::debug('[sms:phonebook] '.$method, [
@@ -62,7 +62,8 @@ trait ParsesAsmxResponses
 
         if ($response->failed()) {
             throw new RuntimeException(sprintf(
-                'ملی‌پیامک با کد %d پاسخ داد: %s',
+                '%s با کد %d پاسخ داد: %s',
+                sms_provider_label(),
                 $response->status(),
                 mb_substr($response->body(), 0, 300) ?: 'بدون بدنه',
             ));

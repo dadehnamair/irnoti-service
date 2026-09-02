@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * One single SMS a customer sent from the panel (docs/starter.md §12). The send
- * goes through the customer's own Melipayamak credentials ({@see UserSmsGateway});
+ * goes through the customer's own SMS panel credentials ({@see UserSmsGateway});
  * this row records the outcome — both the send result (`status`) and, once the
  * scheduled `sms:delivery-sync` has polled it, the carrier delivery receipt
  * (`delivery_status`, docs/starter.md §14 "Delivery").
@@ -55,8 +55,7 @@ class SmsMessage extends Model
 
     /**
      * Map a raw GetDelivery2 code (or an already-worded status from another
-     * driver) to one of {@see DELIVERY_STATUSES}. Codes per
-     * https://www.melipayamak.com/api/getdelivery2/. Returns null for an
+     * driver) to one of {@see DELIVERY_STATUSES}. Returns null for an
      * empty/absent report so the message stays in the poll queue.
      */
     public static function mapDeliveryStatus(int|string|null $raw): ?string

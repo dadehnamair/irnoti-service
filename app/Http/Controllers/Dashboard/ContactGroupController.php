@@ -16,9 +16,8 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Customer phonebook — group management (docs/starter.md §17). Groups are
- * mirrored to the customer's own Melipayamak panel by {@see PhonebookSync}.
- * Melipayamak has no rename/delete for groups, so those stay local-only and the
- * UI says so.
+ * mirrored to the customer's own SMS panel by {@see PhonebookSync}. The provider
+ * has no rename/delete for groups, so those stay local-only and the UI says so.
  */
 class ContactGroupController extends Controller
 {
@@ -71,12 +70,12 @@ class ContactGroupController extends Controller
         return redirect()->route('dashboard.contacts.groups')->with(
             'status',
             $group->remote_id
-                ? 'گروه ویرایش شد. توجه: تغییر نام گروه در ملی‌پیامک اعمال نمی‌شود.'
+                ? 'گروه ویرایش شد. توجه: تغییر نام گروه در '.sms_provider_label().' اعمال نمی‌شود.'
                 : 'گروه ویرایش شد.',
         );
     }
 
-    /** Queue a pull of this one group's contacts from Melipayamak. */
+    /** Queue a pull of this one group's contacts from the SMS provider. */
     public function pullContacts(Request $request, ContactGroup $group): RedirectResponse
     {
         $this->ensureEnabled();
@@ -89,7 +88,7 @@ class ContactGroupController extends Controller
 
         if (! $group->remote_id) {
             return redirect()->route('dashboard.contacts.groups')
-                ->with('warning', 'ابتدا این گروه را با ملی‌پیامک همگام کنید.');
+                ->with('warning', 'ابتدا این گروه را با '.sms_provider_label().' همگام کنید.');
         }
 
         $lock = ImportGroupContactsJob::lockKey($group->id);
@@ -120,12 +119,12 @@ class ContactGroupController extends Controller
         return redirect()->route('dashboard.contacts.groups')->with(
             'status',
             $wasSynced
-                ? 'گروه از سیستم حذف شد. توجه: ملی‌پیامک امکان حذف گروه را ندارد و گروه در پنل شما باقی می‌ماند.'
+                ? 'گروه از سیستم حذف شد. توجه: '.sms_provider_label().' امکان حذف گروه را ندارد و گروه در پنل شما باقی می‌ماند.'
                 : 'گروه حذف شد.',
         );
     }
 
-    /** Retry pushing one group to Melipayamak. */
+    /** Retry pushing one group to the SMS provider. */
     public function sync(Request $request, ContactGroup $group, PhonebookSync $sync): RedirectResponse
     {
         $this->ensureEnabled();
@@ -138,7 +137,7 @@ class ContactGroupController extends Controller
     }
 
     /**
-     * Pull just the group list from the customer's Melipayamak panel (one call,
+     * Pull just the group list from the customer's SMS panel (one call,
      * synchronous). Contacts are pulled afterwards, per group, from the group
      * row ({@see pullContacts()}).
      */
@@ -150,7 +149,7 @@ class ContactGroupController extends Controller
 
         if (! $user->hasSmsPanel()) {
             return redirect()->route('dashboard.contacts.groups')
-                ->with('error', 'پنل پیامک شما هنوز فعال نشده است؛ امکان دریافت از ملی‌پیامک وجود ندارد.');
+                ->with('error', 'پنل پیامک شما هنوز فعال نشده است؛ امکان دریافت از '.sms_provider_label().' وجود ندارد.');
         }
 
         try {
@@ -158,7 +157,7 @@ class ContactGroupController extends Controller
 
             return redirect()->route('dashboard.contacts.groups')->with(
                 'status',
-                sprintf('%d گروه از ملی‌پیامک دریافت شد. برای هر گروه، دکمهٔ «دریافت مخاطبین» را بزنید.', $count),
+                sprintf('%d گروه از %s دریافت شد. برای هر گروه، دکمهٔ «دریافت مخاطبین» را بزنید.', $count, sms_provider_label()),
             );
         } catch (SmsPanelNotConfiguredException $e) {
             return redirect()->route('dashboard.contacts.groups')->with('error', $e->getMessage());
@@ -186,7 +185,7 @@ class ContactGroupController extends Controller
     private function flash(ContactGroup $group, string $ok): string
     {
         return $group->sync_status === 'error'
-            ? $ok.' اما همگام‌سازی با ملی‌پیامک ناموفق بود: '.$group->sync_error
+            ? $ok.' اما همگام‌سازی با '.sms_provider_label().' ناموفق بود: '.$group->sync_error
             : $ok;
     }
 

@@ -59,7 +59,7 @@
         @include('dashboard.contacts.partials.group-picker', ['selectedGroupIds' => $selectedGroups])
     @else
         <p class="auth-sub">
-            هنوز گروهی نساخته‌اید. برای همگام‌سازی مخاطب با ملی‌پیامک، ابتدا یک
+            هنوز گروهی نساخته‌اید. برای همگام‌سازی مخاطب با {{ sms_provider_label() }}، ابتدا یک
             <a href="{{ route('dashboard.contacts.groups') }}">گروه</a> بسازید و همگام کنید.
         </p>
     @endif

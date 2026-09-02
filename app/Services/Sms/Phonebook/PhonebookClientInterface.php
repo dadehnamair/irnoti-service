@@ -7,7 +7,7 @@ use App\Services\Sms\SmsProviderInterface;
 /**
  * Phonebook / contacts layer (docs/starter.md §14 / §17). Parallels
  * {@see SmsProviderInterface}: no controller talks to the
- * vendor phonebook API directly. The Melipayamak implementation speaks the
+ * vendor phonebook API directly. The concrete implementation speaks the
  * Contacts.asmx web service; per-customer instances are built by
  * {@see UserPhonebook}.
  */
@@ -22,17 +22,17 @@ interface PhonebookClientInterface
 
     /**
      * A page of contacts, optionally filtered by group and/or a keyword
-     * (name or mobile). Melipayamak caps `count` at 100.
+     * (name or mobile). The provider caps `count` at 100.
      *
      * @return array<int, array{remote_id:int, first_name:?string, last_name:?string, mobile:string, email:?string, company:?string, nickname:?string, gender:?string, birth_date:?string, description:?string, group_names:array<int,string>}>
      */
     public function contacts(?int $groupId = null, ?string $keyword = null, int $from = 0, int $count = 100): array;
 
-    /** Create a group. Returns true on success (Melipayamak gives no new id here). */
+    /** Create a group. Returns true on success (the provider gives no new id here). */
     public function createGroup(string $name, ?string $description, bool $showToChild): bool;
 
     /**
-     * Create a contact. `$data` is already Melipayamak-shaped
+     * Create a contact. `$data` is already provider-shaped
      * (groupIds, firstname, lastname, nickname, corporation, mobilenumber,
      * gender, birthdate, email, descriptions). Returns true on success.
      *
@@ -41,14 +41,14 @@ interface PhonebookClientInterface
     public function createContact(array $data): bool;
 
     /**
-     * Update a contact by its Melipayamak ContactID. `$data` is Melipayamak-shaped
+     * Update a contact by its remote ContactID. `$data` is provider-shaped
      * and may include `contactStatus` (0 active / 1 inactive / -1 unchanged).
      *
      * @param  array<string, mixed>  $data
      */
     public function updateContact(int $remoteId, array $data): bool;
 
-    /** Set a contact inactive on Melipayamak — the closest thing to a delete. */
+    /** Set a contact inactive on the provider — the closest thing to a delete. */
     public function deactivateContact(int $remoteId): bool;
 
     /** -1 bad credentials · 0 not in phonebook · 1 in phonebook. */

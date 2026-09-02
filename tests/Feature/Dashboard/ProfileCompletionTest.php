@@ -90,7 +90,7 @@ class ProfileCompletionTest extends TestCase
     {
         Bus::fake();
         Storage::fake('local');
-        config(['services.sms.admin_mobile' => '09000000000']);
+        config(['sms.admin_mobile' => '09000000000']);
 
         $user = User::factory()->create(['status' => 'pending', 'profile_completed_at' => null]);
 

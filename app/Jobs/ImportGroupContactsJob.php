@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Pull one phonebook group's contacts from Melipayamak into our tables
+ * Pull one phonebook group's contacts from the SMS provider into our tables
  * (docs/starter.md §17). Queued because a big group is many paged GetContacts
  * calls. The per-group cache lock set by the controller is released here.
  */

@@ -248,7 +248,7 @@ class UserForm
                     ]),
 
                 Section::make('پنل پیامک کاربر')
-                    ->description('اعتبار پنل ملی‌پیامکِ خودِ کاربر؛ پس از تأیید حساب پر شود تا پنل ما به پنل او وصل شود.')
+                    ->description('اعتبار پنل پیامکِ خودِ کاربر؛ پس از تأیید حساب پر شود تا پنل ما به پنل او وصل شود.')
                     ->columns(2)
                     ->schema([
                         TextInput::make('sms_username')
@@ -270,7 +270,7 @@ class UserForm
 
                         TagsInput::make('sms_numbers')
                             ->label('سرشماره‌های شناخته‌شده')
-                            ->helperText('به‌صورت خودکار از ملی‌پیامک دریافت می‌شود.')
+                            ->helperText('به‌صورت خودکار از '.sms_provider_label().' دریافت می‌شود.')
                             ->disabled()
                             ->dehydrated(false)
                             ->columnSpanFull(),

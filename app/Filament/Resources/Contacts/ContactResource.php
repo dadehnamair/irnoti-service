@@ -14,7 +14,7 @@ use Filament\Tables\Table;
 
 /**
  * Read-mostly oversight of customer phonebooks (docs/starter.md §17). Records are
- * born in the customer panel and mirrored to each customer's own Melipayamak
+ * born in the customer panel and mirrored to each customer's own SMS panel
  * account; the admin can inspect and tidy them but not create them here.
  */
 class ContactResource extends Resource

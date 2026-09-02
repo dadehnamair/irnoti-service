@@ -15,7 +15,7 @@ use Filament\Tables\Table;
 /**
  * Read-mostly oversight of customer phonebook groups (docs/starter.md §17).
  * Created from the customer panel and mirrored to each customer's own
- * Melipayamak account.
+ * SMS panel account.
  */
 class ContactGroupResource extends Resource
 {

@@ -24,7 +24,7 @@ class ContactGroupForm
                         Toggle::make('show_to_child')->label('نمایش به زیرمجموعه‌ها'),
                     ]),
 
-                Section::make('همگام‌سازی با ملی‌پیامک')
+                Section::make('همگام‌سازی با '.sms_provider_label())
                     ->columns(2)
                     ->schema([
                         TextInput::make('sync_status')
@@ -33,7 +33,7 @@ class ContactGroupForm
                             ->disabled()
                             ->dehydrated(false),
 
-                        TextInput::make('remote_id')->label('شناسهٔ ملی‌پیامک')->numeric()->disabled()->dehydrated(false)->placeholder('—'),
+                        TextInput::make('remote_id')->label('شناسهٔ سامانه')->numeric()->disabled()->dehydrated(false)->placeholder('—'),
                         TextInput::make('synced_at')->label('آخرین همگام‌سازی')->disabled()->dehydrated(false)->placeholder('—'),
                         Textarea::make('sync_error')->label('خطای همگام‌سازی')->rows(2)->disabled()->dehydrated(false)->placeholder('—'),
                     ]),

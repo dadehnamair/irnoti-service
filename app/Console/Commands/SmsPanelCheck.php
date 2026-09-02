@@ -7,7 +7,7 @@ use App\Services\Sms\UserSmsGateway;
 use Illuminate\Console\Command;
 
 /**
- * Quick health check for a customer's Melipayamak panel credentials
+ * Quick health check for a customer's SMS panel credentials
  * (docs/starter.md §12). Run it right after setting sms_username / sms_password
  * to see the real reason a connection fails.
  *
@@ -18,7 +18,7 @@ class SmsPanelCheck extends Command
 {
     protected $signature = 'sms:check {user : User id or mobile number}';
 
-    protected $description = 'اعتبار پنل ملی‌پیامک یک کاربر را بررسی می‌کند و خطای واقعی را نشان می‌دهد';
+    protected $description = 'اعتبار پنل پیامک یک کاربر را بررسی می‌کند و خطای واقعی را نشان می‌دهد';
 
     public function handle(): int
     {

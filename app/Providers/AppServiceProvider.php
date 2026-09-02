@@ -12,6 +12,7 @@ use App\Services\Sms\Phonebook\PhonebookClientInterface;
 use App\Services\Sms\SmsProviderInterface;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -91,9 +92,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SmsProviderInterface::class, function () {
             $key = (string) config('sms.provider', 'log');
             $config = (array) config('sms.providers.'.$key);
-            $driver = $config['driver'] ?? LogProvider::class;
 
-            return new $driver($config);
+            if (! isset($config['driver'])) {
+                Log::warning(
+                    "[sms] unknown provider '{$key}' — no config/sms.php registry entry; falling back to the log driver.",
+                );
+
+                return new LogProvider;
+            }
+
+            return new $config['driver']($config);
         });
     }
 

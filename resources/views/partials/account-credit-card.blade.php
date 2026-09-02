@@ -2,7 +2,7 @@
 /**
 * Account sidebar credit card (docs/starter.md §15 / §23). A graphic
 * identity + balance tile that sits above the section nav. The panel
-* credit is read live from Melipayamak (60s cache) and always shown in
+* credit is read live from the SMS provider (60s cache) and always shown in
 * Toman — never Rial (§12). rescue()d so a fresh/empty DB still renders.
 */
 $ccUser = auth()->user();

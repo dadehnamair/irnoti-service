@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
- * `sms:delivery-sync` polls Melipayamak GetDelivery2 for the carrier receipt of
+ * `sms:delivery-sync` polls the provider's GetDelivery2 for the carrier receipt of
  * panel-sent messages and stops once the outcome is final (docs/starter.md §14).
  */
 class SmsDeliverySyncTest extends TestCase

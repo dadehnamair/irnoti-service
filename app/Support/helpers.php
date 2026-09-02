@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Setting;
 use Illuminate\Support\Carbon;
 use Morilog\Jalali\Jalalian;
 
@@ -54,7 +55,7 @@ if (! function_exists('toman')) {
 if (! function_exists('normalize_mobile')) {
     /**
      * Normalise an Iranian mobile number to the local "09xxxxxxxxx" form the SMS
-     * gateway and the Melipayamak phonebook expect. Leaves anything it doesn't
+     * gateway and the provider phonebook expect. Leaves anything it doesn't
      * recognise untouched. Mirrors App\Services\Sms\SmsManager::normalize().
      */
     function normalize_mobile(mixed $number): string
@@ -99,7 +100,7 @@ if (! function_exists('sms_provider_label')) {
     function sms_provider_label(): string
     {
         try {
-            $label = \App\Models\Setting::get('sms_provider_label');
+            $label = Setting::get('sms_provider_label');
         } catch (Throwable) {
             $label = null;
         }

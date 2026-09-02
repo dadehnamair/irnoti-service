@@ -16,7 +16,7 @@ interface SmsProviderInterface
     public function send(string $to, string $message, ?string $from = null): ?string;
 
     /**
-     * Send a template ("pattern") message — Melipayamak "shared" bodyId + ordered
+     * Send a template ("pattern") message — provider "shared" bodyId + ordered
      * variables (docs/starter.md §14 "Pattern").
      *
      * @param  array<int, string>  $variables
@@ -27,9 +27,8 @@ interface SmsProviderInterface
     public function deliveryStatus(string $recId): ?string;
 
     /**
-     * The dedicated sender numbers (سرشماره) this account owns, as digit strings
-     * (https://www.melipayamak.com/api/getnumbers/). Empty when the driver can't
-     * report them (docs/starter.md §12).
+     * The dedicated sender numbers (سرشماره) this account owns, as digit strings.
+     * Empty when the driver can't report them (docs/starter.md §12).
      *
      * @return array<int, string>
      */

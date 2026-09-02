@@ -6,7 +6,7 @@ use RuntimeException;
 
 /**
  * Thrown when a customer tries to use SMS features before the admin has wired
- * their own Melipayamak panel credentials (docs/starter.md §12).
+ * their own SMS panel credentials (docs/starter.md §12).
  */
 class SmsPanelNotConfiguredException extends RuntimeException
 {

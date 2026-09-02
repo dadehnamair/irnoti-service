@@ -11,18 +11,18 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Keeps a customer's local phonebook (contacts / contact_groups) mirrored to
- * their own Melipayamak panel (docs/starter.md §17). Every method is
- * best-effort: a gateway failure is recorded on the row (`sync_status='error'`,
- * `sync_error`) and swallowed so the local write always stands. When the
- * customer has no SMS panel the phonebook stays local-only.
+ * their own SMS panel (docs/starter.md §17). Every method is best-effort: a
+ * gateway failure is recorded on the row (`sync_status='error'`, `sync_error`)
+ * and swallowed so the local write always stands. When the customer has no SMS
+ * panel the phonebook stays local-only.
  *
- * Known Melipayamak limitations (no endpoint exists for these):
+ * Known provider limitations (no endpoint exists for these):
  *  - a group cannot be renamed or deleted remotely;
  *  - a contact's group membership can only be set when it is first created.
  */
 class PhonebookSync
 {
-    /** Push a new group to Melipayamak and capture its GroupID. */
+    /** Push a new group to the SMS provider and capture its GroupID. */
     public function pushGroup(ContactGroup $group): void
     {
         $user = $group->user;
@@ -42,7 +42,7 @@ class PhonebookSync
             $client = UserPhonebook::for($user);
 
             if (! $client->createGroup($group->name, $group->description, (bool) $group->show_to_child)) {
-                throw new \RuntimeException('ملی‌پیامک ساخت گروه را نپذیرفت.');
+                throw new \RuntimeException(sms_provider_label().' ساخت گروه را نپذیرفت.');
             }
 
             $remoteId = $this->matchRemoteGroupId($client, $user, $group->name);
@@ -50,7 +50,7 @@ class PhonebookSync
             $group->forceFill([
                 'remote_id' => $remoteId,
                 'sync_status' => $remoteId ? 'synced' : 'error',
-                'sync_error' => $remoteId ? null : 'گروه در ملی‌پیامک ساخته شد اما شناسهٔ آن یافت نشد.',
+                'sync_error' => $remoteId ? null : 'گروه در '.sms_provider_label().' ساخته شد اما شناسهٔ آن یافت نشد.',
                 'synced_at' => now(),
             ])->save();
         } catch (\Throwable $e) {
@@ -58,7 +58,7 @@ class PhonebookSync
         }
     }
 
-    /** Create or update a contact on Melipayamak. */
+    /** Create or update a contact on the SMS provider. */
     public function pushContact(Contact $contact): void
     {
         $user = $contact->user;
@@ -75,7 +75,7 @@ class PhonebookSync
 
             if ($contact->remote_id) {
                 if (! $client->updateContact((int) $contact->remote_id, $payload + ['contactStatus' => 0])) {
-                    throw new \RuntimeException('ملی‌پیامک ویرایش مخاطب را نپذیرفت.');
+                    throw new \RuntimeException(sms_provider_label().' ویرایش مخاطب را نپذیرفت.');
                 }
 
                 $contact->forceFill(['sync_status' => 'synced', 'sync_error' => null, 'synced_at' => now()])->save();
@@ -98,7 +98,7 @@ class PhonebookSync
             }
 
             if (! $client->createContact($payload + ['groupIds' => $remoteGroupIds->implode(',')])) {
-                throw new \RuntimeException('ملی‌پیامک ثبت مخاطب را نپذیرفت.');
+                throw new \RuntimeException(sms_provider_label().' ثبت مخاطب را نپذیرفت.');
             }
 
             $remoteId = $this->matchRemoteContactId($client, $contact->mobile, $remoteGroupIds->all());
@@ -106,7 +106,7 @@ class PhonebookSync
             $contact->forceFill([
                 'remote_id' => $remoteId,
                 'sync_status' => $remoteId ? 'synced' : 'error',
-                'sync_error' => $remoteId ? null : 'مخاطب در ملی‌پیامک ثبت شد اما شناسهٔ آن یافت نشد.',
+                'sync_error' => $remoteId ? null : 'مخاطب در '.sms_provider_label().' ثبت شد اما شناسهٔ آن یافت نشد.',
                 'synced_at' => now(),
             ])->save();
         } catch (\Throwable $e) {
@@ -114,7 +114,7 @@ class PhonebookSync
         }
     }
 
-    /** Set the contact inactive on Melipayamak just before it is deleted locally. */
+    /** Set the contact inactive on the SMS provider just before it is deleted locally. */
     public function deleteContactRemote(Contact $contact): void
     {
         $user = $contact->user;
@@ -134,7 +134,7 @@ class PhonebookSync
     }
 
     /**
-     * Pull only the group list from Melipayamak (fast — one call). Contacts are
+     * Pull only the group list from the SMS provider (fast — one call). Contacts are
      * fetched later, per group, by {@see importGroupContacts()}. Returns the
      * number of groups upserted.
      */
@@ -163,7 +163,7 @@ class PhonebookSync
     }
 
     /**
-     * Pull one group's contacts from Melipayamak (paged; `count` capped at 100).
+     * Pull one group's contacts from the SMS provider (paged; `count` capped at 100).
      * Each contact is upserted and attached to this group plus any other local
      * group whose name appears in the remote `<Groups>` field. Returns
      * ['contacts' => n].
@@ -238,7 +238,7 @@ class PhonebookSync
         return ['contacts' => $seen];
     }
 
-    /** Melipayamak-shaped field map for AddContact / ChangeContact2. */
+    /** Provider-shaped field map for AddContact / ChangeContact2. */
     private function contactPayload(Contact $contact): array
     {
         return [
@@ -276,7 +276,7 @@ class PhonebookSync
     }
 
     /**
-     * Find the Melipayamak ContactID of a just-created contact. GetContacts needs
+     * Find the remote ContactID of a just-created contact. GetContacts needs
      * a real GroupId, so we search within each group the contact was added to
      * (plus a best-effort ungrouped lookup).
      *

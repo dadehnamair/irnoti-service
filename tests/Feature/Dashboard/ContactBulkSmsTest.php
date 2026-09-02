@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 /**
  * Group send from the phonebook (docs/starter.md §17 / §18): "local" resolves
- * groups to stored numbers and sends via our gateway; "melipayamak" hands whole
+ * groups to stored numbers and sends via our gateway; "remote" hands whole
  * groups to newbulks.asmx/SendSmsToContact.
  */
 class ContactBulkSmsTest extends TestCase
@@ -48,7 +48,7 @@ class ContactBulkSmsTest extends TestCase
         $this->assertDatabaseHas('sms_messages', ['user_id' => $user->id, 'to' => '09124445566', 'status' => 'sent']);
     }
 
-    public function test_melipayamak_group_send_calls_send_sms_to_contact(): void
+    public function test_remote_group_send_calls_send_sms_to_contact(): void
     {
         Http::fake([
             'api.payamak-panel.com/post/newbulks.asmx/SendSmsToContact*' => Http::response('<string xmlns="http://tempuri.org/">987654321</string>'),
@@ -61,16 +61,16 @@ class ContactBulkSmsTest extends TestCase
         ]);
 
         $this->actingAs($user)->post(route('dashboard.contacts.send.post'), [
-            'mode' => 'melipayamak',
+            'mode' => 'remote',
             'groups' => [$group->id],
-            'message' => 'پیام گروهی ملی‌پیامک',
+            'message' => 'پیام گروهی آزمایشی',
         ])->assertRedirect(route('dashboard.contacts.send'))->assertSessionHas('sms_status');
 
         Http::assertSent(fn ($r) => str_contains($r->url(), 'newbulks.asmx/SendSmsToContact'));
         $this->assertDatabaseHas('sms_messages', ['user_id' => $user->id, 'rec_id' => '987654321', 'status' => 'sent']);
     }
 
-    public function test_melipayamak_mode_rejects_an_unsynced_group(): void
+    public function test_remote_mode_rejects_an_unsynced_group(): void
     {
         Http::fake(['api.payamak-panel.com/*' => Http::response('<string>0</string>')]);
 
@@ -78,7 +78,7 @@ class ContactBulkSmsTest extends TestCase
         $group = $user->contactGroups()->create(['name' => 'همگام‌نشده']);
 
         $this->actingAs($user)->post(route('dashboard.contacts.send.post'), [
-            'mode' => 'melipayamak',
+            'mode' => 'remote',
             'groups' => [$group->id],
             'message' => 'x',
         ])->assertSessionHas('sms_error');

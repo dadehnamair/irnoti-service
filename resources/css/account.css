@@ -192,8 +192,20 @@
 
 .account-nav {
     display: grid;
-    gap: 18px;
+    gap: 6px;
     align-content: start;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background:
+        linear-gradient(
+            180deg,
+            var(--primary-soft-08),
+            transparent 120px
+        ),
+        var(--panel);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(6px);
 }
 
 /* ---- Sidebar credit / identity card (docs/starter.md §15/§23) ---- */
@@ -379,12 +391,19 @@
 
 .account-nav__group {
     display: grid;
-    gap: 4px;
+    gap: 2px;
+}
+
+/* Hairline divider between accordion groups so the stack reads as sections. */
+.account-nav__group--features + .account-nav__group--features {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
 
 .account-nav__group--footer {
-    margin-top: 4px;
-    padding-top: 14px;
+    margin-top: 8px;
+    padding-top: 12px;
     border-top: 1px solid var(--border);
 }
 
@@ -456,26 +475,59 @@ details.account-nav__group[open] > .account-nav__panel {
 }
 
 .account-nav a {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.7rem 0.9rem;
+    gap: 0.6rem;
+    padding: 0.65rem 0.8rem;
     border-radius: 12px;
     color: var(--text-soft);
     font-size: 0.9rem;
     font-weight: 600;
+    transition:
+        background 0.16s ease,
+        color 0.16s ease,
+        transform 0.16s ease;
+}
+
+.account-nav a:hover {
+    background: var(--primary-soft-08);
+    color: color-mix(in srgb, var(--primary) 24%, #fff);
+    transform: translateX(-2px);
 }
 
 .account-nav a.is-active {
-    background: var(--primary-soft-12);
-    color: color-mix(in srgb, var(--primary) 30%, #fff);
+    background: linear-gradient(
+        90deg,
+        var(--primary-soft-16),
+        var(--primary-soft-08)
+    );
+    color: color-mix(in srgb, var(--primary) 32%, #fff);
+    box-shadow: inset 0 0 0 1px var(--primary-line);
+}
+
+/* Active marker rail on the inline-start edge. */
+.account-nav a.is-active::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -12px;
+    inset-block: 22%;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--primary);
 }
 
 .account-nav svg {
     width: 18px;
     height: 18px;
     flex: none;
-    opacity: 0.8;
+    opacity: 0.7;
+    transition: opacity 0.16s ease;
+}
+
+.account-nav a:hover svg,
+.account-nav a.is-active svg {
+    opacity: 1;
 }
 
 /* ---- «بزودی» items: catalogue features not yet switched on (docs/starter.md §15) ---- */
@@ -508,10 +560,19 @@ details.account-nav__group[open] > .account-nav__panel {
     white-space: nowrap;
 }
 
+.account-nav__group--footer a {
+    color: var(--muted);
+}
+
+.account-nav__group--footer a:hover {
+    background: var(--primary-soft-08);
+    color: color-mix(in srgb, var(--primary) 24%, #fff);
+}
+
 .account-nav form button {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0.6rem;
     width: 100%;
     text-align: start;
     background: none;
@@ -519,8 +580,28 @@ details.account-nav__group[open] > .account-nav__panel {
     font: inherit;
     font-weight: 600;
     color: var(--muted);
-    padding: 0.7rem 0.9rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 12px;
     cursor: pointer;
+    transition:
+        background 0.16s ease,
+        color 0.16s ease;
+}
+
+.account-nav form button:hover {
+    background: color-mix(in srgb, #ff3b30 12%, transparent);
+    color: color-mix(in srgb, #ff5b52 60%, #fff);
+}
+
+.account-nav form button svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    opacity: 0.7;
+}
+
+.account-nav form button:hover svg {
+    opacity: 1;
 }
 
 .account-panel {

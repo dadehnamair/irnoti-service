@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Support\PhonebookSync;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * A customer phonebook contact (docs/starter.md §17). Mirrored to the customer's
- * own Melipayamak panel — `remote_id` is the Melipayamak ContactID,
- * `sync_status` tracks the mirror ({@see \App\Support\PhonebookSync}).
+ * own SMS panel — `remote_id` is the remote ContactID, `sync_status` tracks the
+ * mirror ({@see PhonebookSync}).
  */
 class Contact extends Model
 {
@@ -18,7 +19,7 @@ class Contact extends Model
         'male' => 'مرد',
     ];
 
-    /** Mirror state against the Melipayamak phonebook. */
+    /** Mirror state against the remote phonebook. */
     public const SYNC_STATUSES = ContactGroup::SYNC_STATUSES;
 
     protected $fillable = [

@@ -142,9 +142,9 @@ class User extends Authenticatable implements FilamentUser
             'sms_numbers' => 'array',
             'sms_numbers_synced_at' => 'datetime',
             'sms_credit' => 'integer',
-            // NOT hashed / NOT encrypted — Melipayamak's SendSMS API needs the raw
-            // panel password, and the admin sets this value straight in the DB
-            // (docs/starter.md §12, https://www.melipayamak.com/api/sendsimplesms2/).
+            // NOT hashed / NOT encrypted — the provider's SendSMS API needs the
+            // raw panel password, and the admin sets this value straight in the
+            // DB (docs/starter.md §12).
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
@@ -267,14 +267,14 @@ class User extends Authenticatable implements FilamentUser
         return $this->documents_status === 'approved';
     }
 
-    /** The admin has wired the customer's own Melipayamak panel credentials. */
+    /** The admin has wired the customer's own SMS panel credentials. */
     public function hasSmsPanel(): bool
     {
         return filled($this->sms_username) && filled($this->sms_password);
     }
 
     /**
-     * The customer's live Melipayamak panel credit (docs/starter.md §12),
+     * The customer's live SMS panel credit (docs/starter.md §12),
      * cached for 60s under "sms_credit:{id}". Returns
      * ['sms' => ?int, 'rial' => ?int, 'error' => ?string] and never throws —
      * a failed read comes back as `error`, nulls elsewhere. Shared by the SMS
@@ -315,7 +315,7 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * The sender lines (سرشماره) this customer may send from — the list cached
-     * from Melipayamak's GetUserNumbers, falling back to the single configured
+     * from the provider's GetUserNumbers, falling back to the single configured
      * default when the list hasn't been synced yet (docs/starter.md §12).
      *
      * @return array<int, string>

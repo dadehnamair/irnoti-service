@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
- * Dedicated sender numbers (سرشماره) — pulled from Melipayamak's GetUserNumbers,
+ * Dedicated sender numbers (سرشماره) — pulled from the provider's GetUserNumbers,
  * cached on the user, picked by the customer per-send and as a default
  * (docs/starter.md §12).
  */

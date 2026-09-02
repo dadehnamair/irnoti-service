@@ -10,7 +10,7 @@
         </div>
 
         @if ($contact->sync_status === 'error' && $contact->sync_error)
-            <p class="auth-sub">آخرین همگام‌سازی با ملی‌پیامک ناموفق بود: {{ $contact->sync_error }}</p>
+            <p class="auth-sub">آخرین همگام‌سازی با {{ sms_provider_label() }} ناموفق بود: {{ $contact->sync_error }}</p>
         @endif
 
         @include('dashboard.contacts.partials.form', [

@@ -45,12 +45,12 @@
                 <span>روش ارسال</span>
                 <select name="mode">
                     <option value="local" @selected(old('mode') === 'local')>محلی — ارسال تکی به شماره‌های ذخیره‌شده (حداکثر {{ $localCap }} گیرنده)</option>
-                    <option value="melipayamak" @selected(old('mode') === 'melipayamak')>ملی‌پیامک — ارسال به گروه‌های همگام‌شده (حداکثر ۵ گروه)</option>
+                    <option value="remote" @selected(old('mode') === 'remote')>{{ sms_provider_label() }} — ارسال به گروه‌های همگام‌شده (حداکثر ۵ گروه)</option>
                 </select>
             </label>
 
             <label>
-                <span>زمان‌بندی ارسال (اختیاری — فقط حالت ملی‌پیامک)</span>
+                <span>زمان‌بندی ارسال (اختیاری — فقط حالت ارسال گروهی)</span>
                 <input type="datetime-local" name="schedule_at" dir="ltr" value="{{ old('schedule_at') }}" />
             </label>
 

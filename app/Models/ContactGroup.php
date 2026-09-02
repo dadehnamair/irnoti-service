@@ -2,22 +2,23 @@
 
 namespace App\Models;
 
+use App\Support\PhonebookSync;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * A customer phonebook group (docs/starter.md §17). Mirrored to the customer's
- * own Melipayamak panel when they have one — `remote_id` is the Melipayamak
- * GroupID, `sync_status` tracks the mirror ({@see \App\Support\PhonebookSync}).
+ * own SMS panel when they have one — `remote_id` is the remote GroupID,
+ * `sync_status` tracks the mirror ({@see PhonebookSync}).
  */
 class ContactGroup extends Model
 {
-    /** Mirror state against the Melipayamak phonebook. */
+    /** Mirror state against the remote phonebook. */
     public const SYNC_STATUSES = [
         'local' => 'فقط محلی',
-        'synced' => 'همگام با ملی‌پیامک',
+        'synced' => 'همگام با سامانه',
         'error' => 'خطای همگام‌سازی',
     ];
 

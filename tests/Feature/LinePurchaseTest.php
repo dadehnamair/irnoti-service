@@ -133,7 +133,7 @@ class LinePurchaseTest extends TestCase
     public function test_order_creation_notifies_buyer_and_admin(): void
     {
         Bus::fake();
-        config(['services.sms.admin_mobile' => '09000000000']);
+        config(['sms.admin_mobile' => '09000000000']);
         $this->setOnlinePayment(false);
         $line = $this->line();
 

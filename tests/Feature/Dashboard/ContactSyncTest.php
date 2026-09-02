@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
- * Two-way mirror between the local phonebook and the customer's own Melipayamak
+ * Two-way mirror between the local phonebook and the customer's own SMS
  * panel (docs/starter.md §17). The gateway is faked; the local write always
  * stands and `sync_status` records the mirror.
  */
@@ -63,7 +63,7 @@ class ContactSyncTest extends TestCase
         return '<?xml version="1.0" encoding="utf-8"?><GetContactsResponse xmlns="http://tempuri.org/"><GetContactsResult>'.$items.'</GetContactsResult></GetContactsResponse>';
     }
 
-    public function test_creating_a_group_pushes_to_melipayamak_and_captures_the_id(): void
+    public function test_creating_a_group_pushes_to_the_provider_and_captures_the_id(): void
     {
         Http::fake([
             'api.payamak-panel.com/post/Contacts.asmx/AddGroup' => Http::response('<int xmlns="http://tempuri.org/">1</int>'),

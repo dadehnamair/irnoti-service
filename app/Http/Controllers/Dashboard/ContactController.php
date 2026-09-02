@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Customer phonebook — contacts CRUD (docs/starter.md §17). Every mutation is
- * mirrored to the customer's own Melipayamak panel by {@see PhonebookSync},
+ * mirrored to the customer's own SMS panel by {@see PhonebookSync},
  * best-effort: the local write always stands, a sync failure is shown as a
  * warning and recorded on the row. Lives behind auth + the "approved" gate.
  */
@@ -179,7 +179,7 @@ class ContactController extends Controller
     private function flash(Contact $contact, string $ok): string
     {
         return $contact->sync_status === 'error'
-            ? $ok.' اما همگام‌سازی با ملی‌پیامک ناموفق بود: '.$contact->sync_error
+            ? $ok.' اما همگام‌سازی با '.sms_provider_label().' ناموفق بود: '.$contact->sync_error
             : $ok;
     }
 

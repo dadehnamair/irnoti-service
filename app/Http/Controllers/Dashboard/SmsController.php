@@ -13,6 +13,7 @@ use App\Services\Sms\UserSmsGateway;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -20,7 +21,7 @@ use Illuminate\Validation\Rule;
 /**
  * Basic SMS panel for an approved customer (docs/starter.md §12): single send,
  * send history, the panel credit, and the dedicated sender numbers (سرشماره)
- * pulled from the customer's own Melipayamak account ({@see UserSmsGateway}).
+ * pulled from the customer's own SMS panel account ({@see UserSmsGateway}).
  */
 class SmsController extends Controller
 {
@@ -114,7 +115,7 @@ class SmsController extends Controller
 
     /* ------------------------- group send (docs/starter.md §17/§18) ------------------------- */
 
-    /** Max recipients per "local" group send — anything larger must use Melipayamak group send. */
+    /** Max recipients per "local" group send — anything larger must use the provider's group send. */
     private const LOCAL_BULK_CAP = 200;
 
     public function bulk(Request $request): View
@@ -144,7 +145,7 @@ class SmsController extends Controller
         }
 
         $data = $request->validate([
-            'mode' => ['required', Rule::in(['local', 'melipayamak'])],
+            'mode' => ['required', Rule::in(['local', 'remote'])],
             'groups' => ['array'],
             'groups.*' => [Rule::exists('contact_groups', 'id')->where('user_id', $user->id)],
             'numbers' => ['nullable', 'string', 'max:20000'],
@@ -166,8 +167,8 @@ class SmsController extends Controller
             return back()->withInput()->with('sms_error', 'حداقل یک گروه یا فهرستی از شماره‌ها را وارد کنید.');
         }
 
-        return $data['mode'] === 'melipayamak'
-            ? $this->sendBulkViaMelipayamak($user, $groups, $data, $from)
+        return $data['mode'] === 'remote'
+            ? $this->sendBulkViaProvider($user, $groups, $data, $from)
             : $this->sendBulkLocally($user, $groups, $data, $from);
     }
 
@@ -188,7 +189,7 @@ class SmsController extends Controller
 
         if ($recipients->count() > self::LOCAL_BULK_CAP) {
             return back()->withInput()->with('sms_error', sprintf(
-                'تعداد گیرندگان (%d) بیش از حد مجاز برای ارسال محلی است (%d). از حالت «ارسال از طریق ملی‌پیامک» استفاده کنید.',
+                'تعداد گیرندگان (%d) بیش از حد مجاز برای ارسال محلی است (%d). از حالت ارسال گروهی استفاده کنید.',
                 $recipients->count(),
                 self::LOCAL_BULK_CAP,
             ));
@@ -232,21 +233,21 @@ class SmsController extends Controller
         );
     }
 
-    /** Hand the whole job to Melipayamak's SendSmsToContact (remote group ids). */
-    private function sendBulkViaMelipayamak(User $user, $groups, array $data, ?string $from): RedirectResponse
+    /** Hand the whole job to the provider's SendSmsToContact (remote group ids). */
+    private function sendBulkViaProvider(User $user, $groups, array $data, ?string $from): RedirectResponse
     {
         $unsynced = $groups->whereNull('remote_id');
 
         if ($groups->isEmpty()) {
-            return back()->withInput()->with('sms_error', 'برای ارسال از طریق ملی‌پیامک باید حداقل یک گروه انتخاب کنید.');
+            return back()->withInput()->with('sms_error', 'برای ارسال گروهی باید حداقل یک گروه انتخاب کنید.');
         }
 
         if ($unsynced->isNotEmpty()) {
-            return back()->withInput()->with('sms_error', 'همهٔ گروه‌های انتخاب‌شده باید با ملی‌پیامک همگام شده باشند: '.$unsynced->pluck('name')->implode('، '));
+            return back()->withInput()->with('sms_error', 'همهٔ گروه‌های انتخاب‌شده باید با '.sms_provider_label().' همگام شده باشند: '.$unsynced->pluck('name')->implode('، '));
         }
 
         if ($groups->count() > 5) {
-            return back()->withInput()->with('sms_error', 'حداکثر ۵ گروه در هر ارسال از طریق ملی‌پیامک مجاز است.');
+            return back()->withInput()->with('sms_error', 'حداکثر ۵ گروه در هر ارسال گروهی مجاز است.');
         }
 
         $message = SmsMessage::create([
@@ -264,14 +265,14 @@ class SmsController extends Controller
                 $data['message'],
                 $from,
                 null,
-                $this->melipayamakSchedule($data['schedule_at'] ?? null),
+                $this->providerSchedule($data['schedule_at'] ?? null),
             );
 
             $message->update(['status' => 'sent', 'rec_id' => $bulkId]);
             Cache::forget("sms_credit:{$user->id}");
 
             return redirect()->route('dashboard.contacts.send')
-                ->with('sms_status', 'ارسال گروهی به ملی‌پیامک سپرده شد. کد پیگیری: '.$bulkId);
+                ->with('sms_status', 'ارسال گروهی به '.sms_provider_label().' سپرده شد. کد پیگیری: '.$bulkId);
         } catch (\Throwable $e) {
             Log::error('[phonebook] group send failed', ['user' => $user->id, 'error' => $e->getMessage()]);
             $message->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 250)]);
@@ -286,20 +287,20 @@ class SmsController extends Controller
         return array_values(array_filter(preg_split('/[\s,;]+/', trim($raw)) ?: []));
     }
 
-    private function melipayamakSchedule(?string $value): ?string
+    private function providerSchedule(?string $value): ?string
     {
         if (blank($value)) {
             return null;
         }
 
         try {
-            return \Illuminate\Support\Carbon::parse($value)->format('Y-m-d H:i:s');
+            return Carbon::parse($value)->format('Y-m-d H:i:s');
         } catch (\Throwable) {
             return null;
         }
     }
 
-    /** Pull the account's sender numbers from Melipayamak on demand. */
+    /** Pull the account's sender numbers from the SMS provider on demand. */
     public function refreshNumbers(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -313,7 +314,7 @@ class SmsController extends Controller
             $this->syncNumbers($user);
 
             return redirect()->route('dashboard.sms')
-                ->with('sms_status', 'فهرست سرشماره‌ها از ملی‌پیامک به‌روزرسانی شد.');
+                ->with('sms_status', 'فهرست سرشماره‌ها از '.sms_provider_label().' به‌روزرسانی شد.');
         } catch (\Throwable $e) {
             Log::warning('SMS numbers refresh failed', ['user' => $user->id, 'error' => $e->getMessage()]);
 

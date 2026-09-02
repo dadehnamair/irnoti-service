@@ -58,7 +58,7 @@
         <div class="account-card" id="senders">
             <h2>سرشماره‌های فرستنده</h2>
             <p class="auth-sub">
-                فهرست خطوط اختصاصی حساب ملی‌پیامک شما. یکی را به‌عنوان پیش‌فرض انتخاب کنید؛ هنگام
+                فهرست خطوط اختصاصی حساب پیامکی شما. یکی را به‌عنوان پیش‌فرض انتخاب کنید؛ هنگام
                 ارسال هم می‌توانید سرشمارهٔ دیگری را انتخاب کنید.
             </p>
 
@@ -89,7 +89,7 @@
 
             <form method="POST" action="{{ route('dashboard.sms.numbers.refresh') }}" style="margin-top:12px">
                 @csrf
-                <button type="submit" class="btn btn-ghost">به‌روزرسانی از ملی‌پیامک</button>
+                <button type="submit" class="btn btn-ghost">به‌روزرسانی از {{ sms_provider_label() }}</button>
                 @if ($numbersSyncedAt)
                     <span class="field-hint">آخرین به‌روزرسانی: @jdatetime($numbersSyncedAt)</span>
                 @endif
