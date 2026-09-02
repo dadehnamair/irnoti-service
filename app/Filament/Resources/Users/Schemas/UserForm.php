@@ -90,16 +90,16 @@ class UserForm
                             ->live(),
 
                         TextInput::make('company')
-                            ->label(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal' ? 'نام کامل شرکت' : 'شرکت'),
+                            ->label(fn ($get) => $get('account_type') === 'legal' ? 'نام کامل شرکت' : 'شرکت'),
 
                         TextInput::make('first_name')
-                            ->label(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal' ? 'نام نماینده' : 'نام'),
+                            ->label(fn ($get) => $get('account_type') === 'legal' ? 'نام نماینده' : 'نام'),
                         TextInput::make('last_name')
-                            ->label(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal' ? 'نام خانوادگی نماینده' : 'نام خانوادگی'),
+                            ->label(fn ($get) => $get('account_type') === 'legal' ? 'نام خانوادگی نماینده' : 'نام خانوادگی'),
 
                         TextInput::make('rep_role')
                             ->label('سمت نماینده')
-                            ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal'),
+                            ->visible(fn ($get) => $get('account_type') === 'legal'),
 
                         TextInput::make('email')->label('ایمیل')->email(),
                         TextInput::make('phone')->label('شماره تماس'),
@@ -108,7 +108,7 @@ class UserForm
                 Section::make('مشخصات و اطلاعات ثبتی شرکت')
                     ->description('فقط برای حساب حقوقی (docs/starter.md §26).')
                     ->columns(2)
-                    ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('account_type') === 'legal')
+                    ->visible(fn ($get) => $get('account_type') === 'legal')
                     ->schema([
                         Select::make('company_type')
                             ->label('نوع شخصیت حقوقی')

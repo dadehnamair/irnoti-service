@@ -139,6 +139,88 @@ class ProfileCompletionTest extends TestCase
         $this->assertSame('awaiting_approval', $user->fresh()->status);
     }
 
+    public function test_legal_account_step_one_requires_company_registration_data(): void
+    {
+        $user = User::factory()->create(['first_name' => null, 'last_name' => null]);
+
+        $this->actingAs($user)
+            ->put(route('dashboard.profile.update', ['step' => 1]), [
+                'account_type' => 'legal',
+                'first_name' => 'علی',
+                'last_name' => 'رضایی',
+            ])
+            ->assertSessionHasErrors([
+                'company', 'company_type', 'company_national_id', 'company_registration_number',
+            ]);
+
+        $this->actingAs($user)
+            ->put(route('dashboard.profile.update', ['step' => 1]), [
+                'account_type' => 'legal',
+                'first_name' => 'علی',
+                'last_name' => 'رضایی',
+                'rep_role' => 'مدیرعامل',
+                'company' => 'داده‌نگار آسمان',
+                'company_type' => 'سهامی خاص',
+                'company_national_id' => '10102345678',
+                'company_registration_number' => '456789',
+                'company_registered_at' => '۱۳۹۵/۰۳/۱۲',
+                'company_economic_code' => '411111111111',
+            ])
+            ->assertRedirect(route('dashboard.profile.step', ['step' => 2]));
+
+        $user->refresh();
+        $this->assertSame('legal', $user->account_type);
+        $this->assertTrue($user->isLegal());
+        $this->assertSame('داده‌نگار آسمان', $user->company);
+        $this->assertSame('داده‌نگار آسمان', $user->name); // legal → name is the company
+        $this->assertSame('10102345678', $user->company_national_id);
+        $this->assertSame('مدیرعامل', $user->rep_role);
+        $this->assertSame('علی', $user->first_name); // representative
+    }
+
+    public function test_legal_account_step_three_requires_and_stores_company_documents(): void
+    {
+        Bus::fake();
+        Storage::fake('local');
+
+        $user = User::factory()->create([
+            'account_type' => 'legal',
+            'company' => 'داده‌نگار آسمان',
+            'status' => 'pending',
+            'profile_completed_at' => null,
+        ]);
+
+        // آگهی تأسیس الزامی است تا وقتی آپلود نشده باشد.
+        $this->actingAs($user)
+            ->put(route('dashboard.profile.update', ['step' => 3]), [
+                'national_code' => '0012345678',
+                'national_card_image' => UploadedFile::fake()->image('front.jpg'),
+            ])
+            ->assertSessionHasErrors('company_registration_doc');
+
+        $this->actingAs($user)
+            ->put(route('dashboard.profile.update', ['step' => 3]), [
+                'national_code' => '0012345678',
+                'national_card_image' => UploadedFile::fake()->image('front.jpg'),
+                'company_registration_doc' => UploadedFile::fake()->create('tasis.pdf', 200, 'application/pdf'),
+                'company_changes_doc' => UploadedFile::fake()->image('changes.jpg'),
+                'company_extra_docs' => [
+                    UploadedFile::fake()->image('permit1.jpg'),
+                    UploadedFile::fake()->create('permit2.pdf', 100, 'application/pdf'),
+                ],
+            ])
+            ->assertRedirect(route('dashboard'));
+
+        $user->refresh();
+        $this->assertNotNull($user->company_registration_doc);
+        $this->assertNotNull($user->company_changes_doc);
+        $this->assertCount(2, $user->company_extra_docs);
+        Storage::disk('local')->assertExists($user->company_registration_doc);
+        Storage::disk('local')->assertExists($user->company_extra_docs[0]);
+        $this->assertNotNull($user->profile_completed_at);
+        $this->assertSame('pending', $user->documents_status);
+    }
+
     public function test_identity_fields_are_locked_after_approval(): void
     {
         $user = User::factory()->create([

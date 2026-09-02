@@ -34,9 +34,15 @@ class UsersTable
                     ->searchable()
                     ->copyable(),
 
+                TextColumn::make('account_type')
+                    ->label('نوع')
+                    ->badge()
+                    ->color(fn (string $state) => $state === 'legal' ? 'info' : 'gray')
+                    ->formatStateUsing(fn (string $state) => User::ACCOUNT_TYPES[$state] ?? $state),
+
                 TextColumn::make('company')
                     ->label('شرکت')
-                    ->searchable()
+                    ->searchable(['company', 'company_national_id'])
                     ->placeholder('—')
                     ->toggleable(),
 
@@ -79,6 +85,10 @@ class UsersTable
                     ->toggleable(),
             ])
             ->filters([
+                SelectFilter::make('account_type')
+                    ->label('نوع حساب')
+                    ->options(User::ACCOUNT_TYPES),
+
                 SelectFilter::make('status')
                     ->label('وضعیت')
                     ->options(User::STATUSES),
