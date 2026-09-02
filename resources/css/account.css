@@ -1577,3 +1577,120 @@ fieldset.wallet-topup-method {
     margin: 0;
     flex: 1 1 240px;
 }
+
+/* ---- Sidebar «بازارچه افزونه‌ها» promo card (docs/starter.md §15) ---- */
+
+.account-nav a.mkt-cta {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    margin-bottom: 10px;
+    padding: 16px;
+    border-radius: 16px;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    background:
+        radial-gradient(
+            130% 130% at 0 0,
+            color-mix(in srgb, var(--accent, var(--secondary)) 60%, transparent),
+            transparent 55%
+        ),
+        linear-gradient(
+            145deg,
+            color-mix(in srgb, var(--primary) 90%, #000),
+            color-mix(in srgb, var(--accent, var(--primary)) 60%, #140b26)
+        );
+    box-shadow: 0 16px 34px -20px color-mix(in srgb, var(--primary) 75%, transparent);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease;
+}
+
+.account-nav a.mkt-cta:hover {
+    transform: translateY(-2px);
+    color: #fff;
+    background:
+        radial-gradient(
+            130% 130% at 0 0,
+            color-mix(in srgb, var(--accent, var(--secondary)) 68%, transparent),
+            transparent 55%
+        ),
+        linear-gradient(
+            145deg,
+            color-mix(in srgb, var(--primary) 92%, #000),
+            color-mix(in srgb, var(--accent, var(--primary)) 66%, #140b26)
+        );
+    box-shadow: 0 22px 40px -18px color-mix(in srgb, var(--primary) 78%, transparent);
+}
+
+.mkt-cta__glow {
+    position: absolute;
+    inset: auto -30% -60% auto;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(
+        circle,
+        color-mix(in srgb, #fff 20%, transparent),
+        transparent 70%
+    );
+    pointer-events: none;
+}
+
+.account-nav .mkt-cta__icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.account-nav .mkt-cta__icon svg {
+    width: 18px;
+    height: 18px;
+    opacity: 1;
+}
+
+.mkt-cta__title {
+    position: relative;
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.mkt-cta__sub {
+    position: relative;
+    display: block;
+    margin-top: 3px;
+    font-size: 0.74rem;
+    line-height: 1.6;
+    opacity: 0.78;
+}
+
+.account-nav .mkt-cta__go {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 12px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.16);
+    transition: background 0.15s ease;
+}
+
+.account-nav a.mkt-cta:hover .mkt-cta__go {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.account-nav .mkt-cta__go svg {
+    width: 13px;
+    height: 13px;
+    opacity: 1;
+}
