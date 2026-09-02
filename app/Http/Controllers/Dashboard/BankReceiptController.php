@@ -7,6 +7,7 @@ use App\Models\BankAccount;
 use App\Models\BankReceipt;
 use App\Models\Invoice;
 use App\Models\LineOrder;
+use App\Models\MarketplaceInstallation;
 use App\Models\PackageOrder;
 use App\Models\Setting;
 use App\Models\Subscription;
@@ -34,6 +35,7 @@ class BankReceiptController extends Controller
         'plan' => ['receipt_for_plans', Subscription::class],
         'line' => ['receipt_for_lines', LineOrder::class],
         'package' => ['receipt_for_packages', PackageOrder::class],
+        'marketplace' => ['receipt_for_marketplace', MarketplaceInstallation::class],
         'invoice' => ['receipt_for_invoices', Invoice::class],
     ];
 

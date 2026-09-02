@@ -8,6 +8,7 @@ use App\Support\PayableSettlement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 
 /**
@@ -95,6 +96,11 @@ class MarketplaceInstallation extends Model
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class);
+    }
+
+    public function receipts(): MorphMany
+    {
+        return $this->morphMany(BankReceipt::class, 'receiptable');
     }
 
     public function handler(): AppHandler
