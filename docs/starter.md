@@ -2397,6 +2397,36 @@ Optimization:
 
 را بدون بازنویسی کل پروژه اضافه کرد.
 
+---
+
+# 91. ارسال به پیام‌رسان‌ها (بله / ایتا / واتساپ)
+
+سرویسی **مجزا** از پیامک برای **ارسال انبوه** یک پیام به گروهی از گیرندگان — نه ارسال تکی.
+گیرنده می‌تواند شمارهٔ موبایل یا شناسهٔ چت/کاربری باشد. هر پیام‌رسانی که ارسال انبوه ندارد با
+پرچم قابلیت (`bulk`) کنار گذاشته می‌شود.
+
+- **لایهٔ درایور:** `app/Services/Messenger` — دقیقاً موازی `app/Services/Sms`. اپ فقط با
+  `App\Services\Messenger\MessengerManager` کار می‌کند، هرگز مستقیم با API کانال.
+  `config/messenger.php` رجیستری کانال‌ها (کدنیم مقصد → کلاس درایور + `bulk` + تعرفه + اعتبارنامه).
+  `MESSENGER_DRIVER`: `log` (پیش‌فرض بدون‌اعتبار توسعه، مثل `SMS_PROVIDER=log`)، `null` (تست)،
+  `http` (درایورهای واقعی `BaleChannel`/`EitaaChannel`/`WhatsAppChannel`). نام سرویس تجمیع‌کنندهٔ
+  واقعی نباید در کانفیگ/کلید env/لاگ دیده شود؛ `label` هر کانال از همان cascade
+  (`config` → `.env` → تنظیم `messenger_<key>_label`) می‌آید.
+- **جریان:** `/dashboard/messenger` (انتخاب کانال) → `/dashboard/messenger/{channel}` (فرم:
+  گروه‌های مخاطبین + فهرست دستی + متن + زمان‌بندی) → `POST /dashboard/messenger/send`.
+  کنترلر گیرنده‌ها را یکتا می‌کند، هزینه = `تعداد گیرنده × تعرفهٔ کانال` را از کیف پول کسر می‌کند،
+  `MessengerCampaign` + یک `MessengerRecipient` برای هر گیرنده می‌سازد و `SendMessengerCampaignJob`
+  را در صف می‌گذارد.
+- **جاب:** بدنه را به `sendBulk` کانال می‌سپارد، وضعیت تک‌به‌تک گیرنده‌ها را می‌نویسد، کمپین را به
+  `sent`/`partial`/`failed` می‌برد و هزینهٔ بخش **ناموفق** را (`failed_count × تعرفه`) با کلید
+  idempotency `messenger:{id}:refund` به کیف پول برمی‌گرداند.
+- **داده:** `messenger_campaigns` (خلاصهٔ کمپین + `cost`/`refunded`) و `messenger_recipients`
+  (`to`، `type` = `mobile|chat`، `status`، `provider_ref`، `error`).
+- **مدیریت:** تنظیمات `messenger_enabled` و `messenger_<key>_enabled` و `messenger_<key>_tariff`
+  در پنل؛ منبع Filament فقط‌خواندنی `MessengerCampaigns` برای نظارت.
+
+---
+
 **اولویت پروژه:**
 
 1. سادگی

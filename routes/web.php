@@ -13,6 +13,7 @@ use App\Http\Controllers\Dashboard\InvoiceController;
 use App\Http\Controllers\Dashboard\LineOrderController as DashboardLineOrderController;
 use App\Http\Controllers\Dashboard\MarketplaceController;
 use App\Http\Controllers\Dashboard\MessagesController;
+use App\Http\Controllers\Dashboard\MessengerController;
 use App\Http\Controllers\Dashboard\PackageOrderController;
 use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
@@ -111,10 +112,10 @@ Route::prefix('developers')->name('docs.')->group(function () {
  */
 Route::get('/assets/theme.css', function () {
     $css = ':root{'
-        . '--primary:' . config('theme.primary') . ' !important;'
-        . '--accent:' . config('theme.accent') . ' !important;'
-        . '--secondary:' . config('theme.secondary') . ' !important;'
-        . '}';
+        .'--primary:'.config('theme.primary').' !important;'
+        .'--accent:'.config('theme.accent').' !important;'
+        .'--secondary:'.config('theme.secondary').' !important;'
+        .'}';
 
     return Response::make($css, 200, [
         'Content-Type' => 'text/css',
@@ -238,6 +239,19 @@ Route::middleware('auth')->group(function () {
             ->whereIn('box', ['inbox', 'sent'])->middleware('throttle:10,1')->name('dashboard.messages.refresh');
 
         /*
+         * پیام‌رسان‌ها (docs/starter.md §91): a service parallel to SMS for bulk
+         * sending to بله / ایتا / واتساپ from a contact group or a pasted list.
+         * Cost is taken from the wallet up front; SendMessengerCampaignJob
+         * delivers and refunds whatever fails.
+         */
+        Route::get('/dashboard/messenger', [MessengerController::class, 'index'])->name('dashboard.messenger');
+        Route::get('/dashboard/messenger/{channel}', [MessengerController::class, 'create'])
+            ->whereIn('channel', array_keys((array) config('messenger.channels')))
+            ->name('dashboard.messenger.create');
+        Route::post('/dashboard/messenger/send', [MessengerController::class, 'send'])
+            ->middleware('throttle:10,1')->name('dashboard.messenger.send');
+
+        /*
          * Phonebook (docs/starter.md §17): contacts + groups CRUD, mirrored to the
          * customer's own SMS panel, plus group SMS. Static segments are
          * declared before the {contact} routes.
@@ -313,16 +327,16 @@ Route::get('/sitemap.xml', function () {
         ];
     }
 
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
+        .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
 
     foreach ($urls as $url) {
         $xml .= "  <url>\n"
-            . "    <loc>{$url['loc']}</loc>\n"
-            . "    <lastmod>{$url['lastmod']}</lastmod>\n"
-            . "    <changefreq>{$url['changefreq']}</changefreq>\n"
-            . "    <priority>{$url['priority']}</priority>\n"
-            . "  </url>\n";
+            ."    <loc>{$url['loc']}</loc>\n"
+            ."    <lastmod>{$url['lastmod']}</lastmod>\n"
+            ."    <changefreq>{$url['changefreq']}</changefreq>\n"
+            ."    <priority>{$url['priority']}</priority>\n"
+            ."  </url>\n";
     }
 
     $xml .= '</urlset>';

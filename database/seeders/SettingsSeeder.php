@@ -67,6 +67,15 @@ class SettingsSeeder extends Seeder
             // دفترچه تلفن (docs/starter.md §17)
             ['account', 'phonebook_enabled', '1', 'bool', 'فعال بودن دفترچه تلفن و ارسال گروهی'],
 
+            // پیام‌رسان‌ها — ارسال انبوه به بله / ایتا / واتساپ (docs/starter.md §91)
+            ['messenger', 'messenger_enabled', '1', 'bool', 'فعال بودن ارسال به پیام‌رسان‌ها'],
+            ['messenger', 'messenger_bale_enabled', '1', 'bool', 'فعال بودن ارسال بله'],
+            ['messenger', 'messenger_eitaa_enabled', '1', 'bool', 'فعال بودن ارسال ایتا'],
+            ['messenger', 'messenger_whatsapp_enabled', '0', 'bool', 'فعال بودن ارسال واتساپ'],
+            ['messenger', 'messenger_bale_tariff', '0', 'string', 'تعرفهٔ هر گیرنده در بله (تومان)'],
+            ['messenger', 'messenger_eitaa_tariff', '0', 'string', 'تعرفهٔ هر گیرنده در ایتا (تومان)'],
+            ['messenger', 'messenger_whatsapp_tariff', '0', 'string', 'تعرفهٔ هر گیرنده در واتساپ (تومان)'],
+
             // صفحات حقوقی فوتر (docs/starter.md §67) — بدنه مارک‌داون، قابل ویرایش از پنل
             ['legal', 'legal_terms_body', "## قوانین و مقررات\n\nاین متن نمونه است و باید از پنل مدیریت با متن نهایی قوانین و مقررات استفاده از سرویس جایگزین شود.\n\nبا استفاده از خدمات این وبگاه، کاربر می‌پذیرد که مفاد این توافق‌نامه را مطالعه کرده و با آن موافق است.", 'text', 'متن صفحه «قوانین و مقررات»'],
             ['legal', 'legal_privacy_body', "## حریم خصوصی\n\nاین متن نمونه است و باید از پنل مدیریت با سیاست حفظ حریم خصوصی نهایی جایگزین شود.\n\nاطلاعات کاربران تنها برای ارائه خدمات استفاده شده و بدون رضایت کاربر در اختیار اشخاص ثالث قرار نمی‌گیرد.", 'text', 'متن صفحه «حریم خصوصی»'],

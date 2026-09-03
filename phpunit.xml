@@ -30,6 +30,7 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="SMS_PROVIDER" value="null"/>
+        <env name="MESSENGER_DRIVER" value="null"/>
         <env name="MARKETPLACE_IRPLUS_DRIVER" value="fake"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

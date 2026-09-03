@@ -6,6 +6,7 @@ use App\Marketplace\AppRegistry;
 use App\Models\LineOrder;
 use App\Models\Setting;
 use App\Observers\LineOrderObserver;
+use App\Services\Messenger\MessengerManager;
 use App\Services\Sms\LogProvider;
 use App\Services\Sms\Phonebook\LogPhonebookClient;
 use App\Services\Sms\Phonebook\NullPhonebookClient;
@@ -25,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->bindSmsProvider();
         $this->bindPhonebookClient();
+        $this->bindMessengerManager();
 
         // «بازارچه افزونه‌ها» handler registry (docs/starter.md §15).
         $this->app->singleton(AppRegistry::class, fn () => new AppRegistry);
@@ -107,6 +109,20 @@ class AppServiceProvider extends ServiceProvider
 
             return new $config['driver']($config);
         });
+    }
+
+    /**
+     * The messenger service (docs/starter.md §91) — bulk send to بله / ایتا /
+     * واتساپ. One manager fronts every channel; config('messenger.driver')
+     * picks the transport ("log" dev default, "null" for tests, "http" for the
+     * real per-channel drivers), exactly like bindSmsProvider().
+     */
+    private function bindMessengerManager(): void
+    {
+        $this->app->singleton(
+            MessengerManager::class,
+            fn () => new MessengerManager((string) config('messenger.driver', 'log')),
+        );
     }
 
     /**
