@@ -77,11 +77,11 @@ class FeatureCatalog
         'messages' => [
             'label' => 'پیام‌ها',
             'items' => [
-                // Wired to real pages (MessagesController) but not «system»: an
-                // admin switches them on and grants them like any other premium
-                // menu item — then the sidebar renders them as live links.
-                'messages.inbox' => ['label' => 'دریافتی', 'route' => 'dashboard.messages.inbox'],
-                'messages.sent' => ['label' => 'ارسالی', 'route' => 'dashboard.messages.sent'],
+                // Built-in pages (MessagesController): the account's provider-side
+                // archive — دریافتی + ارسالی — always available like the other
+                // core menu items. Read live through the customer's own panel.
+                'messages.inbox' => ['label' => 'دریافتی', 'route' => 'dashboard.messages.inbox', 'system' => true],
+                'messages.sent' => ['label' => 'ارسالی', 'route' => 'dashboard.messages.sent', 'system' => true],
                 'messages.trash' => 'حذف شده',
             ],
         ],
@@ -124,7 +124,6 @@ class FeatureCatalog
                 'pro.analyzer' => 'تحلیلگر',
                 'pro.email_sms' => 'ایمیل پیامک',
                 'pro.mobile_send' => 'ارسال از موبایل',
-                'pro.quran' => 'ختم قرآن',
                 'pro.fax' => 'پیامک فکس',
                 'pro.subusers' => 'کاربران (زیرمجموعه)',
                 'pro.business_card' => 'کارت ویزیت',

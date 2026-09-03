@@ -47,36 +47,36 @@ class PanelFeatureAccessTest extends TestCase
     {
         $group = UserGroup::where('slug', 'default')->first();
         $targeted = Feature::where('key', 'sms.targeted')->first();
-        $inbox = Feature::where('key', 'messages.inbox')->first();
-        $sent = Feature::where('key', 'messages.sent')->first();
+        $gradual = Feature::where('key', 'sms.gradual')->first();
+        $smart = Feature::where('key', 'sms.smart')->first();
 
-        $group->features()->sync([$targeted->id, $sent->id]);
+        $group->features()->sync([$targeted->id, $smart->id]);
 
         $user = User::factory()->create(['user_group_id' => $group->id]);
         // Per-user: add one the group lacks, drop one the group has.
-        $user->featureOverrides()->create(['feature_id' => $inbox->id, 'mode' => 'grant']);
-        $user->featureOverrides()->create(['feature_id' => $sent->id, 'mode' => 'revoke']);
+        $user->featureOverrides()->create(['feature_id' => $gradual->id, 'mode' => 'grant']);
+        $user->featureOverrides()->create(['feature_id' => $smart->id, 'mode' => 'revoke']);
 
         $keys = $user->fresh()->grantedFeatureKeys();
 
         $this->assertContains('sms.targeted', $keys);
-        $this->assertContains('messages.inbox', $keys);
-        $this->assertNotContains('messages.sent', $keys);
+        $this->assertContains('sms.gradual', $keys);
+        $this->assertNotContains('sms.smart', $keys);
     }
 
     public function test_can_use_feature_requires_the_global_toggle(): void
     {
         $group = UserGroup::where('slug', 'default')->first();
-        $feature = Feature::where('key', 'messages.inbox')->first();
+        $feature = Feature::where('key', 'sms.gradual')->first();
         $group->features()->sync([$feature->id]);
 
         $user = User::factory()->create(['user_group_id' => $group->id]);
 
-        $this->assertFalse($user->canUseFeature('messages.inbox'), 'disabled feature is not usable');
+        $this->assertFalse($user->canUseFeature('sms.gradual'), 'disabled feature is not usable');
 
         $feature->update(['is_active' => true]);
 
-        $this->assertTrue($user->fresh()->canUseFeature('messages.inbox'));
+        $this->assertTrue($user->fresh()->canUseFeature('sms.gradual'));
     }
 
     public function test_ungranted_catalogue_items_are_hidden_until_granted(): void
@@ -102,18 +102,18 @@ class PanelFeatureAccessTest extends TestCase
     public function test_switched_on_and_granted_feature_becomes_a_real_link(): void
     {
         $group = UserGroup::where('slug', 'default')->first();
-        $feature = Feature::where('key', 'messages.inbox')->first();
+        $feature = Feature::where('key', 'sms.gradual')->first();
         $feature->update(['is_active' => true, 'route' => 'dashboard']);
         $group->features()->sync([$feature->id]);
 
         $user = User::factory()->create(['status' => 'active', 'user_group_id' => $group->id]);
 
-        $this->assertTrue($user->canUseFeature('messages.inbox'));
+        $this->assertTrue($user->canUseFeature('sms.gradual'));
 
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertOk();
         $response->assertSee('<a href="'.route('dashboard').'"', false);
-        $response->assertSee('دریافتی');
+        $response->assertSee('ارسال تدریجی');
     }
 }
