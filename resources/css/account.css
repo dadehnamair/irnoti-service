@@ -1711,3 +1711,39 @@ fieldset.wallet-topup-method {
     height: 13px;
     opacity: 1;
 }
+
+/* -------------------------------------------------------------------------
+ * Jalali (Shamsi) datepicker — @majidh1/jalalidatepicker (docs/starter.md §26)
+ * The library ships a light theme; re-skin its `jdp-container` custom element
+ * to the dark dashboard tokens and the runtime brand colour (--primary).
+ * ---------------------------------------------------------------------- */
+jdp-container {
+    --jdp-primary: var(--primary);
+    --jdp-color-0: var(--panel-strong, #101b2d);
+    --jdp-color-1: color-mix(in srgb, var(--panel-strong, #101b2d), #fff 6%);
+    --jdp-color-2: var(--border);
+    --jdp-color-3: var(--muted);
+    --jdp-color-4: var(--text-soft);
+    --jdp-color-5: var(--text);
+    --jdp-red: #ff6b6b;
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm, 10px);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+}
+
+jdp-container .jdp-day.selected,
+jdp-container .jdp-day-name.selected {
+    color: #fff !important;
+}
+
+jdp-container .jdp-day:not(.not-in-month):not(.disabled):hover {
+    background-color: var(--primary-soft-16, rgba(255, 48, 0, 0.16));
+    border-radius: 6px;
+}
+
+jdp-container .jdp-btn-today,
+jdp-container .jdp-btn-empty,
+jdp-container .jdp-btn-close {
+    color: var(--primary);
+}

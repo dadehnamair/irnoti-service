@@ -131,8 +131,9 @@
             </label>
             <label>
                 <span>تاریخ ثبت</span>
-                <input type="text" name="company_registered_at" value="{{ old('company_registered_at', $user->company_registered_at) }}"
-                    dir="ltr" maxlength="20" placeholder="۱۴۰۲/۰۵/۱۷"
+                <input type="text" name="company_registered_at" value="{{ fa_digits(old('company_registered_at', $user->company_registered_at)) }}"
+                    @unless($lock) data-jdp data-jdp-only-date @endunless
+                    dir="ltr" maxlength="20" autocomplete="off" inputmode="numeric" placeholder="۱۴۰۲/۰۵/۱۷"
                     @class(['has-error'=> $errors->has('company_registered_at')]) @readonly($lock) />
                 @error('company_registered_at') <span class="field-error">{{ $message }}</span> @enderror
             </label>

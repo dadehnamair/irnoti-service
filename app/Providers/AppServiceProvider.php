@@ -12,6 +12,7 @@ use App\Services\Sms\Phonebook\LogPhonebookClient;
 use App\Services\Sms\Phonebook\NullPhonebookClient;
 use App\Services\Sms\Phonebook\PhonebookClientInterface;
 use App\Services\Sms\SmsProviderInterface;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +45,25 @@ class AppServiceProvider extends ServiceProvider
 
         $this->registerBladeDirectives();
         $this->registerFilamentColumnMacros();
+        $this->registerFilamentJalaliPickers();
+    }
+
+    /**
+     * Make every Filament date/time picker a Jalali (Shamsi) calendar, panel-wide,
+     * via ariaieboy/filament-jalali's ->jalali() macro. DatePicker extends
+     * DateTimePicker, so this single hook covers both; ->jalali() resolves to the
+     * right macro for the actual field class (date-only vs date+time display).
+     * Registered on the global ComponentManager here in boot(), so the per-request
+     * scoped manager inherits it. Individual fields can still opt out by not
+     * relying on this — call ->displayFormat()/->native() after if ever needed.
+     */
+    private function registerFilamentJalaliPickers(): void
+    {
+        if (! class_exists(DateTimePicker::class) || ! DateTimePicker::hasMacro('jalali')) {
+            return;
+        }
+
+        DateTimePicker::configureUsing(fn (DateTimePicker $picker) => $picker->jalali());
     }
 
     /**

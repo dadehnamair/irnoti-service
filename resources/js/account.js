@@ -4,9 +4,12 @@
  *   - OTP resend countdown
  *   - auto-advance / numeric-only on the OTP input
  *   - flash toasts + confirm dialogs (via ./flash.js)
+ *   - Jalali (Shamsi) datepicker on every [data-jdp] input (docs/starter.md §26)
  */
 
 import './flash.js';
+import '@majidh1/jalalidatepicker/dist/jalalidatepicker.min.css';
+import '@majidh1/jalalidatepicker/dist/jalalidatepicker.min.js';
 
 function otpResendCountdown() {
     const btn = document.querySelector('[data-resend]');
@@ -187,6 +190,31 @@ function groupPickers() {
     });
 }
 
+/*
+ * Jalali (Shamsi) datepicker for the customer dashboard (docs/starter.md §26/§27).
+ * Any <input data-jdp> becomes a Persian calendar. Fields that must post a
+ * Gregorian value to the server (birth_date, schedule_at) carry
+ * data-jdp-target-value-input="#<id>" + data-jdp-target-value-type="gregorian"
+ * pointing at a sibling hidden <input> that holds the real value; the visible
+ * field only shows the Shamsi date. Date-only fields add data-jdp-only-date.
+ */
+function jalaliDatePickers() {
+    const jdp = window.jalaliDatepicker;
+    if (!jdp || !document.querySelector('[data-jdp]')) return;
+
+    jdp.startWatch({
+        time: true, // date+time fields inherit this; date-only opt out with data-jdp-only-date
+        hasSecond: false,
+        persianDigits: true,
+        autoHide: true,
+        hideAfterChange: true,
+        showTodayBtn: true,
+        showEmptyBtn: true,
+        showCloseBtn: true,
+        useDropdownYears: true,
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     otpResendCountdown();
     otpInput();
@@ -194,4 +222,5 @@ document.addEventListener('DOMContentLoaded', () => {
     smsCounter();
     moneyInputs();
     groupPickers();
+    jalaliDatePickers();
 });

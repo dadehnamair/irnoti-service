@@ -49,10 +49,7 @@
                 </select>
             </label>
 
-            <label>
-                <span>زمان‌بندی ارسال (اختیاری — فقط حالت ارسال گروهی)</span>
-                <input type="datetime-local" name="schedule_at" dir="ltr" value="{{ old('schedule_at') }}" />
-            </label>
+            @include('dashboard.partials.schedule-field', ['label' => 'زمان‌بندی ارسال (اختیاری — فقط حالت ارسال گروهی)'])
 
             <button type="submit" class="btn btn-primary full">ارسال</button>
         </form>

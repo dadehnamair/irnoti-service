@@ -15,6 +15,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@majidh1/jalalidatepicker": "^1.0.0",
         "highlight.js": "^11.12.0"
     }
 }

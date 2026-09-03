@@ -44,9 +44,13 @@
             </select>
         </label>
         <label>
+            @php($birthGregorian = old('birth_date', $contact?->birth_date?->toDateString()))
             <span>تاریخ تولد</span>
-            <input type="date" name="birth_date" dir="ltr"
-                   value="{{ old('birth_date', $contact?->birth_date?->toDateString()) }}" />
+            <input type="text" data-jdp data-jdp-only-date
+                   data-jdp-target-value-input="#birth_date_value" data-jdp-target-value-type="gregorian"
+                   dir="ltr" autocomplete="off" inputmode="numeric" placeholder="۱۳۷۰/۰۵/۱۷"
+                   value="{{ $birthGregorian ? fa_digits(jalali_date($birthGregorian)) : '' }}" />
+            <input type="hidden" id="birth_date_value" name="birth_date" value="{{ $birthGregorian }}" />
         </label>
     </div>
 

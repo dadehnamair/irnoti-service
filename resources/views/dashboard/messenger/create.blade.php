@@ -48,10 +48,7 @@
                 @error('message') <span class="field-error">{{ $message }}</span> @enderror
             </label>
 
-            <label>
-                <span>زمان‌بندی ارسال (اختیاری)</span>
-                <input type="datetime-local" name="schedule_at" dir="ltr" value="{{ old('schedule_at') }}" />
-            </label>
+            @include('dashboard.partials.schedule-field')
 
             <p class="field-hint">حداکثر {{ number_format($cap) }} گیرنده در هر ارسال.</p>
 

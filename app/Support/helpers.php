@@ -39,6 +39,21 @@ if (! function_exists('jalali_datetime')) {
     }
 }
 
+if (! function_exists('fa_digits')) {
+    /**
+     * Convert the ASCII digits in a string to Persian digits. Used to pre-fill
+     * the customer-facing Jalali date inputs so the value matches what the
+     * datepicker renders (persianDigits) instead of flashing Latin numerals.
+     */
+    function fa_digits(?string $value): string
+    {
+        return strtr((string) $value, [
+            '0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴',
+            '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹',
+        ]);
+    }
+}
+
 if (! function_exists('toman')) {
     /**
      * Money for display: integer Toman, grouped in threes with commas
