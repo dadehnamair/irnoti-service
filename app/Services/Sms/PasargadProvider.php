@@ -206,7 +206,9 @@ class PasargadProvider implements SmsProviderInterface
         ], $params);
 
         try {
-            $response = Http::asForm()->timeout(20)->acceptJson()->post(self::SOAP.'/'.$method, $payload);
+            // Kept short: sends run in a queued job that retries, and the
+            // customer panel reads credit/numbers on page load synchronously.
+            $response = Http::asForm()->connectTimeout(5)->timeout(10)->acceptJson()->post(self::SOAP.'/'.$method, $payload);
         } catch (\Throwable $e) {
             Log::error('[sms:pasargad] connection failed', ['method' => $method, 'error' => $e->getMessage()]);
 
@@ -305,7 +307,7 @@ class PasargadProvider implements SmsProviderInterface
         }
 
         try {
-            $response = Http::asJson()->timeout(15)->post(self::REST.'/'.$path.'/'.$key, $payload);
+            $response = Http::asJson()->connectTimeout(5)->timeout(12)->post(self::REST.'/'.$path.'/'.$key, $payload);
         } catch (\Throwable $e) {
             throw new RuntimeException('اتصال به '.sms_provider_label().' برقرار نشد: '.$e->getMessage());
         }

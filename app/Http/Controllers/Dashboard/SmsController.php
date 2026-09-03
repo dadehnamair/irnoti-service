@@ -3,18 +3,17 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendContactGroupSmsJob;
+use App\Jobs\SendUserSmsJob;
 use App\Models\ContactGroup;
 use App\Models\Setting;
 use App\Models\SmsMessage;
 use App\Models\User;
-use App\Services\Sms\Phonebook\UserPhonebook;
-use App\Services\Sms\SmsPanelNotConfiguredException;
 use App\Services\Sms\UserSmsGateway;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
@@ -85,6 +84,8 @@ class SmsController extends Controller
 
         $from = $data['from'] ?? $user->sms_sender;
 
+        // The gateway can be slow/unreachable — never block the request on it.
+        // The row lands as "queued" and SendUserSmsJob moves it to sent/failed.
         $message = SmsMessage::create([
             'user_id' => $user->id,
             'to' => $data['to'],
@@ -94,23 +95,10 @@ class SmsController extends Controller
             'status' => 'queued',
         ]);
 
-        try {
-            $recId = UserSmsGateway::for($user)->send($data['to'], $data['message'], $from);
-            $message->update(['status' => 'sent', 'rec_id' => $recId]);
-            Cache::forget("sms_credit:{$user->id}");
+        SendUserSmsJob::dispatch($message->id);
 
-            return redirect()->route('dashboard.sms')->with('sms_status', 'پیامک ارسال شد.');
-        } catch (SmsPanelNotConfiguredException $e) {
-            $message->update(['status' => 'failed', 'error' => $e->getMessage()]);
-
-            return redirect()->route('dashboard.sms')->with('sms_error', $e->getMessage());
-        } catch (\Throwable $e) {
-            Log::error('Customer SMS send failed', ['user' => $user->id, 'error' => $e->getMessage()]);
-            $message->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 250)]);
-
-            return redirect()->route('dashboard.sms')
-                ->with('sms_error', 'ارسال پیامک ناموفق بود: '.$e->getMessage());
-        }
+        return redirect()->route('dashboard.sms')
+            ->with('sms_status', 'پیامک در صف ارسال قرار گرفت؛ وضعیت آن در تاریخچهٔ ارسال‌ها نمایش داده می‌شود.');
     }
 
     /* ------------------------- group send (docs/starter.md §17/§18) ------------------------- */
@@ -196,15 +184,8 @@ class SmsController extends Controller
         }
 
         $parts = max(1, (int) ceil(mb_strlen($data['message']) / 70));
-        $sent = 0;
-        $failed = 0;
 
-        try {
-            $gateway = UserSmsGateway::for($user);
-        } catch (SmsPanelNotConfiguredException $e) {
-            return back()->withInput()->with('sms_error', $e->getMessage());
-        }
-
+        // One queued job per recipient — the request never waits on the gateway.
         foreach ($recipients as $mobile) {
             $message = SmsMessage::create([
                 'user_id' => $user->id,
@@ -215,21 +196,12 @@ class SmsController extends Controller
                 'status' => 'queued',
             ]);
 
-            try {
-                $recId = $gateway->send($mobile, $data['message'], $from);
-                $message->update(['status' => 'sent', 'rec_id' => $recId]);
-                $sent++;
-            } catch (\Throwable $e) {
-                $message->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 250)]);
-                $failed++;
-            }
+            SendUserSmsJob::dispatch($message->id);
         }
 
-        Cache::forget("sms_credit:{$user->id}");
-
         return redirect()->route('dashboard.contacts.send')->with(
-            $failed > 0 ? 'warning' : 'sms_status',
-            sprintf('ارسال گروهی انجام شد: %d موفق، %d ناموفق.', $sent, $failed),
+            'sms_status',
+            sprintf('ارسال گروهی برای %d گیرنده در صف قرار گرفت؛ وضعیت هر پیام در تاریخچه مشخص می‌شود.', $recipients->count()),
         );
     }
 
@@ -259,26 +231,14 @@ class SmsController extends Controller
             'status' => 'queued',
         ]);
 
-        try {
-            $bulkId = UserPhonebook::for($user)->sendToGroups(
-                $groups->pluck('remote_id')->all(),
-                $data['message'],
-                $from,
-                null,
-                $this->providerSchedule($data['schedule_at'] ?? null),
-            );
+        SendContactGroupSmsJob::dispatch(
+            $message->id,
+            $groups->pluck('remote_id')->all(),
+            $this->providerSchedule($data['schedule_at'] ?? null),
+        );
 
-            $message->update(['status' => 'sent', 'rec_id' => $bulkId]);
-            Cache::forget("sms_credit:{$user->id}");
-
-            return redirect()->route('dashboard.contacts.send')
-                ->with('sms_status', 'ارسال گروهی به '.sms_provider_label().' سپرده شد. کد پیگیری: '.$bulkId);
-        } catch (\Throwable $e) {
-            Log::error('[phonebook] group send failed', ['user' => $user->id, 'error' => $e->getMessage()]);
-            $message->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 250)]);
-
-            return back()->withInput()->with('sms_error', 'ارسال گروهی ناموفق بود: '.$e->getMessage());
-        }
+        return redirect()->route('dashboard.contacts.send')
+            ->with('sms_status', 'ارسال گروهی در صف قرار گرفت و به‌زودی به '.sms_provider_label().' سپرده می‌شود؛ کد پیگیری پس از ثبت در تاریخچه نمایش داده می‌شود.');
     }
 
     /** @return array<int, string> */
