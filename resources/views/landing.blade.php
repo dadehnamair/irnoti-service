@@ -31,10 +31,33 @@ $lines = rescue(
     false
 );
 
+// Marketplace teaser (docs/starter.md §15) — a few active add-ons for the
+// "بازارچه افزونه‌ها" strip; the full catalogue lives on /marketplace.
+$marketApps = rescue(
+    fn () => \App\Models\MarketplaceApp::query()->active()->ordered()->limit(4)->get(),
+    collect(),
+    false
+);
+$marketEnabled = rescue(fn () => (bool) \App\Models\Setting::get('marketplace_enabled', true), true, false);
+
+// An app `icon` is either an uploaded image path or a short emoji/glyph.
+$renderIcon = function ($icon, string $fallback = '🧩') {
+    $icon = trim((string) $icon);
+    if ($icon === '') {
+        return e($fallback);
+    }
+    return \Illuminate\Support\Str::contains($icon, ['/', '.'])
+        ? '<img src="'.e(\Illuminate\Support\Str::startsWith($icon, ['http://', 'https://', '/']) ? $icon : \Illuminate\Support\Facades\Storage::url($icon)).'" alt="" loading="lazy" />'
+        : e($icon);
+};
+
 $faqs = [
 ['q' => 'آیا irnoti برای شروع کسب‌وکارهای کوچک مناسب است؟', 'a' => 'بله، پلن‌های پایه و حرفه‌ای برای کسب‌وکارهای کوچک تا بزرگ طراحی شده‌اند و برای فروشگاه‌ها، خدمات و برندها مناسب هستند.'],
+['q' => 'برای شروع چه چیزی لازم است؟', 'a' => 'فقط یک شماره موبایل. با ثبت‌نام و تأیید کد پیامکی وارد پنل می‌شوید؛ تکمیل هویت و مدارک را می‌توانید بعداً و به‌صورت مرحله‌به‌مرحله انجام دهید.'],
 ['q' => 'آیا امکان ارسال پیامک زمان‌بندی‌شده وجود دارد؟', 'a' => 'بله، از طریق پنل و API می‌توانید ارسال زمان‌بندی‌شده و کمپین‌های هدفمند داشته باشید.'],
+['q' => 'بازارچه افزونه‌ها چیست؟', 'a' => 'بخشی از پنل که با آن می‌توانید قابلیت‌های تازه‌ای مثل اتصال به ایرپلاس، کارت ویزیت الکترونیکی یا منشی پیامکی را با چند کلیک به حساب خود اضافه کنید.'],
 ['q' => 'آیا API دارای مستندات فارسی است؟', 'a' => 'بله، مستندات API به‌صورت حرفه‌ای و ساده برای تیم‌های فنی آماده است و به‌راحتی در پروژه‌های مختلف قابل استفاده می‌باشد.'],
+['q' => 'روش‌های پرداخت و تسویه چگونه است؟', 'a' => 'پرداخت آنلاین از طریق درگاه بانکی، شارژ کیف پول، ثبت فیش بانکی و صدور فاکتور رسمی برای کسب‌وکارها پشتیبانی می‌شود.'],
 ];
 
 // JSON-LD graph: Organization + WebSite + one Product per plan.
@@ -81,6 +104,15 @@ $graph[] = [
 ],
 ];
 }
+
+$graph[] = [
+'@type' => 'FAQPage',
+'mainEntity' => collect($faqs)->map(fn ($f) => [
+'@type' => 'Question',
+'name' => $f['q'],
+'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']],
+])->all(),
+];
 
 $jsonLd = json_encode(
 ['@context' => 'https://schema.org', '@graph' => $graph],
@@ -143,19 +175,25 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                     <div class="hero-copy">
                         <p class="eyebrow">
                             <span class="dot"></span>
-                            راهکار پیامکی برای کسب‌وکارهای مدرن
+                            پلتفرم پیامکی کسب‌وکار — پنل، خطوط، افزونه و API
                         </p>
-                        <h1>پنل پیامک حرفه‌ای برای کسب‌وکارها و فروشگاه‌های آنلاین</h1>
+                        <h1>زیرساخت کامل پیامک برای کسب‌وکارها و فروشگاه‌های آنلاین</h1>
                         <p>
-                            {{ $brand }} یک سرویس تخصصی ارسال پیامک، پنل پیامکی، خطوط اختصاصی و API
-                            قدرتمند برای کسب‌وکارهاست؛ با ارسال سریع، گزارش دقیق، مدیریت مخاطب
-                            و پشتیبانی حرفه‌ای برای رشد بهتر فروش و ارتباط با مشتریان.
+                            {{ $brand }} همه‌چیز را یک‌جا جمع کرده است: ارسال انبوه و گروهی، خطوط
+                            اختصاصی، دفترچه تلفن با همگام‌سازی، کیف پول و فاکتور رسمی، بازارچه
+                            افزونه‌ها و وب‌سرویس استاندارد — با گزارش لحظه‌ای و پشتیبانی حرفه‌ای.
                         </p>
 
                         <div class="hero-actions">
-                            <a class="btn btn-primary" href="#cta">شروع رایگان</a>
+                            <a class="btn btn-primary" href="{{ auth()->check() ? route('dashboard') : route('register') }}">شروع رایگان</a>
                             <a class="btn btn-secondary" href="#pricing">مشاهده تعرفه‌ها</a>
                         </div>
+
+                        <ul class="hero-trust" aria-label="مزیت‌ها">
+                            <li>بدون قرارداد و پیش‌پرداخت</li>
+                            <li>راه‌اندازی در چند دقیقه</li>
+                            <li>فاکتور رسمی برای شرکت‌ها</li>
+                        </ul>
 
                         <div class="hero-meta">
                             <div>
@@ -195,7 +233,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                                     <strong>۸۴٪</strong>
                                 </div>
                                 <div class="metric-item highlight">
-                                    <span>درآمد</span>
+                                    <span>اعتبار کیف پول</span>
                                     <strong>۲.۴M</strong>
                                 </div>
                             </div>
@@ -228,52 +266,159 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                 </div>
             </section>
 
+            <section class="stat-band" aria-label="آمار سرویس">
+                <div class="container stat-grid">
+                    <div class="stat-item">
+                        <strong>۹۹.۹٪</strong>
+                        <span>در دسترس بودن سرویس</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>&lt; ۳۰ms</strong>
+                        <span>میانگین پاسخ API</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>+۴۸</strong>
+                        <span>خط اختصاصی فعال</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>۲۴/۷</strong>
+                        <span>پشتیبانی انسانی</span>
+                    </div>
+                </div>
+            </section>
+
             <section id="features" class="section" aria-labelledby="features-title">
                 <div class="container">
-                    <div class="section-heading">
+                    <div class="section-heading center">
                         <span class="kicker">چرا {{ $brand }}؟</span>
-                        <h2 id="features-title">ویژگی‌های اصلی پنل پیامک {{ $brand }} برای کسب‌وکارهای مدرن</h2>
+                        <h2 id="features-title">هر چیزی که برای ارتباط پیامکی با مشتری لازم دارید</h2>
                     </div>
 
                     <div class="feature-grid">
                         <article class="feature-card">
                             <div class="icon-wrap blue" aria-hidden="true">✉️</div>
-                            <h3>ارسال پیامک</h3>
-                            <p>ارسال فوری پیامک‌های فردی، گروهی و زمان‌بندی‌شده با کارایی بالا.</p>
+                            <h3>ارسال انبوه و گروهی</h3>
+                            <p>ارسال فوری پیامک‌های فردی، گروهی و زمان‌بندی‌شده با کارایی بالا و صف اختصاصی.</p>
                         </article>
 
                         <article class="feature-card">
-                            <div class="icon-wrap purple" aria-hidden="true">📦</div>
-                            <h3>ایجاد کمپین</h3>
-                            <p>طراحی کمپین‌های فروش، تحویل، یادآوری و اطلاع‌رسانی با تجربه کاربری ساده.</p>
+                            <div class="icon-wrap orange" aria-hidden="true">📇</div>
+                            <h3>دفترچه تلفن هوشمند</h3>
+                            <p>مدیریت مخاطبین و گروه‌ها با همگام‌سازی دوطرفه با پنل شما و ورود دسته‌ای داده‌ها.</p>
                         </article>
 
                         <article class="feature-card">
-                            <div class="icon-wrap green" aria-hidden="true">🧠</div>
+                            <div class="icon-wrap green" aria-hidden="true">📨</div>
+                            <h3>صندوق پیام‌ها</h3>
+                            <p>مشاهده پیام‌های دریافتی و ارسالی، بایگانی و بروزرسانی لحظه‌ای وضعیت از سامانه.</p>
+                        </article>
+
+                        <article class="feature-card">
+                            <div class="icon-wrap purple" aria-hidden="true">🧠</div>
                             <h3>پیامک پترن</h3>
-                            <p>ساخت الگوهای پیامکی استاندارد و استفاده مجدد برای ارسال‌های تکرارشونده.</p>
+                            <p>ساخت الگوهای پیامکی استاندارد و استفاده مجدد برای ارسال‌های تراکنشی و تکرارشونده.</p>
                         </article>
 
                         <article class="feature-card">
-                            <div class="icon-wrap orange" aria-hidden="true">📞</div>
-                            <h3>دفترچه مخاطب</h3>
-                            <p>مدیریت گروه‌ها، فیلترهای دقیق و واردکردن داده‌ها با سرعت و نظم بالا.</p>
+                            <div class="icon-wrap gold" aria-hidden="true">👛</div>
+                            <h3>کیف پول و فاکتور</h3>
+                            <p>شارژ حساب، دفتر تراکنش شفاف، ثبت فیش بانکی و صدور فاکتور رسمی برای کسب‌وکارها.</p>
                         </article>
 
                         <article class="feature-card">
-                            <div class="icon-wrap red" aria-hidden="true">⏱️</div>
-                            <h3>زمان‌بندی</h3>
-                            <p>ارسال در زمان دقیق، هفتگی یا ماهانه بدون نیاز به حضور دستی.</p>
+                            <div class="icon-wrap red" aria-hidden="true">🧩</div>
+                            <h3>بازارچه افزونه‌ها</h3>
+                            <p>افزودن قابلیت‌های تازه به پنل — اتصال به ایرپلاس، کارت ویزیت الکترونیکی و منشی پیامکی.</p>
+                        </article>
+
+                        <article class="feature-card">
+                            <div class="icon-wrap blue" aria-hidden="true">📞</div>
+                            <h3>خطوط اختصاصی</h3>
+                            <p>پیش‌شماره‌های ۱۰۰۰، ۲۰۰۰، ۳۰۰۰، ۵۰۰۰ و ۰۲۱ با انتخاب تعداد ارقام و خرید آنلاین.</p>
                         </article>
 
                         <article class="feature-card">
                             <div class="icon-wrap gold" aria-hidden="true">⚡</div>
-                            <h3>API حرفه‌ای</h3>
-                            <p>اتصال سریع به اپلیکیشن‌ها، CRM و سیستم‌های فروش با مستندات دقیق.</p>
+                            <h3>وب‌سرویس و API</h3>
+                            <p>اتصال سریع به اپلیکیشن‌ها، CRM و سیستم‌های فروش با مستندات فارسی و Webhook.</p>
+                        </article>
+
+                        <article class="feature-card">
+                            <div class="icon-wrap purple" aria-hidden="true">🛡️</div>
+                            <h3>دسترسی و امنیت</h3>
+                            <p>سطوح کاربری، کنترل دقیق دسترسی به بخش‌های پنل و ورود امن با کد یک‌بارمصرف.</p>
                         </article>
                     </div>
                 </div>
             </section>
+
+            <section id="panel" class="section alt-bg panel-tour" aria-labelledby="panel-title">
+                <div class="container">
+                    <div class="section-heading">
+                        <span class="kicker">یک پنل، همه ابزارها</span>
+                        <h2 id="panel-title">پنل کاربری {{ $brand }} از روز اول کامل است</h2>
+                    </div>
+
+                    <div class="tour-grid">
+                        <ul class="tour-menu" aria-label="بخش‌های پنل">
+                            <li class="is-active"><span class="tour-ico">📊</span> داشبورد و گزارش‌ها</li>
+                            <li><span class="tour-ico">✉️</span> ارسال پیامک تکی و گروهی</li>
+                            <li><span class="tour-ico">📨</span> پیام‌ها — دریافتی و ارسالی</li>
+                            <li><span class="tour-ico">📇</span> دفترچه تلفن و گروه‌ها</li>
+                            <li><span class="tour-ico">👛</span> کیف پول و تراکنش‌ها</li>
+                            <li><span class="tour-ico">🧾</span> فاکتورها و فیش بانکی</li>
+                            <li><span class="tour-ico">🧩</span> بازارچه افزونه‌ها</li>
+                            <li><span class="tour-ico">📞</span> خطوط اختصاصی</li>
+                        </ul>
+
+                        <div class="tour-preview" aria-hidden="true">
+                            <div class="tour-preview-head">
+                                <span>گزارش امروز</span>
+                                <span class="badge success">فعال</span>
+                            </div>
+                            <div class="tour-preview-rows">
+                                <div class="tpr"><span>پیامک ارسال‌شده</span><strong>۵۸٬۴۲۱</strong></div>
+                                <div class="tpr"><span>نرخ تحویل</span><strong>۹۶٪</strong></div>
+                                <div class="tpr"><span>مخاطب فعال</span><strong>۱۲٬۳۴۰</strong></div>
+                                <div class="tpr"><span>اعتبار کیف پول</span><strong>۲٬۴۰۰٬۰۰۰ تومان</strong></div>
+                            </div>
+                            <div class="progress" role="progressbar" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100">
+                                <span style="width: 82%"></span>
+                            </div>
+                            <small>افزایش ۱۸٪ نسبت به ماه گذشته</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            @if ($marketEnabled && $marketApps->isNotEmpty())
+            <section id="marketplace" class="section market-teaser" aria-labelledby="market-title">
+                <div class="container">
+                    <div class="section-heading">
+                        <span class="kicker">بازارچه افزونه‌ها</span>
+                        <h2 id="market-title">پنل خود را با چند کلیک قدرتمندتر کنید</h2>
+                        <a class="heading-link" href="{{ route('marketplace') }}">مشاهده همه افزونه‌ها ←</a>
+                    </div>
+
+                    <div class="mk-teaser-grid">
+                        @foreach ($marketApps as $app)
+                        <article class="mk-teaser-card" @if ($app->accent_color) style="--mk-accent: {{ $app->accent_color }}" @endif>
+                            <div class="mk-ico" aria-hidden="true">{!! $renderIcon($app->icon) !!}</div>
+                            <h3>{{ $app->name }}</h3>
+                            @if ($app->tagline)
+                            <p>{{ \Illuminate\Support\Str::of($app->tagline)->squish()->limit(90) }}</p>
+                            @endif
+                            <span class="mk-teaser-price">{{ $app->price_label }}</span>
+                        </article>
+                        @endforeach
+                    </div>
+
+                    <div class="lines-cta">
+                        <a class="btn btn-primary" href="{{ route('marketplace') }}">ورود به بازارچه افزونه‌ها</a>
+                    </div>
+                </div>
+            </section>
+            @endif
 
             <section class="section alt-bg" aria-labelledby="perf-title">
                 <div class="container two-col">
@@ -302,6 +447,52 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                             </div>
                             <small>افزایش ۱۸٪ نسبت به ماه گذشته</small>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="how" class="section" aria-labelledby="how-title">
+                <div class="container">
+                    <div class="section-heading center">
+                        <span class="kicker">شروع سریع</span>
+                        <h2 id="how-title">در سه گام به مشتریان‌تان پیامک بدهید</h2>
+                    </div>
+
+                    <div class="steps-row">
+                        <article class="step-card">
+                            <span class="step-num">۱</span>
+                            <h3>ثبت‌نام با موبایل</h3>
+                            <p>شماره موبایل را وارد کنید و کد پیامکی را تأیید کنید — بدون فرم طولانی.</p>
+                        </article>
+                        <article class="step-card">
+                            <span class="step-num">۲</span>
+                            <h3>انتخاب پلن یا خط</h3>
+                            <p>یک پلن مناسب یا خط اختصاصی انتخاب کنید و در صورت نیاز افزونه‌ها را فعال کنید.</p>
+                        </article>
+                        <article class="step-card">
+                            <span class="step-num">۳</span>
+                            <h3>ارسال و گزارش‌گیری</h3>
+                            <p>از پنل یا API پیامک بفرستید و وضعیت تحویل را لحظه‌ای دنبال کنید.</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="lines" class="section alt-bg" aria-labelledby="lines-title">
+                <div class="container">
+                    <div class="section-heading">
+                        <span class="kicker">خطوط اختصاصی</span>
+                        <h2 id="lines-title">دسترسی به خطوط و شماره‌های مناسب کسب‌وکار شما</h2>
+                    </div>
+
+                    <div class="line-grid">
+                        @foreach ($lines as $line)
+                        <a class="line-tag" href="{{ route('lines') }}">خطوط {{ $line }}</a>
+                        @endforeach
+                    </div>
+
+                    <div class="lines-cta">
+                        <a class="btn btn-primary" href="{{ route('lines') }}">مشاهده و خرید خطوط اختصاصی</a>
                     </div>
                 </div>
             </section>
@@ -354,29 +545,14 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                         <p class="pricing-empty">به‌زودی پلن‌های تعرفه در این بخش نمایش داده می‌شوند.</p>
                         @endforelse
                     </div>
+
+                    <p class="pricing-note">
+                        به دنبال حجم بالا هستید؟ <a href="{{ route('sms-packages') }}">بسته‌های پیامکی</a> و پلن سازمانی هم موجود است.
+                    </p>
                 </div>
             </section>
 
-            <section id="lines" class="section alt-bg" aria-labelledby="lines-title">
-                <div class="container">
-                    <div class="section-heading">
-                        <span class="kicker">خطوط اختصاصی</span>
-                        <h2 id="lines-title">دسترسی به خطوط و شماره‌های مناسب کسب‌وکار شما</h2>
-                    </div>
-
-                    <div class="line-grid">
-                        @foreach ($lines as $line)
-                        <a class="line-tag" href="{{ route('lines') }}">خطوط {{ $line }}</a>
-                        @endforeach
-                    </div>
-
-                    <div class="lines-cta">
-                        <a class="btn btn-primary" href="{{ route('lines') }}">مشاهده و خرید خطوط اختصاصی</a>
-                    </div>
-                </div>
-            </section>
-
-            <section id="api" class="section" aria-labelledby="api-title">
+            <section id="api" class="section alt-bg" aria-labelledby="api-title">
                 <div class="container api-shell">
                     <div class="section-heading">
                         <span class="kicker">API &amp; Docs</span>
@@ -409,10 +585,38 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                             </div>
                         </div>
                     </div>
+
+                    <div class="section-heading" style="margin-top: 28px; margin-bottom: 0">
+                        <a class="heading-link" href="{{ route('docs.index') }}">مطالعه مستندات فنی ←</a>
+                    </div>
                 </div>
             </section>
 
-            <section id="faq" class="section faq-section" aria-labelledby="faq-title">
+            <section id="testimonials" class="section" aria-labelledby="testi-title">
+                <div class="container">
+                    <div class="section-heading center">
+                        <span class="kicker">تجربه مشتریان</span>
+                        <h2 id="testi-title">کسب‌وکارها درباره {{ $brand }} چه می‌گویند</h2>
+                    </div>
+
+                    <div class="testi-grid">
+                        <figure class="testi-card">
+                            <blockquote>راه‌اندازی سریع بود و تیم فنی ما در یک بعدازظهر API را به سیستم سفارش‌ها وصل کرد. گزارش‌ها دقیق است.</blockquote>
+                            <figcaption>مدیر فنی، فروشگاه اینترنتی</figcaption>
+                        </figure>
+                        <figure class="testi-card">
+                            <blockquote>دفترچه تلفن و ارسال گروهی دقیقاً چیزی بود که برای کمپین‌های فصلی لازم داشتیم؛ بدون دردسر اکسل.</blockquote>
+                            <figcaption>مسئول بازاریابی، برند پوشاک</figcaption>
+                        </figure>
+                        <figure class="testi-card">
+                            <blockquote>فاکتور رسمی و کیف پول کار حسابداری ما را ساده کرد. پشتیبانی هم واقعاً پاسخگوست.</blockquote>
+                            <figcaption>مدیر مالی، آژانس مسافرتی</figcaption>
+                        </figure>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faq" class="section alt-bg faq-section" aria-labelledby="faq-title">
                 <div class="container">
                     <div class="section-heading center">
                         <span class="kicker">سوالات متداول</span>
@@ -433,7 +637,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             </section>
 
             @if ($latestPosts->isNotEmpty())
-            <section id="blog" class="section alt-bg" aria-labelledby="blog-title">
+            <section id="blog" class="section" aria-labelledby="blog-title">
                 <div class="container">
                     <div class="section-heading">
                         <span class="kicker">وبلاگ</span>
@@ -463,6 +667,33 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             </section>
             @endif
 
+            <section id="about" class="section alt-bg about-band" aria-labelledby="about-title">
+                <div class="container two-col">
+                    <div class="content-block">
+                        <span class="kicker">درباره {{ $brand }}</span>
+                        <h2 id="about-title">یک تیم ایرانی، متمرکز بر ارتباط پیامکی کسب‌وکار</h2>
+                        <p>
+                            {{ $brand }} با هدف ساده‌کردن ارسال پیامک برای فروشگاه‌ها، خدمات و برندها ساخته
+                            شده است. تمرکز ما بر پایداری سرویس، شفافیت گزارش‌ها و پشتیبانی واقعی است —
+                            از ارسال اولین پیامک تا اتصال کامل سیستم‌های سازمانی.
+                        </p>
+                        <ul class="check-list">
+                            <li>زیرساخت ابری با پایش دائمی</li>
+                            <li>احراز هویت و مدارک مطابق مقررات</li>
+                            <li>نمادهای اعتماد الکترونیکی و ساماندهی</li>
+                        </ul>
+                    </div>
+                    <div class="info-panel">
+                        <div class="info-card about-contact">
+                            <h3>در تماس باشیم</h3>
+                            <p><a href="tel:{{ $phone }}" dir="ltr">{{ $phoneDisplay }}</a></p>
+                            <p><a href="mailto:{{ $email }}" dir="ltr">{{ $email }}</a></p>
+                            <a class="btn btn-secondary full" href="{{ route('blog.index') }}">مطالعه وبلاگ</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="cta" class="section cta-section">
                 <div class="container cta-box">
                     <div>
@@ -470,8 +701,8 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                         <h2>{{ $brand }} را برای رشد کسب‌وکار خود انتخاب کنید</h2>
                     </div>
                     <div class="cta-actions">
-                        <a class="btn btn-primary" href="mailto:{{ $email }}">{{ $email }}</a>
-                        <a class="btn btn-secondary light" href="#top">بازگشت به بالا</a>
+                        <a class="btn btn-primary" href="{{ auth()->check() ? route('dashboard') : route('register') }}">ساخت حساب رایگان</a>
+                        <a class="btn btn-secondary light" href="mailto:{{ $email }}">{{ $email }}</a>
                     </div>
                 </div>
             </section>

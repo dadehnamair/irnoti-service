@@ -4,7 +4,7 @@
     $isSent = $box === 'sent';
     $pageTitle = $isSent ? 'پیام‌های ارسالی' : 'پیام‌های دریافتی';
     // For an incoming message the «فرستنده» is the person who texted in and the
-    // «گیرنده» is our سرشماره; for a sent message it is the other way round.
+    // «خط» is our سرشماره; for a sent message it is the other way round.
     $peerLabel = $isSent ? 'گیرنده' : 'فرستنده';
     $lineLabel = $isSent ? 'سرشماره' : 'خط دریافت';
 @endphp
@@ -23,28 +23,31 @@
         </div>
     @else
         <div class="account-card">
-            <h2>{{ $pageTitle }}</h2>
+            <div class="account-card__head">
+                <h2>{{ $pageTitle }}</h2>
+                <form method="POST" action="{{ route('dashboard.messages.refresh', $box) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-ghost">بروزرسانی از {{ sms_provider_label() }}</button>
+                </form>
+            </div>
+
             <p class="auth-sub">
                 {{ $isSent
-                    ? 'فهرست پیام‌های ارسال‌شده از حساب پیامکی شما، مستقیم از ' . sms_provider_label() . '.'
-                    : 'پیام‌هایی که کاربران به سرشماره‌های اختصاصی حساب شما ارسال کرده‌اند، مستقیم از ' . sms_provider_label() . '.' }}
+                    ? 'فهرست پیام‌های ارسال‌شده از حساب پیامکی شما.'
+                    : 'پیام‌هایی که کاربران به سرشماره‌های اختصاصی حساب شما ارسال کرده‌اند.' }}
+                @if ($syncedAt)
+                    <span class="field-hint">آخرین بروزرسانی: @jdatetime($syncedAt)</span>
+                @else
+                    <span class="field-hint">در حال دریافت نخستین فهرست از {{ sms_provider_label() }}؛ چند لحظه بعد صفحه را تازه کنید.</span>
+                @endif
             </p>
 
-            @if ($error)
-                <div class="account-banner is-danger">
-                    دریافت فهرست پیام‌ها از {{ sms_provider_label() }} ناموفق بود:<br>
-                    <span dir="auto">{{ $error }}</span>
-                </div>
-            @endif
-
-            @if (empty($messages))
+            @if ($messages->isEmpty())
                 <p class="auth-sub">
-                    @if ($error)
-                        در حال حاضر امکان نمایش پیام‌ها نیست؛ کمی بعد دوباره تلاش کنید.
-                    @elseif ($page > 1)
-                        در این صفحه پیامی یافت نشد.
+                    @if ($syncedAt)
+                        {{ $isSent ? 'پیامک ارسالی‌ای ثبت نشده است.' : 'پیام دریافتی‌ای ثبت نشده است.' }}
                     @else
-                        {{ $isSent ? 'هنوز پیامکی ارسال نکرده‌اید.' : 'هنوز پیامی دریافت نکرده‌اید.' }}
+                        هنوز فهرستی دریافت نشده است.
                     @endif
                 </p>
             @else
@@ -65,20 +68,20 @@
                         <tbody>
                             @foreach ($messages as $msg)
                                 @php
-                                    $peer = $isSent ? $msg['receiver'] : $msg['sender'];
-                                    $line = $isSent ? $msg['sender'] : $msg['receiver'];
+                                    $peer = $isSent ? $msg->receiver : $msg->sender;
+                                    $line = $isSent ? $msg->sender : $msg->receiver;
                                 @endphp
                                 <tr>
-                                    <td>@jdatetime($msg['date'])</td>
+                                    <td>@jdatetime($msg->sent_at)</td>
                                     <td dir="ltr">{{ $peer ? normalize_mobile($peer) : '—' }}</td>
                                     <td dir="ltr">{{ $line ?: '—' }}</td>
-                                    <td>{{ \Illuminate\Support\Str::limit($msg['body'], 60) }}</td>
+                                    <td>{{ \Illuminate\Support\Str::limit($msg->body, 60) }}</td>
                                     @if ($isSent)
-                                        <td>{{ $msg['parts'] }}</td>
+                                        <td>{{ $msg->parts }}</td>
                                         <td>
-                                            @if ($msg['rec_count'] > 0)
-                                                <span class="account-badge {{ $msg['rec_failed'] > 0 ? 'is-warn' : 'is-ok' }}">
-                                                    {{ number_format($msg['rec_success']) }} از {{ number_format($msg['rec_count']) }}
+                                            @if ($msg->rec_count > 0)
+                                                <span class="account-badge {{ $msg->rec_failed > 0 ? 'is-warn' : 'is-ok' }}">
+                                                    {{ number_format($msg->rec_success) }} از {{ number_format($msg->rec_count) }}
                                                 </span>
                                             @else
                                                 <span class="field-hint">—</span>
@@ -91,17 +94,7 @@
                     </table>
                 </div>
 
-                @if ($page > 1 || $hasMore)
-                    <div class="account-pagination">
-                        @if ($page > 1)
-                            <a class="btn btn-ghost" href="{{ request()->fullUrlWithQuery(['page' => $page - 1]) }}">صفحهٔ قبل</a>
-                        @endif
-                        <span class="field-hint">صفحهٔ {{ $page }}</span>
-                        @if ($hasMore)
-                            <a class="btn btn-ghost" href="{{ request()->fullUrlWithQuery(['page' => $page + 1]) }}">صفحهٔ بعد</a>
-                        @endif
-                    </div>
-                @endif
+                <div class="account-pagination">{{ $messages->links() }}</div>
             @endif
         </div>
     @endunless

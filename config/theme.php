@@ -72,9 +72,9 @@ return [
         ['label' => 'امکانات', 'href' => '#features'],
         ['label' => 'تعرفه‌ها', 'href' => '/pricing'],
         ['label' => 'خطوط اختصاصی', 'href' => '/lines'],
+        ['label' => 'بازارچه افزونه‌ها', 'href' => '/marketplace'],
         ['label' => 'وبلاگ', 'href' => '/blog'],
         ['label' => 'مستندات API', 'href' => '/developers'],
-        ['label' => 'سوالات متداول', 'href' => '#faq'],
     ],
 
     'social' => [
@@ -104,6 +104,7 @@ return [
                     ['label' => 'پنل پیامک', 'href' => '/#features'],
                     ['label' => 'تعرفه‌ها و پلن‌ها', 'href' => '/pricing'],
                     ['label' => 'خطوط اختصاصی', 'href' => '/lines'],
+                    ['label' => 'بازارچه افزونه‌ها', 'href' => '/marketplace'],
                     ['label' => 'بسته‌های پیامکی', 'href' => '/pricing#packages'],
                     ['label' => 'وب‌سرویس و API', 'href' => '/developers'],
                 ],

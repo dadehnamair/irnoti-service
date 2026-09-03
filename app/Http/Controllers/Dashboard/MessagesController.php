@@ -3,72 +3,91 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Services\Sms\UserSmsGateway;
+use App\Jobs\SyncProviderMessagesJob;
+use App\Models\ProviderMessage;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 /**
- * The «پیام‌ها» menu (docs/starter.md §14): the customer's message archive exactly
- * as the SMS provider reports it — دریافتی (incoming to the account's سرشماره‌ها)
- * and ارسالی (everything the account has sent). Read live through the customer's
- * own panel credentials ({@see UserSmsGateway::messages()}); nothing is stored
- * locally, so paging is a simple index/count window over the provider list.
+ * The «پیام‌ها» menu (docs/starter.md §14): the customer's message archive —
+ * دریافتی (incoming to the account's سرشماره‌ها) and ارسالی (everything the
+ * account has sent). The pages read only the local {@see ProviderMessage} mirror;
+ * opening one debounce-dispatches {@see SyncProviderMessagesJob} to refresh that
+ * mirror from the provider in the background, and «بروزرسانی» forces a refresh.
  */
 class MessagesController extends Controller
 {
-    /** Rows per page — also the provider `count` window we ask for. */
-    private const PER_PAGE = 25;
+    private const PER_PAGE = 30;
+
+    /** Skip re-dispatching the sync if one was queued within this window (seconds). */
+    private const SYNC_DEBOUNCE = 90;
 
     /** دریافتی — messages people sent to the account's dedicated lines. */
     public function inbox(Request $request): View
     {
-        return $this->archive($request, 'inbox', location: 1);
+        return $this->box($request, 'inbox');
     }
 
     /** ارسالی — messages sent from the account. */
     public function sent(Request $request): View
     {
-        return $this->archive($request, 'sent', location: 2);
+        return $this->box($request, 'sent');
     }
 
-    private function archive(Request $request, string $box, int $location): View
+    private function box(Request $request, string $direction): View
     {
         $user = $request->user();
-        $page = max(1, (int) $request->integer('page', 1));
-
-        $messages = [];
-        $error = null;
-        $hasMore = false;
 
         if ($user->hasSmsPanel()) {
-            try {
-                $messages = UserSmsGateway::for($user)->messages(
-                    $location,
-                    ($page - 1) * self::PER_PAGE,
-                    self::PER_PAGE,
-                );
-
-                // No total count from the provider — a full page means "try next".
-                $hasMore = count($messages) === self::PER_PAGE;
-            } catch (\Throwable $e) {
-                Log::warning('SMS message archive read failed', [
-                    'user' => $user->id,
-                    'box' => $box,
-                    'error' => $e->getMessage(),
-                ]);
-
-                $error = $e->getMessage();
-            }
+            $this->queueSync($user);
         }
 
+        $messages = ProviderMessage::query()
+            ->forBox($user->id, $direction)
+            ->orderByDesc('sent_at')
+            ->orderByDesc('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
+
         return view('dashboard.messages', [
-            'box' => $box,
+            'box' => $direction,
             'hasPanel' => $user->hasSmsPanel(),
             'messages' => $messages,
-            'error' => $error,
-            'page' => $page,
-            'hasMore' => $hasMore,
+            'syncedAt' => Cache::get("provider_msgs_synced_at:{$user->id}"),
         ]);
+    }
+
+    /** Manual «بروزرسانی» — force a fresh pull from the provider. */
+    public function refresh(Request $request, string $box): RedirectResponse
+    {
+        abort_unless(in_array($box, ['inbox', 'sent'], true), 404);
+
+        $user = $request->user();
+        $route = $box === 'sent' ? 'dashboard.messages.sent' : 'dashboard.messages.inbox';
+
+        if (! $user->hasSmsPanel()) {
+            return redirect()->route($route)->with('sms_error', 'پنل پیامک شما هنوز فعال نشده است.');
+        }
+
+        $this->queueSync($user, force: true);
+
+        return redirect()->route($route)
+            ->with('sms_status', 'بروزرسانی پیام‌ها در صف قرار گرفت؛ چند لحظه بعد صفحه را تازه کنید.');
+    }
+
+    private function queueSync(User $user, bool $force = false): void
+    {
+        $lock = "provider_msgs_sync_lock:{$user->id}";
+
+        if (! $force && Cache::has($lock)) {
+            return;
+        }
+
+        Cache::put($lock, true, now()->addSeconds(self::SYNC_DEBOUNCE));
+
+        SyncProviderMessagesJob::dispatch($user->id);
     }
 }

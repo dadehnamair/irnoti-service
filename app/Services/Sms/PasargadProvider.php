@@ -101,9 +101,10 @@ class PasargadProvider implements SmsProviderInterface
      * (docs/starter.md §14). Only the username/password mode can report it;
      * api_key mode has no equivalent and returns [].
      *
-     * Send.asmx/GetMessages takes `location` (1 = inbox, 2 = sent, -1 = both),
-     * an optional `from` sender-line filter and an `index`/`count` window, and
-     * replies with an ArrayOfMessagesBL — one `<MessagesBL>` element per row.
+     * Send.asmx/getMessages (the ASMX method name is lower-camel) takes `location`
+     * (1 = inbox, 2 = sent, -1 = both), an optional `from` sender-line filter and
+     * an `index`/`count` window, and replies with an ArrayOfMessagesBL — one
+     * `<MessagesBL>` element per row.
      *
      * @return array<int, array{msg_id: string, body: string, sender: string, receiver: string, date: string, parts: int, rec_count: int, rec_success: int, rec_failed: int}>
      */
@@ -113,7 +114,7 @@ class PasargadProvider implements SmsProviderInterface
             return [];
         }
 
-        $body = $this->soapBody('Send.asmx/GetMessages', [
+        $body = $this->soapBody('Send.asmx/getMessages', [
             'location' => $location,
             'from' => $from ?? '',
             'index' => max(0, $index),
@@ -123,16 +124,17 @@ class PasargadProvider implements SmsProviderInterface
         $rows = [];
 
         foreach ($this->xmlRecords($body, 'MessagesBL') as $row) {
+            // Keys are lower-cased by xmlRecords() so panel casing drift is moot.
             $rows[] = [
-                'msg_id' => (string) ($row['MsgID'] ?? $row['MsgId'] ?? ''),
-                'body' => (string) ($row['Body'] ?? ''),
-                'sender' => (string) ($row['Sender'] ?? ''),
-                'receiver' => (string) ($row['Receiver'] ?? ''),
-                'date' => (string) ($row['SendDate'] ?? ''),
-                'parts' => (int) ($row['Parts'] ?? 1),
-                'rec_count' => (int) ($row['RecCount'] ?? 0),
-                'rec_success' => (int) ($row['RecSuccess'] ?? 0),
-                'rec_failed' => (int) ($row['RecFailed'] ?? 0),
+                'msg_id' => (string) ($row['msgid'] ?? ''),
+                'body' => (string) ($row['body'] ?? ''),
+                'sender' => (string) ($row['sender'] ?? ''),
+                'receiver' => (string) ($row['receiver'] ?? ''),
+                'date' => (string) ($row['senddate'] ?? ''),
+                'parts' => (int) ($row['parts'] ?? 1),
+                'rec_count' => (int) ($row['reccount'] ?? 0),
+                'rec_success' => (int) ($row['recsuccess'] ?? 0),
+                'rec_failed' => (int) ($row['recfailed'] ?? 0),
             ];
         }
 
@@ -305,9 +307,12 @@ class PasargadProvider implements SmsProviderInterface
     }
 
     /**
-     * Every `<$node>…</$node>` element of an ASMX list response, each flattened
-     * to an associative array of its child elements (GetMessages ArrayOfMessagesBL).
-     * The .NET default namespace is stripped so plain node access works.
+     * Every list element of an ASMX list response, each flattened to an
+     * associative array of its child elements with **lower-cased keys**
+     * (getMessages ArrayOfMessagesBL). The preferred `$node` name is tried first;
+     * failing that, every direct child of the root is treated as a record, so a
+     * differently-cased or renamed wrapper element still parses. The .NET default
+     * namespace is stripped so plain node access works.
      *
      * @return array<int, array<string, string>>
      */
@@ -317,17 +322,23 @@ class PasargadProvider implements SmsProviderInterface
 
         $xml = @simplexml_load_string($clean);
 
-        if ($xml === false || ! isset($xml->{$node})) {
+        if ($xml === false) {
             return [];
         }
 
+        $records = isset($xml->{$node}) ? $xml->{$node} : $xml->children();
+
         $rows = [];
 
-        foreach ($xml->{$node} as $record) {
+        foreach ($records as $record) {
+            if (! $record instanceof \SimpleXMLElement || $record->count() === 0) {
+                continue; // a scalar/text node, not a record
+            }
+
             $row = [];
 
             foreach ($record->children() as $field) {
-                $row[$field->getName()] = trim(html_entity_decode((string) $field));
+                $row[strtolower($field->getName())] = trim(html_entity_decode((string) $field));
             }
 
             if ($row !== []) {

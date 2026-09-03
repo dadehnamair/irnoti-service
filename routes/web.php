@@ -19,6 +19,7 @@ use App\Http\Controllers\Dashboard\SmsController;
 use App\Http\Controllers\Dashboard\WalletController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\LineController;
+use App\Http\Controllers\MarketplaceShowcaseController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\BlogCategory;
@@ -45,6 +46,14 @@ Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
  * admin processes. Orders are tracked by token — see docs/starter.md §9/§10/§11.
  */
 Route::get('/lines', [LineController::class, 'index'])->name('lines');
+
+/*
+ * «بازارچه افزونه‌ها» public showcase ("/marketplace") — the marketing catalogue
+ * of installable add-ons (marketplace_apps table, docs/starter.md §15). Read-only;
+ * the actual install / connect / pay flow lives behind auth under
+ * /dashboard/marketplace.
+ */
+Route::get('/marketplace', [MarketplaceShowcaseController::class, 'index'])->name('marketplace');
 Route::get('/lines/{line}/checkout', [LineController::class, 'checkout'])->name('lines.checkout');
 Route::post('/lines/order', [LineController::class, 'order'])->name('lines.order');
 Route::get('/lines/order/{order}', [LineController::class, 'track'])->name('lines.track');
@@ -219,11 +228,14 @@ Route::middleware('auth')->group(function () {
             ->name('dashboard.sms.numbers.default');
 
         /*
-         * «پیام‌ها» menu (docs/starter.md §14): the provider-side message archive,
-         * read live through the customer's own panel — دریافتی + ارسالی.
+         * «پیام‌ها» menu (docs/starter.md §14): دریافتی + ارسالی. The pages read a
+         * local mirror (provider_messages); opening one — or the «بروزرسانی»
+         * button — queues SyncProviderMessagesJob to refresh it from the panel.
          */
         Route::get('/dashboard/messages/inbox', [MessagesController::class, 'inbox'])->name('dashboard.messages.inbox');
         Route::get('/dashboard/messages/sent', [MessagesController::class, 'sent'])->name('dashboard.messages.sent');
+        Route::post('/dashboard/messages/{box}/refresh', [MessagesController::class, 'refresh'])
+            ->whereIn('box', ['inbox', 'sent'])->middleware('throttle:10,1')->name('dashboard.messages.refresh');
 
         /*
          * Phonebook (docs/starter.md §17): contacts + groups CRUD, mirrored to the
@@ -278,6 +290,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => route('home'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '1.0'],
         ['loc' => route('pricing'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
         ['loc' => route('lines'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
+        ['loc' => route('marketplace'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.7'],
         ['loc' => route('blog.index'), 'lastmod' => $today, 'changefreq' => 'daily', 'priority' => '0.8'],
         ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
     ];

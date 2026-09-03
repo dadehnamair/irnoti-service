@@ -99,4 +99,34 @@ document.addEventListener("DOMContentLoaded", () => {
         [digitsSel, typeSel].forEach((el) => el && el.addEventListener("change", applyFilters));
         if (rondChk) rondChk.addEventListener("change", applyFilters);
     }
+
+    /* Marketplace showcase (/marketplace) — category filter chips */
+    const mkGrid = document.getElementById("mk-grid");
+    if (mkGrid) {
+        const mkCards = Array.from(mkGrid.querySelectorAll(".mk-app"));
+        const mkFilters = Array.from(document.querySelectorAll(".mk-filter"));
+        const mkEmpty = document.getElementById("mk-empty-state");
+
+        mkFilters.forEach((button) => {
+            button.addEventListener("click", () => {
+                mkFilters.forEach((item) => {
+                    item.classList.remove("is-active");
+                    item.setAttribute("aria-pressed", "false");
+                });
+                button.classList.add("is-active");
+                button.setAttribute("aria-pressed", "true");
+
+                const cat = button.dataset.cat;
+                let visible = 0;
+
+                mkCards.forEach((card) => {
+                    const show = cat === "all" || card.dataset.cat === cat;
+                    card.hidden = !show;
+                    if (show) visible += 1;
+                });
+
+                if (mkEmpty) mkEmpty.hidden = visible !== 0;
+            });
+        });
+    }
 });
