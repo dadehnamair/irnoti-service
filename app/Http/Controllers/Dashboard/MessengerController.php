@@ -34,11 +34,16 @@ class MessengerController extends Controller
 
         $user = $request->user();
 
-        $channels = array_map(fn (string $key) => [
+        // «ارسال به پیام‌رسان» is a gated panel capability (docs/starter.md §91).
+        abort_unless($user->canUseFeature('messengers.send'), 403);
+
+        // Only the networks the system has enabled AND this account is granted
+        // the per-channel capability for.
+        $channels = array_values(array_filter(array_map(fn (string $key) => [
             'key' => $key,
             'label' => $this->messenger->label($key),
             'tariff' => $this->messenger->tariffFor($key),
-        ], $this->messenger->availableChannels());
+        ], $this->messenger->availableChannels()), fn (array $c) => $user->canUseFeature("messengers.{$c['key']}")));
 
         return view('dashboard.messenger.index', [
             'channels' => $channels,
@@ -52,6 +57,11 @@ class MessengerController extends Controller
         abort_unless($this->messenger->enabled() && $this->messenger->channelEnabled($channel), 404);
 
         $user = $request->user();
+
+        abort_unless(
+            $user->canUseFeature('messengers.send') && $user->canUseFeature("messengers.{$channel}"),
+            403,
+        );
 
         return view('dashboard.messenger.create', [
             'channel' => $channel,
@@ -71,6 +81,10 @@ class MessengerController extends Controller
         $channel = (string) $request->input('channel');
 
         abort_unless($this->messenger->channelEnabled($channel), 404);
+        abort_unless(
+            $user->canUseFeature('messengers.send') && $user->canUseFeature("messengers.{$channel}"),
+            403,
+        );
 
         $data = $request->validate([
             'channel' => ['required', 'string'],

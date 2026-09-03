@@ -2422,6 +2422,10 @@ Optimization:
   idempotency `messenger:{id}:refund` به کیف پول برمی‌گرداند.
 - **داده:** `messenger_campaigns` (خلاصهٔ کمپین + `cost`/`refunded`) و `messenger_recipients`
   (`to`، `type` = `mobile|chat`، `status`، `provider_ref`، `error`).
+- **دسترسی (قابلیت پنل، §15):** یک قابلیت `messengers.send` برای ورود به بخش، و یک قابلیت جدا
+  `messengers.<channel>` برای هر پیام‌رسان که تعیین می‌کند کاربر به کدام شبکه می‌تواند ارسال کند.
+  هیچ‌کدام `system` نیستند: مدیر باید هرکدام را در «قابلیت‌ها» روشن کند و به گروه کاربری / کاربر
+  واگذار کند. `MessengerController` هم در سطح روت با `canUseFeature()` بررسی می‌کند (۴۰۳).
 - **مدیریت:** تنظیمات `messenger_enabled` و `messenger_<key>_enabled` و `messenger_<key>_tariff`
   در پنل؛ منبع Filament فقط‌خواندنی `MessengerCampaigns` برای نظارت.
 

@@ -3,21 +3,25 @@
 namespace Tests\Feature\Dashboard;
 
 use App\Jobs\SendMessengerCampaignJob;
+use App\Models\Feature;
 use App\Models\MessengerCampaign;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\Messenger\MessengerManager;
+use Database\Seeders\FeaturesSeeder;
 use Database\Seeders\SettingsSeeder;
+use Database\Seeders\UserGroupsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Tests\TestCase;
 
 /**
- * پیام‌رسان‌ها (docs/starter.md §91): bulk send to بله / ایتا / واتساپ. Cost is
- * taken from the wallet up front; SendMessengerCampaignJob delivers via the
- * configured channel driver and refunds whatever fails. Tests run with
- * MESSENGER_DRIVER=null (every recipient fails) unless a test binds the log
- * channel for a happy path.
+ * پیام‌رسان‌ها (docs/starter.md §91): bulk send to بله / ایتا / واتساپ. Access is
+ * a gated panel capability — «ارسال به پیام‌رسان» for the section plus one
+ * capability per network. Cost is taken from the wallet up front;
+ * SendMessengerCampaignJob delivers via the configured channel driver and
+ * refunds whatever fails. Tests run with MESSENGER_DRIVER=null (every recipient
+ * fails) unless a test binds the log channel for a happy path.
  */
 class MessengerCampaignTest extends TestCase
 {
@@ -27,9 +31,12 @@ class MessengerCampaignTest extends TestCase
     {
         parent::setUp();
         $this->seed(SettingsSeeder::class);
+        $this->seed(FeaturesSeeder::class);
+        $this->seed(UserGroupsSeeder::class);
     }
 
-    private function approvedUser(int $walletBalance = 0): User
+    /** An approved account with the messenger capability + the named channels granted. */
+    private function approvedUser(int $walletBalance = 0, array $channels = ['bale']): User
     {
         $user = User::factory()->create(['status' => 'active', 'approved_at' => now()]);
 
@@ -37,7 +44,21 @@ class MessengerCampaignTest extends TestCase
             $user->wallet()->credit($walletBalance, 'topup', null, 'شارژ آزمایشی');
         }
 
+        $this->grantMessenger($user, $channels);
+
         return $user;
+    }
+
+    /** Switch the capabilities on globally and grant them to the account. */
+    private function grantMessenger(User $user, array $channels): void
+    {
+        $keys = array_merge(['messengers.send'], array_map(fn ($c) => "messengers.{$c}", $channels));
+
+        Feature::whereIn('key', $keys)->update(['is_active' => true]);
+
+        foreach (Feature::whereIn('key', $keys)->get() as $feature) {
+            $user->featureOverrides()->firstOrCreate(['feature_id' => $feature->id], ['mode' => 'grant']);
+        }
     }
 
     private function groupWith(User $user, array $mobiles): int
@@ -63,11 +84,33 @@ class MessengerCampaignTest extends TestCase
         $this->actingAs($user)->get(route('dashboard.messenger'))->assertRedirect(route('dashboard'));
     }
 
+    public function test_section_requires_the_capability(): void
+    {
+        $user = User::factory()->create(['status' => 'active', 'approved_at' => now()]);
+
+        $this->actingAs($user)->get(route('dashboard.messenger'))->assertForbidden();
+    }
+
+    public function test_channel_requires_its_own_capability(): void
+    {
+        $user = $this->approvedUser(channels: ['bale']); // eitaa NOT granted
+
+        $this->actingAs($user)->get(route('dashboard.messenger.create', 'eitaa'))->assertForbidden();
+
+        $this->actingAs($user)->post(route('dashboard.messenger.send'), [
+            'channel' => 'eitaa',
+            'recipients' => '09121112233',
+            'message' => 'سلام',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('messenger_campaigns', 0);
+    }
+
     public function test_disabled_channel_is_not_found(): void
     {
-        $user = $this->approvedUser();
+        // Granted the whatsapp capability, but the system toggle is off.
+        $user = $this->approvedUser(channels: ['bale', 'eitaa', 'whatsapp']);
 
-        // whatsapp ships disabled (messenger_whatsapp_enabled = 0)
         $this->actingAs($user)->get(route('dashboard.messenger.create', 'whatsapp'))->assertNotFound();
 
         $this->actingAs($user)->post(route('dashboard.messenger.send'), [

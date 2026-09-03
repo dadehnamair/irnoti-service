@@ -25,7 +25,9 @@
         <h2>انتخاب پیام‌رسان</h2>
 
         @if (empty($channels))
-            <p class="auth-sub">در حال حاضر هیچ پیام‌رسانی فعال نیست.</p>
+            <p class="auth-sub">
+                دسترسی شما به هیچ پیام‌رسانی فعال نشده است. برای فعال‌سازی با پشتیبانی تماس بگیرید.
+            </p>
         @else
             <div class="sender-list">
                 @foreach ($channels as $channel)

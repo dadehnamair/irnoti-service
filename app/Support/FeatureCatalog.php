@@ -64,13 +64,15 @@ class FeatureCatalog
         'messengers' => [
             'label' => 'پیام‌رسان‌ها',
             'items' => [
-                // Built-in page (MessengerController): bulk send to بله / ایتا /
-                // واتساپ (docs/starter.md §91). Always available like the core
-                // SMS menu items; individual channels are toggled in تنظیمات.
-                'messengers.send' => ['label' => 'ارسال به پیام‌رسان', 'route' => 'dashboard.messenger', 'system' => true],
-                'messengers.bale' => 'ارسال بله',
-                'messengers.eitaa' => 'ارسال ایتا',
-                'messengers.whatsapp' => 'ارسال واتساپ',
+                // Bulk send to بله / ایتا / واتساپ (docs/starter.md §91). A gated
+                // capability, NOT a built-in page: «ارسال به پیام‌رسان» unlocks
+                // the section, then one capability per network controls which
+                // messengers the account may send on. Admin switches each on in
+                // «قابلیت‌ها» and grants it to the access group / user.
+                'messengers.send' => ['label' => 'ارسال به پیام‌رسان', 'route' => 'dashboard.messenger'],
+                'messengers.bale' => ['label' => 'ارسال بله', 'url' => '/dashboard/messenger/bale'],
+                'messengers.eitaa' => ['label' => 'ارسال ایتا', 'url' => '/dashboard/messenger/eitaa'],
+                'messengers.whatsapp' => ['label' => 'ارسال واتساپ', 'url' => '/dashboard/messenger/whatsapp'],
             ],
         ],
 
