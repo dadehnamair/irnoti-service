@@ -121,7 +121,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             MessengerManager::class,
-            fn () => new MessengerManager((string) config('messenger.driver', 'log')),
+            fn () => new MessengerManager((string) (config('messenger.driver') ?: 'log')),
         );
     }
 

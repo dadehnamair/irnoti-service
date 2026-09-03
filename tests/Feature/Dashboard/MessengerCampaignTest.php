@@ -135,6 +135,8 @@ class MessengerCampaignTest extends TestCase
 
     public function test_failed_delivery_refunds_the_failed_portion(): void
     {
+        // The "null" transport fails every recipient — exercises the refund path.
+        $this->app->singleton(MessengerManager::class, fn () => new MessengerManager('null'));
         Setting::set('messenger_bale_tariff', '50');
 
         $user = $this->approvedUser(walletBalance: 1_000);

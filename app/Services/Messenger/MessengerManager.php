@@ -63,10 +63,14 @@ class MessengerManager
             throw new MessengerChannelNotConfiguredException("کانال پیام‌رسان «{$key}» تعریف نشده است.");
         }
 
+        // Mirrors AppServiceProvider::bindSmsProvider(): the real per-channel
+        // drivers are only used for the explicit "http" transport; every other
+        // value (incl. an empty / unset one) degrades to the credential-free
+        // log channel rather than erroring.
         return match ($this->driver) {
             'null' => new NullChannel($key, $config),
-            'log' => new LogChannel($key, $config),
-            default => $this->httpChannel($key, $config),
+            'http' => $this->httpChannel($key, $config),
+            default => new LogChannel($key, $config),
         };
     }
 
