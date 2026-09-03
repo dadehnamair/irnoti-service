@@ -77,8 +77,11 @@ class FeatureCatalog
         'messages' => [
             'label' => 'پیام‌ها',
             'items' => [
-                'messages.inbox' => 'دریافتی',
-                'messages.sent' => 'ارسالی',
+                // Wired to real pages (MessagesController) but not «system»: an
+                // admin switches them on and grants them like any other premium
+                // menu item — then the sidebar renders them as live links.
+                'messages.inbox' => ['label' => 'دریافتی', 'route' => 'dashboard.messages.inbox'],
+                'messages.sent' => ['label' => 'ارسالی', 'route' => 'dashboard.messages.sent'],
                 'messages.trash' => 'حذف شده',
             ],
         ],

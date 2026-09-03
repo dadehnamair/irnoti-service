@@ -4,6 +4,10 @@
  * /verify and /dashboard* only.
  */
 
+label {
+    line-height: 2;
+}
+
 .auth-shell {
     min-height: 100vh;
     display: flex;
@@ -646,9 +650,11 @@ details.account-nav__group[open] > .account-nav__panel {
 }
 
 .account-stat strong {
-    font-size: 1rem;
+    font-size: 0.8rem;
     display: block;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .account-badge {
@@ -1205,6 +1211,7 @@ fieldset.wallet-topup-method {
         border-color 0.15s ease,
         box-shadow 0.15s ease,
         background 0.15s ease;
+    margin-bottom: 10px;
 }
 
 .account-panel :where(input, select, textarea):hover,
@@ -1593,7 +1600,11 @@ fieldset.wallet-topup-method {
     background:
         radial-gradient(
             130% 130% at 0 0,
-            color-mix(in srgb, var(--accent, var(--secondary)) 60%, transparent),
+            color-mix(
+                in srgb,
+                var(--accent, var(--secondary)) 60%,
+                transparent
+            ),
             transparent 55%
         ),
         linear-gradient(
@@ -1601,7 +1612,8 @@ fieldset.wallet-topup-method {
             color-mix(in srgb, var(--primary) 90%, #000),
             color-mix(in srgb, var(--accent, var(--primary)) 60%, #140b26)
         );
-    box-shadow: 0 16px 34px -20px color-mix(in srgb, var(--primary) 75%, transparent);
+    box-shadow: 0 16px 34px -20px
+        color-mix(in srgb, var(--primary) 75%, transparent);
     transition:
         transform 0.16s ease,
         box-shadow 0.16s ease;
@@ -1613,7 +1625,11 @@ fieldset.wallet-topup-method {
     background:
         radial-gradient(
             130% 130% at 0 0,
-            color-mix(in srgb, var(--accent, var(--secondary)) 68%, transparent),
+            color-mix(
+                in srgb,
+                var(--accent, var(--secondary)) 68%,
+                transparent
+            ),
             transparent 55%
         ),
         linear-gradient(
@@ -1621,7 +1637,8 @@ fieldset.wallet-topup-method {
             color-mix(in srgb, var(--primary) 92%, #000),
             color-mix(in srgb, var(--accent, var(--primary)) 66%, #140b26)
         );
-    box-shadow: 0 22px 40px -18px color-mix(in srgb, var(--primary) 78%, transparent);
+    box-shadow: 0 22px 40px -18px
+        color-mix(in srgb, var(--primary) 78%, transparent);
 }
 
 .mkt-cta__glow {

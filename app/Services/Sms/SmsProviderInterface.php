@@ -27,6 +27,20 @@ interface SmsProviderInterface
     public function deliveryStatus(string $recId): ?string;
 
     /**
+     * A page of the account's message archive as the provider reports it — the
+     * «پیام‌ها» menu (docs/starter.md §14). `$location`: 1 = received / inbox,
+     * 2 = sent, -1 = both. `$index` is the zero-based row offset and `$count`
+     * the window size; `$from` filters to one sender line (سرشماره) when given.
+     *
+     * Each row: msg_id, body, sender, receiver, date (raw provider string),
+     * parts, rec_count, rec_success, rec_failed. Empty list when the driver
+     * can't report an archive (api_key / log / test drivers).
+     *
+     * @return array<int, array{msg_id: string, body: string, sender: string, receiver: string, date: string, parts: int, rec_count: int, rec_success: int, rec_failed: int}>
+     */
+    public function messages(int $location, int $index = 0, int $count = 100, ?string $from = null): array;
+
+    /**
      * The dedicated sender numbers (سرشماره) this account owns, as digit strings.
      * Empty when the driver can't report them (docs/starter.md §12).
      *

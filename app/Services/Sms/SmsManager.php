@@ -45,6 +45,18 @@ class SmsManager
     }
 
     /**
+     * A page of the account's provider-side message archive — the «پیام‌ها» menu
+     * (docs/starter.md §14). `$location`: 1 = received (inbox), 2 = sent. Empty
+     * when the wrapped driver can't report an archive.
+     *
+     * @return array<int, array{msg_id: string, body: string, sender: string, receiver: string, date: string, parts: int, rec_count: int, rec_success: int, rec_failed: int}>
+     */
+    public function messages(int $location, int $index = 0, int $count = 100, ?string $from = null): array
+    {
+        return $this->provider->messages($location, $index, $count, $from);
+    }
+
+    /**
      * The dedicated sender numbers (سرشماره) the wrapped account owns, or an
      * empty list when the driver can't report them.
      *

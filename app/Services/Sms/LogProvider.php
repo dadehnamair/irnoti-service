@@ -45,6 +45,27 @@ class LogProvider implements SmsProviderInterface
         return 'delivered';
     }
 
+    public function messages(int $location, int $index = 0, int $count = 100, ?string $from = null): array
+    {
+        if ($index > 0) {
+            return []; // single fake page so the panel UI paginates cleanly
+        }
+
+        $sent = $location === 2;
+
+        return [[
+            'msg_id' => '900000001',
+            'body' => $sent ? 'نمونهٔ پیام ارسالی از پنل آزمایشی.' : 'سلام، این یک پیام دریافتی آزمایشی است.',
+            'sender' => $sent ? '30001234567' : '09120000000',
+            'receiver' => $sent ? '09120000000' : '30001234567',
+            'date' => now()->subHour()->toDateTimeString(),
+            'parts' => 1,
+            'rec_count' => 1,
+            'rec_success' => $sent ? 1 : 0,
+            'rec_failed' => 0,
+        ]];
+    }
+
     public function numbers(): array
     {
         // Fake sender lines so the panel UI is usable without a real gateway.

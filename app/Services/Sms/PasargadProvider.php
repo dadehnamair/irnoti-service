@@ -97,6 +97,49 @@ class PasargadProvider implements SmsProviderInterface
     }
 
     /**
+     * A page of the account's message archive — the «پیام‌ها» menu
+     * (docs/starter.md §14). Only the username/password mode can report it;
+     * api_key mode has no equivalent and returns [].
+     *
+     * Send.asmx/GetMessages takes `location` (1 = inbox, 2 = sent, -1 = both),
+     * an optional `from` sender-line filter and an `index`/`count` window, and
+     * replies with an ArrayOfMessagesBL — one `<MessagesBL>` element per row.
+     *
+     * @return array<int, array{msg_id: string, body: string, sender: string, receiver: string, date: string, parts: int, rec_count: int, rec_success: int, rec_failed: int}>
+     */
+    public function messages(int $location, int $index = 0, int $count = 100, ?string $from = null): array
+    {
+        if (! $this->usesCredentials()) {
+            return [];
+        }
+
+        $body = $this->soapBody('Send.asmx/GetMessages', [
+            'location' => $location,
+            'from' => $from ?? '',
+            'index' => max(0, $index),
+            'count' => max(1, min($count, 500)),
+        ]);
+
+        $rows = [];
+
+        foreach ($this->xmlRecords($body, 'MessagesBL') as $row) {
+            $rows[] = [
+                'msg_id' => (string) ($row['MsgID'] ?? $row['MsgId'] ?? ''),
+                'body' => (string) ($row['Body'] ?? ''),
+                'sender' => (string) ($row['Sender'] ?? ''),
+                'receiver' => (string) ($row['Receiver'] ?? ''),
+                'date' => (string) ($row['SendDate'] ?? ''),
+                'parts' => (int) ($row['Parts'] ?? 1),
+                'rec_count' => (int) ($row['RecCount'] ?? 0),
+                'rec_success' => (int) ($row['RecSuccess'] ?? 0),
+                'rec_failed' => (int) ($row['RecFailed'] ?? 0),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
      * The dedicated sender numbers on this account. Only the username/password
      * mode can report them; api_key mode has no equivalent and returns [].
      *
@@ -259,6 +302,40 @@ class PasargadProvider implements SmsProviderInterface
             static fn ($v) => trim(html_entity_decode($v)),
             $m[1],
         ), static fn ($v) => $v !== ''));
+    }
+
+    /**
+     * Every `<$node>…</$node>` element of an ASMX list response, each flattened
+     * to an associative array of its child elements (GetMessages ArrayOfMessagesBL).
+     * The .NET default namespace is stripped so plain node access works.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function xmlRecords(string $body, string $node): array
+    {
+        $clean = preg_replace('/\s+xmlns(:\w+)?="[^"]*"/', '', $body) ?? $body;
+
+        $xml = @simplexml_load_string($clean);
+
+        if ($xml === false || ! isset($xml->{$node})) {
+            return [];
+        }
+
+        $rows = [];
+
+        foreach ($xml->{$node} as $record) {
+            $row = [];
+
+            foreach ($record->children() as $field) {
+                $row[$field->getName()] = trim(html_entity_decode((string) $field));
+            }
+
+            if ($row !== []) {
+                $rows[] = $row;
+            }
+        }
+
+        return $rows;
     }
 
     /** SendSimpleSMS2 returns a long recId on success, or a small/zero/negative status code. */

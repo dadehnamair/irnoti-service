@@ -26,6 +26,11 @@ class NullProvider implements SmsProviderInterface
         return null;
     }
 
+    public function messages(int $location, int $index = 0, int $count = 100, ?string $from = null): array
+    {
+        return [];
+    }
+
     public function numbers(): array
     {
         return [];

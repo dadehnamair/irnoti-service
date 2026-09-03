@@ -12,6 +12,7 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\InvoiceController;
 use App\Http\Controllers\Dashboard\LineOrderController as DashboardLineOrderController;
 use App\Http\Controllers\Dashboard\MarketplaceController;
+use App\Http\Controllers\Dashboard\MessagesController;
 use App\Http\Controllers\Dashboard\PackageOrderController;
 use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
@@ -216,6 +217,13 @@ Route::middleware('auth')->group(function () {
             ->middleware('throttle:10,1')->name('dashboard.sms.numbers.refresh');
         Route::post('/dashboard/sms/senders/default', [SmsController::class, 'setDefaultSender'])
             ->name('dashboard.sms.numbers.default');
+
+        /*
+         * «پیام‌ها» menu (docs/starter.md §14): the provider-side message archive,
+         * read live through the customer's own panel — دریافتی + ارسالی.
+         */
+        Route::get('/dashboard/messages/inbox', [MessagesController::class, 'inbox'])->name('dashboard.messages.inbox');
+        Route::get('/dashboard/messages/sent', [MessagesController::class, 'sent'])->name('dashboard.messages.sent');
 
         /*
          * Phonebook (docs/starter.md §17): contacts + groups CRUD, mirrored to the
