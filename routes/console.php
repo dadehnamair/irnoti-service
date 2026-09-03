@@ -25,3 +25,11 @@ Schedule::command('sms:delivery-sync')
 Schedule::command('marketplace:expire')
     ->daily()
     ->withoutOverlapping();
+
+/*
+ * The queued SMS jobs are drained on shared hosting by cron.php, which calls
+ * `queue:work --stop-when-empty` in-process every minute (it can't be a
+ * Schedule::command() here because that needs proc_open, which the host blocks).
+ * If you move to a host with a real worker, add it back or run `queue:work` as
+ * a daemon instead.
+ */
