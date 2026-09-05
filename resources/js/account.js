@@ -216,6 +216,28 @@ function jalaliDatePickers() {
 }
 
 /*
+ * Lock the clicked submit button and show a spinner on every dashboard form
+ * submission, so a slow request can't be double-submitted. Plain (non-ajax)
+ * forms just stay locked until the page navigates away; ajaxForms() below
+ * re-enables the button itself once the request settles. Opt out per-form
+ * with <form data-no-loading>, or a submit button can skip via disabled/
+ * formnovalidate handling already in the browser.
+ */
+function lockSubmitButtons() {
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement) || form.dataset.noLoading) return;
+
+        const submitter = event.submitter;
+        if (!submitter || submitter.disabled) return;
+        if (submitter.type !== 'submit' && submitter.tagName !== 'BUTTON') return;
+
+        submitter.classList.add('is-loading');
+        submitter.disabled = true;
+    });
+}
+
+/*
  * Progressive-enhancement AJAX forms: any <form data-ajax> posts through fetch()
  * instead of navigating. Works without JS too — the form just submits normally
  * and the controller falls back to a redirect + session flash. The controller
@@ -231,7 +253,9 @@ function ajaxForms() {
 
             const submitter = event.submitter;
             const originalLabel = submitter ? submitter.textContent : null;
+            let navigatingAway = false;
             if (submitter) {
+                submitter.classList.add('is-loading');
                 submitter.disabled = true;
                 if (submitter.dataset.busyLabel) submitter.textContent = submitter.dataset.busyLabel;
             }
@@ -258,12 +282,21 @@ function ajaxForms() {
                 if (data.message) window.toast?.('success', data.message);
                 form.dispatchEvent(new CustomEvent('ajax:success', { detail: data }));
 
-                if (data.redirect) window.location.href = data.redirect;
-                else if (data.reload) window.location.reload();
+                if (data.redirect) {
+                    navigatingAway = true;
+                    window.location.href = data.redirect;
+                    return;
+                }
+                if (data.reload) {
+                    navigatingAway = true;
+                    window.location.reload();
+                    return;
+                }
             } catch (err) {
                 window.toast?.('error', 'ارتباط با سرور برقرار نشد.');
             } finally {
-                if (submitter) {
+                if (submitter && !navigatingAway) {
+                    submitter.classList.remove('is-loading');
                     submitter.disabled = false;
                     if (originalLabel !== null) submitter.textContent = originalLabel;
                 }
@@ -280,5 +313,6 @@ document.addEventListener('DOMContentLoaded', () => {
     moneyInputs();
     groupPickers();
     jalaliDatePickers();
+    lockSubmitButtons();
     ajaxForms();
 });
