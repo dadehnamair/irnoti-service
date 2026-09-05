@@ -1,56 +1,12 @@
 @php
+    // Plans, feature matrix, FAQs, meta copy and the JSON-LD graph are all
+    // prepared in PricingController — this view only reads config/theme values.
     $brand = config('theme.brand');
     $seo = config('theme.seo');
     $primary = config('theme.primary');
     $email = config('theme.email');
     $url = rtrim($seo['url'], '/');
     $canonical = route('pricing');
-
-    $metaTitle = 'تعرفه‌ها و پلن‌های ' . $brand . ' | پنل پیامک';
-    $metaDescription = 'مقایسه کامل پلن‌های پنل پیامک ' . $brand
-        . ' — قیمت ماهانه و سالانه، تعداد پیامک، خطوط اختصاصی، کاربران و امکانات هر پلن.';
-
-    // Union of every feature across the active plans → comparison matrix rows.
-    $allFeatures = $plans->flatMap->feature_list->unique()->values();
-
-    $faqs = [
-        ['q' => 'آیا امکان ارتقای پلن در میانه دوره وجود دارد؟', 'a' => 'بله، در هر زمان می‌توانید به پلن بالاتر ارتقا دهید و مابه‌التفاوت به‌صورت نسبی محاسبه می‌شود.'],
-        ['q' => 'تفاوت صورت‌حساب ماهانه و سالانه چیست؟', 'a' => 'در پرداخت سالانه معادل حدود دو ماه تخفیف نسبت به پرداخت ماهانه دریافت می‌کنید.'],
-        ['q' => 'آیا پیامک‌های مصرف‌نشده به ماه بعد منتقل می‌شوند؟', 'a' => 'سهمیه پیامک هر دوره در همان دوره معتبر است؛ برای حجم بالا پلن سازمانی گزینه بهتری است.'],
-        ['q' => 'روش‌های پرداخت چگونه است؟', 'a' => 'پرداخت آنلاین از طریق درگاه بانکی و صدور فاکتور رسمی برای کسب‌وکارها امکان‌پذیر است.'],
-    ];
-
-    $graph = [
-        [
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'تعرفه‌ها', 'item' => $canonical],
-            ],
-        ],
-    ];
-
-    foreach ($plans as $plan) {
-        $graph[] = [
-            '@type' => 'Product',
-            'name' => 'پلن ' . $plan->name . ' ' . $brand,
-            'description' => 'پنل پیامکی ' . $brand . ' — ' . implode('، ', $plan->feature_list),
-            'brand' => ['@type' => 'Brand', 'name' => $brand],
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => $plan->price_monthly * 10,
-                'priceCurrency' => 'IRR',
-                'availability' => 'https://schema.org/InStock',
-                'url' => $canonical,
-                'priceValidUntil' => now()->addYear()->toDateString(),
-            ],
-        ];
-    }
-
-    $jsonLd = json_encode(
-        ['@context' => 'https://schema.org', '@graph' => $graph],
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-    );
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">

@@ -1,12 +1,10 @@
 @php
 /**
 * Public marketing page for «بازارچه» ("/marketplace"). Standalone
-* document (own
-
-<head>) like the pricing / lines pages. Content is
-    * database-driven (marketplace_apps) and managed from the Filament admin
-    * panel — see docs/starter.md §15.
-    */
+* document (own <head>) like the pricing / lines pages. Content, the
+* JSON-LD graph and $ctaHref/$jsonLd are all prepared in
+* MarketplaceShowcaseController — see docs/starter.md §15.
+*/
     $brand = config('theme.brand');
     $seo = config('theme.seo');
     $primary = config('theme.primary');
@@ -17,41 +15,6 @@
     $metaTitle = 'بازارچهی ' . $brand . ' | افزودن قابلیت به پنل پیامک';
     $metaDescription = 'افزونه‌های کسب‌وکار ' . $brand
     . ' — اتصال به ایرپلاس، کارت ویزیت الکترونیکی، منشی پیامکی و ابزارهای بیشتر. با چند کلیک به پنل پیامک خود اضافه کنید.';
-
-    $ctaHref = auth()->check() ? route('dashboard.marketplace') : route('register');
-
-    $graph = [
-    [
-    '@type' => 'BreadcrumbList',
-    'itemListElement' => [
-    ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
-    ['@type' => 'ListItem', 'position' => 2, 'name' => 'بازارچه', 'item' => $canonical],
-    ],
-    ],
-    ];
-
-    if ($apps->isNotEmpty()) {
-    $graph[] = [
-    '@type' => 'ItemList',
-    'name' => 'بازارچهی ' . $brand,
-    'itemListElement' => $apps->values()->map(fn ($app, $i) => [
-    '@type' => 'ListItem',
-    'position' => $i + 1,
-    'item' => [
-    '@type' => 'Product',
-    'name' => $app->name,
-    'description' => $app->tagline ?: $app->name,
-    'brand' => ['@type' => 'Brand', 'name' => $app->vendor ?: $brand],
-    'category' => $app->category_label,
-    ],
-    ])->all(),
-    ];
-    }
-
-    $jsonLd = json_encode(
-    ['@context' => 'https://schema.org', '@graph' => $graph],
-    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-    );
     @endphp
     <!DOCTYPE html>
     <html lang="fa" dir="rtl">

@@ -1,4 +1,6 @@
 @php
+// Line grouping and the JSON-LD graph are prepared in LineController — this
+// view only reads config/theme values plus a couple of display strings.
 $brand = config('theme.brand');
 $seo = config('theme.seo');
 $primary = config('theme.primary');
@@ -12,41 +14,6 @@ $metaDescription = 'لیست خطوط اختصاصی پیامک ' . $brand
 . ' با پیش‌شماره‌های ۱۰۰۰، ۲۰۰۰، ۳۰۰۰، ۵۰۰۰، ۰۲۱ و... — انتخاب تعداد ارقام، مشاهده قیمت و ثبت سفارش آنلاین.';
 
 $totalLines = $groups->sum(fn ($g) => $g['lines']->count());
-
-$graph = [
-[
-'@type' => 'BreadcrumbList',
-'itemListElement' => [
-['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
-['@type' => 'ListItem', 'position' => 2, 'name' => 'خطوط اختصاصی', 'item' => $canonical],
-],
-],
-];
-
-foreach ($groups as $group) {
-foreach ($group['lines'] as $line) {
-$graph[] = [
-'@type' => 'Product',
-'name' => 'خط ' . $line->prefix . ' (' . $line->digits . ' رقمی) ' . $brand,
-'description' => $line->description ?: ('خط اختصاصی پیامک با پیش‌شماره ' . $line->prefix),
-'brand' => ['@type' => 'Brand', 'name' => $brand],
-'offers' => [
-'@type' => 'Offer',
-'price' => $line->price,
-'priceCurrency' => 'IRR',
-'availability' => $line->sale_status === 'available'
-? 'https://schema.org/InStock'
-: 'https://schema.org/OutOfStock',
-'url' => $canonical,
-],
-];
-}
-}
-
-$jsonLd = json_encode(
-['@context' => 'https://schema.org', '@graph' => $graph],
-JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-);
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">

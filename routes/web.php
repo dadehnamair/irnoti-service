@@ -19,6 +19,8 @@ use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
 use App\Http\Controllers\Dashboard\WalletController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\MarketplaceShowcaseController;
 use App\Http\Controllers\Dashboard\BusinessCardController;
@@ -28,13 +30,10 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UssdController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
-use App\Models\Setting;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('landing');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 /*
  * Standalone pricing / plans page ("/pricing"). Reads active plans from the DB
@@ -76,19 +75,8 @@ Route::match(['get', 'post'], '/lines/payment/callback', [LineController::class,
  * markdown stored in the `settings` table (legal_terms_body / legal_privacy_body)
  * and editable from the Filament admin panel.
  */
-Route::get('/terms', function () {
-    return view('legal', [
-        'title' => 'قوانین و مقررات',
-        'body' => Setting::get('legal_terms_body', ''),
-    ]);
-})->name('legal.terms');
-
-Route::get('/privacy', function () {
-    return view('legal', [
-        'title' => 'حریم خصوصی',
-        'body' => Setting::get('legal_privacy_body', ''),
-    ]);
-})->name('legal.privacy');
+Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 
 /*
  * Blog ("/blog"). Content-marketing articles managed from the Filament admin

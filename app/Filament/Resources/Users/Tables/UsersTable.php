@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Models\User;
+use App\Models\Wallet;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -67,6 +68,15 @@ class UsersTable
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state) => User::DOCUMENT_STATUSES[$state] ?? $state),
+
+                TextColumn::make('walletRelation.balance')
+                    ->label('موجودی کیف پول')
+                    ->getStateUsing(fn (User $record) => $record->walletRelation?->balance ?? 0)
+                    ->toman()
+                    ->sortable(query: fn ($query, string $direction) => $query->orderBy(
+                        Wallet::selectRaw('coalesce(balance, 0)')->whereColumn('wallets.user_id', 'users.id'),
+                        $direction
+                    )),
 
                 TextColumn::make('plan.name')
                     ->label('پلن')

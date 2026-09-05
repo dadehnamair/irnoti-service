@@ -28,14 +28,57 @@ class LineController extends Controller
     public function index(): View
     {
         $lines = SmsLine::query()->active()->ordered()->get();
+        $groups = self::groupLines($lines);
+        $canonical = route('lines');
 
-        return view('lines', array_merge(
-            ['groups' => self::groupLines($lines)],
+        return view('lines', [
+            'groups' => $groups,
+            'digitOptions' => $lines->pluck('digits')->unique()->sort()->values(),
+            'typeOptions' => $lines->pluck('line_type')->unique()->values(),
+            'jsonLd' => $this->linesJsonLd($groups, $canonical),
+        ]);
+    }
+
+    /** JSON-LD graph: BreadcrumbList + one Product/Offer per dedicated line. */
+    private function linesJsonLd(Collection $groups, string $canonical): string
+    {
+        $brand = config('theme.brand');
+        $url = rtrim(config('theme.seo.url'), '/');
+
+        $graph = [
             [
-                'digitOptions' => $lines->pluck('digits')->unique()->sort()->values(),
-                'typeOptions' => $lines->pluck('line_type')->unique()->values(),
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url.'/'],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'خطوط اختصاصی', 'item' => $canonical],
+                ],
             ],
-        ));
+        ];
+
+        foreach ($groups as $group) {
+            foreach ($group['lines'] as $line) {
+                $graph[] = [
+                    '@type' => 'Product',
+                    'name' => 'خط '.$line->prefix.' ('.$line->digits.' رقمی) '.$brand,
+                    'description' => $line->description ?: ('خط اختصاصی پیامک با پیش‌شماره '.$line->prefix),
+                    'brand' => ['@type' => 'Brand', 'name' => $brand],
+                    'offers' => [
+                        '@type' => 'Offer',
+                        'price' => $line->price,
+                        'priceCurrency' => 'IRR',
+                        'availability' => $line->sale_status === 'available'
+                            ? 'https://schema.org/InStock'
+                            : 'https://schema.org/OutOfStock',
+                        'url' => $canonical,
+                    ],
+                ];
+            }
+        }
+
+        return json_encode(
+            ['@context' => 'https://schema.org', '@graph' => $graph],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
     }
 
     /**

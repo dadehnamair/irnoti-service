@@ -1,30 +1,7 @@
 @php
-    /** Static legal page (قوانین و مقررات / حریم خصوصی) — body is markdown from the settings table. docs/starter.md §67 */
+    /** Static legal page (قوانین و مقررات / حریم خصوصی) — body/schema built in LegalController. docs/starter.md §67 */
     $brand = config('theme.brand');
     $primary = config('theme.primary');
-    $siteUrl = rtrim(config('theme.seo.url'), '/');
-    $rendered = \Illuminate\Support\Str::markdown($body ?: '', ['html_input' => 'strip']);
-    $metaDescription = \Illuminate\Support\Str::of(strip_tags($rendered))->squish()->limit(160)->value();
-
-    $jsonLd = json_encode([
-        '@context' => 'https://schema.org',
-        '@graph' => [
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => [
-                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $siteUrl . '/'],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => $title, 'item' => url()->current()],
-                ],
-            ],
-            [
-                '@type' => 'WebPage',
-                'name' => $title,
-                'url' => url()->current(),
-                'isPartOf' => ['@type' => 'WebSite', 'name' => $brand, 'url' => $siteUrl . '/'],
-                'inLanguage' => 'fa-IR',
-            ],
-        ],
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">

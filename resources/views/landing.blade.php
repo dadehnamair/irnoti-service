@@ -1,4 +1,7 @@
 @php
+// Content-model queries, JSON-LD graph, and the FAQ list all live in
+// HomeController — this view only reads config() for brand/theme display
+// and the variables the controller already prepared.
 $brand = config('theme.brand');
 $seo = config('theme.seo');
 $primary = config('theme.primary');
@@ -9,123 +12,6 @@ $phone = config('theme.phone');
 $phoneDisplay = config('theme.phone_display');
 $nav = config('theme.nav');
 $url = rtrim($seo['url'], '/');
-
-// Pricing plans come from the DB (docs/starter.md §8 / §40) and are managed
-// from the Filament admin panel. Both the pricing cards and the Product
-// schema below read from this collection.
-$plans = \App\Models\Plan::query()->active()->ordered()->get();
-
-// Latest published articles for the blog teaser strip (degrades to empty).
-$latestPosts = rescue(
-fn () => \App\Models\BlogPost::query()->published()->with('category')->limit(3)->get(),
-collect(),
-false
-);
-
-// Dedicated-line prefixes come from the DB (sms_lines table, docs/starter.md §9)
-// and are managed from the Filament admin panel. The full catalogue + buy flow
-// lives on the standalone /lines page.
-$lines = rescue(
-fn () => \App\Models\SmsLine::query()->active()->orderBy('sort')->pluck('prefix')->unique()->values(),
-collect(['1000', '2000', '3000', '5000', '021', '9000']),
-false
-);
-
-// Digital business card teaser — flat "VBC" price from settings (commerce
-// group); the full VBC/EBC create-and-manage flow lives behind /dashboard/cards.
-$businessCardPrice = rescue(
-fn () => (int) \App\Models\Setting::get('business_card_standard_price', 0),
-600000,
-false
-);
-
-// Marketplace teaser (docs/starter.md §15) — a few active add-ons for the
-// "بازارچه" strip; the full catalogue lives on /marketplace.
-$marketApps = rescue(
-fn () => \App\Models\MarketplaceApp::query()->active()->ordered()->limit(4)->get(),
-collect(),
-false
-);
-$marketEnabled = rescue(fn () => (bool) \App\Models\Setting::get('marketplace_enabled', true), true, false);
-
-// An app `icon` is either an uploaded image path or a short emoji/glyph.
-$renderIcon = function ($icon, string $fallback = '🧩') {
-$icon = trim((string) $icon);
-if ($icon === '') {
-return e($fallback);
-}
-return \Illuminate\Support\Str::contains($icon, ['/', '.'])
-? '<img src="'.e(\Illuminate\Support\Str::startsWith($icon, ['http://', 'https://', '/']) ? $icon : \Illuminate\Support\Facades\Storage::url($icon)).'" alt="" loading="lazy" />'
-: e($icon);
-};
-
-$faqs = [
-['q' => 'آیا irnoti برای شروع کسب‌وکارهای کوچک مناسب است؟', 'a' => 'بله، پلن‌های پایه و حرفه‌ای برای کسب‌وکارهای کوچک تا بزرگ طراحی شده‌اند و برای فروشگاه‌ها، خدمات و برندها مناسب هستند.'],
-['q' => 'برای شروع چه چیزی لازم است؟', 'a' => 'فقط یک شماره موبایل. با ثبت‌نام و تأیید کد پیامکی وارد پنل می‌شوید؛ تکمیل هویت و مدارک را می‌توانید بعداً و به‌صورت مرحله‌به‌مرحله انجام دهید.'],
-['q' => 'آیا امکان ارسال پیامک زمان‌بندی‌شده وجود دارد؟', 'a' => 'بله، از طریق پنل و API می‌توانید ارسال زمان‌بندی‌شده و کمپین‌های هدفمند داشته باشید.'],
-['q' => 'بازارچه چیست؟', 'a' => 'بخشی از پنل که با آن می‌توانید قابلیت‌های تازه‌ای مثل اتصال به ایرپلاس، کارت ویزیت الکترونیکی یا منشی پیامکی را با چند کلیک به حساب خود اضافه کنید.'],
-['q' => 'آیا API دارای مستندات فارسی است؟', 'a' => 'بله، مستندات API به‌صورت حرفه‌ای و ساده برای تیم‌های فنی آماده است و به‌راحتی در پروژه‌های مختلف قابل استفاده می‌باشد.'],
-['q' => 'روش‌های پرداخت و تسویه چگونه است؟', 'a' => 'پرداخت آنلاین از طریق درگاه بانکی، شارژ کیف پول، ثبت فیش بانکی و صدور فاکتور رسمی برای کسب‌وکارها پشتیبانی می‌شود.'],
-];
-
-// JSON-LD graph: Organization + WebSite + one Product per plan.
-$graph = [
-[
-'@type' => 'Organization',
-'@id' => $url . '/#organization',
-'name' => $brand,
-'url' => $url . '/',
-'logo' => $url . $seo['image'],
-'description' => $seo['description'],
-'contactPoint' => [
-'@type' => 'ContactPoint',
-'contactType' => 'customer support',
-'email' => $email,
-'telephone' => $phone,
-'areaServed' => 'IR',
-'availableLanguage' => ['fa'],
-],
-],
-[
-'@type' => 'WebSite',
-'@id' => $url . '/#website',
-'name' => $brand,
-'url' => $url . '/',
-'inLanguage' => 'fa-IR',
-'publisher' => ['@id' => $url . '/#organization'],
-],
-];
-
-foreach ($plans as $plan) {
-$graph[] = [
-'@type' => 'Product',
-'name' => 'پلن ' . $plan->name . ' ' . $brand,
-'description' => 'پنل پیامکی ' . $brand . ' — ' . implode('، ', $plan->feature_list),
-'brand' => ['@type' => 'Brand', 'name' => $brand],
-'offers' => [
-'@type' => 'Offer',
-'price' => $plan->price_monthly * 10, // Toman -> Rial for ISO 4217
-'priceCurrency' => 'IRR',
-'availability' => 'https://schema.org/InStock',
-'url' => $url . '/#pricing',
-'priceValidUntil' => now()->addYear()->toDateString(),
-],
-];
-}
-
-$graph[] = [
-'@type' => 'FAQPage',
-'mainEntity' => collect($faqs)->map(fn ($f) => [
-'@type' => 'Question',
-'name' => $f['q'],
-'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']],
-])->all(),
-];
-
-$jsonLd = json_encode(
-['@context' => 'https://schema.org', '@graph' => $graph],
-JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-);
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -417,7 +303,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                     <div class="mk-teaser-grid">
                         @foreach ($marketApps as $app)
                         <article class="mk-teaser-card" @if ($app->accent_color) style="--mk-accent: {{ $app->accent_color }}" @endif>
-                            <div class="mk-ico" aria-hidden="true">{!! $renderIcon($app->icon) !!}</div>
+                            <div class="mk-ico" aria-hidden="true">{!! $app->icon_html !!}</div>
                             <h3>{{ $app->name }}</h3>
                             @if ($app->tagline)
                             <p>{{ \Illuminate\Support\Str::of($app->tagline)->squish()->limit(90) }}</p>
