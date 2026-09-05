@@ -36,38 +36,37 @@ class HomeController extends Controller
         $plans = Plan::query()->active()->ordered()->get();
 
         $latestPosts = rescue(
-            fn () => BlogPost::query()->published()->with('category')->limit(3)->get(),
+            fn() => BlogPost::query()->published()->with('category')->limit(3)->get(),
             new Collection,
             false
         );
 
         $lines = rescue(
-            fn () => SmsLine::query()->active()->orderBy('sort')->pluck('prefix')->unique()->values(),
+            fn() => SmsLine::query()->active()->orderBy('sort')->pluck('prefix')->unique()->values(),
             collect(['1000', '2000', '3000', '5000', '021', '9000']),
             false
         );
 
         $businessCardPrice = rescue(
-            fn () => (int) Setting::get('business_card_standard_price', 0),
+            fn() => (int) Setting::get('business_card_standard_price', 0),
             600000,
             false
         );
 
         $marketApps = rescue(
-            fn () => MarketplaceApp::query()->active()->ordered()->limit(4)->get(),
+            fn() => MarketplaceApp::query()->active()->ordered()->limit(4)->get(),
             new Collection,
             false
         );
-        $marketEnabled = rescue(fn () => (bool) Setting::get('marketplace_enabled', true), true, false);
+        $marketEnabled = rescue(fn() => (bool) Setting::get('marketplace_enabled', true), true, false);
 
-        $faqs = rescue(fn () => Faq::query()->active()->ordered()->get(), new Collection, false);
+        $faqs = rescue(fn() => Faq::query()->active()->ordered()->get(), new Collection, false);
 
         $siteFeatures = rescue(
-            fn () => SiteFeature::query()->active()->ordered()->limit(9)->get(),
-            collect(self::FEATURES_FALLBACK)->map(fn ($f) => (object) $f),
+            fn() => SiteFeature::query()->active()->ordered()->limit(9)->get(),
+            collect(self::FEATURES_FALLBACK)->map(fn($f) => (object) $f),
             false
         );
-
         return view('landing', [
             'plans' => $plans,
             'latestPosts' => $latestPosts,
@@ -91,10 +90,10 @@ class HomeController extends Controller
         $graph = [
             [
                 '@type' => 'Organization',
-                '@id' => $url.'/#organization',
+                '@id' => $url . '/#organization',
                 'name' => $brand,
-                'url' => $url.'/',
-                'logo' => $url.$seo['image'],
+                'url' => $url . '/',
+                'logo' => $url . $seo['image'],
                 'description' => $seo['description'],
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
@@ -107,26 +106,26 @@ class HomeController extends Controller
             ],
             [
                 '@type' => 'WebSite',
-                '@id' => $url.'/#website',
+                '@id' => $url . '/#website',
                 'name' => $brand,
-                'url' => $url.'/',
+                'url' => $url . '/',
                 'inLanguage' => 'fa-IR',
-                'publisher' => ['@id' => $url.'/#organization'],
+                'publisher' => ['@id' => $url . '/#organization'],
             ],
         ];
 
         foreach ($plans as $plan) {
             $graph[] = [
                 '@type' => 'Product',
-                'name' => 'پلن '.$plan->name.' '.$brand,
-                'description' => 'پنل پیامکی '.$brand.' — '.implode('، ', $plan->feature_list),
+                'name' => 'پلن ' . $plan->name . ' ' . $brand,
+                'description' => 'پنل پیامکی ' . $brand . ' — ' . implode('، ', $plan->feature_list),
                 'brand' => ['@type' => 'Brand', 'name' => $brand],
                 'offers' => [
                     '@type' => 'Offer',
                     'price' => $plan->price_monthly * 10, // Toman -> Rial for ISO 4217
                     'priceCurrency' => 'IRR',
                     'availability' => 'https://schema.org/InStock',
-                    'url' => $url.'/#pricing',
+                    'url' => $url . '/#pricing',
                     'priceValidUntil' => now()->addYear()->toDateString(),
                 ],
             ];
@@ -134,7 +133,7 @@ class HomeController extends Controller
 
         $graph[] = [
             '@type' => 'FAQPage',
-            'mainEntity' => $faqs->map(fn ($f) => [
+            'mainEntity' => $faqs->map(fn($f) => [
                 '@type' => 'Question',
                 'name' => $f->question,
                 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f->answer],

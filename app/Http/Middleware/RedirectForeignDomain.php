@@ -30,8 +30,8 @@ class RedirectForeignDomain
         $host = $request->getHost();
 
         $defaultHost = rescue(
-            fn () => Domain::query()->where('is_default', true)->value('host'),
-            fn () => parse_url((string) config('app.url'), PHP_URL_HOST),
+            fn() => Domain::query()->where('is_default', true)->value('host'),
+            fn() => parse_url((string) config('app.url'), PHP_URL_HOST),
             report: false,
         ) ?: $host;
 
@@ -40,7 +40,7 @@ class RedirectForeignDomain
         }
 
         $isVanityDomain = rescue(
-            fn () => Domain::query()->where('host', $host)->active()->exists(),
+            fn() => Domain::query()->where('host', $host)->active()->exists(),
             false,
             report: false,
         );
@@ -49,6 +49,6 @@ class RedirectForeignDomain
             return $next($request);
         }
 
-        return redirect()->away($request->getScheme().'://'.$defaultHost.$request->getRequestUri(), 301);
+        return redirect()->away($request->getScheme() . '://' . $defaultHost . $request->getRequestUri(), 301);
     }
 }
