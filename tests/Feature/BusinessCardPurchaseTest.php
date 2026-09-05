@@ -16,8 +16,12 @@ class BusinessCardPurchaseTest extends TestCase
 
     private function domain(array $overrides = []): Domain
     {
+        // Matches the host Laravel's test client uses for relative URLs
+        // (config('app.url') = http://localhost) so RedirectForeignDomain
+        // doesn't bounce dashboard requests made in tests that don't care
+        // about host resolution themselves.
         return Domain::create(array_merge([
-            'host' => 'irnoti.test',
+            'host' => 'localhost',
             'is_active' => true,
             'is_default' => true,
         ], $overrides));
@@ -179,6 +183,34 @@ class BusinessCardPurchaseTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->get('http://unknown.test/ali')->assertNotFound();
+        // Not the default domain and not a registered vanity domain either —
+        // RedirectForeignDomain bounces it to the main site before routing.
+        $this->get('http://unknown.test/ali')->assertRedirect('http://irnoti.test/ali');
+    }
+
+    public function test_vanity_domain_bare_index_redirects_to_main_site(): void
+    {
+        $this->domain(['host' => 'irnoti.test']);
+        $this->domain(['host' => '11v.ir', 'is_default' => false]);
+
+        $this->get('http://11v.ir/')->assertRedirect('http://irnoti.test/');
+    }
+
+    public function test_vanity_domain_with_code_path_is_not_redirected(): void
+    {
+        $domain = $this->domain(['host' => 'irnoti.test']);
+        $vanity = $this->domain(['host' => '11v.ir', 'is_default' => false]);
+        $user = User::factory()->create();
+        BusinessCard::create([
+            'user_id' => $user->id,
+            'domain_id' => $vanity->id,
+            'tier' => 'vip',
+            'code' => 'ali',
+            'title' => 'Ali Vanity',
+            'price' => 0,
+            'status' => 'active',
+        ]);
+
+        $this->get('http://11v.ir/ali')->assertOk()->assertSee('Ali Vanity');
     }
 }

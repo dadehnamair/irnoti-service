@@ -30,6 +30,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UssdController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
+use App\Models\Plan;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
  * (plans table) — same source as the landing "تعرفه‌ها" section.
  */
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+
+/*
+ * Dedicated per-plan page ("/pricing/{plan}") so Google indexes each plan as
+ * its own Product with its own canonical URL/JSON-LD, instead of only ever
+ * seeing the aggregate /pricing catalogue.
+ */
+Route::get('/pricing/{plan}', [PricingController::class, 'show'])->name('pricing.show');
 
 /*
  * USSD plan catalogue ("/ussd") — reuses the Plan/Subscription purchase
@@ -338,6 +346,15 @@ Route::get('/sitemap.xml', function () {
             'lastmod' => optional($post->updated_at)->toDateString() ?: $today,
             'changefreq' => 'monthly',
             'priority' => '0.7',
+        ];
+    }
+
+    foreach (Plan::query()->active()->ordered()->get() as $plan) {
+        $urls[] = [
+            'loc' => route('pricing.show', $plan->slug),
+            'lastmod' => optional($plan->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'weekly',
+            'priority' => '0.6',
         ];
     }
 

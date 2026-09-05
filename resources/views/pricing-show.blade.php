@@ -1,12 +1,12 @@
 @php
-    // Plans, feature matrix, FAQs, meta copy and the JSON-LD graph are all
-    // prepared in PricingController — this view only reads config/theme values.
+    // Everything is prepared in PricingController::show() — this view only
+    // reads config/theme values, mirroring pricing.blade.php's structure but
+    // scoped to a single plan so it can be indexed as its own product page.
     $brand = config('theme.brand');
     $seo = config('theme.seo');
     $primary = config('theme.primary');
     $email = config('theme.email');
     $url = rtrim($seo['url'], '/');
-    $canonical = route('pricing');
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -19,7 +19,7 @@
     <meta name="author" content="{{ $brand }}" />
     <meta name="description" content="{{ $metaDescription }}" />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="product" />
     <meta property="og:site_name" content="{{ $brand }}" />
     <meta property="og:locale" content="{{ $seo['locale'] }}" />
     <meta property="og:title" content="{{ $metaTitle }}" />
@@ -59,33 +59,28 @@
                     <nav class="blog-breadcrumb" aria-label="مسیر">
                         <a href="{{ route('home') }}">خانه</a>
                         <span aria-hidden="true">/</span>
-                        <span>تعرفه‌ها</span>
+                        <a href="{{ route('pricing') }}">تعرفه‌ها</a>
+                        <span aria-hidden="true">/</span>
+                        <span>{{ $plan->name }}</span>
                     </nav>
 
                     <div class="section-heading center">
-                        <span class="kicker">تعرفه‌ها</span>
-                        <h1>پلن مناسب کسب‌وکار شما را انتخاب کنید</h1>
-                        <p>همه پلن‌ها شامل داشبورد کامل، گزارش لحظه‌ای ارسال و دسترسی به API هستند. هر زمان می‌توانید ارتقا دهید.</p>
+                        <span class="kicker">پلن {{ $plan->name }}</span>
+                        <h1>پلن {{ $plan->name }} {{ $brand }}</h1>
+                        @if ($plan->description)
+                        <p>{{ $plan->description }}</p>
+                        @endif
                     </div>
 
-                    <div class="pricing-toggle" role="group" aria-label="تغییر دوره قیمت">
-                        <button class="toggle-btn active" type="button" data-period="monthly" aria-pressed="true">ماهانه</button>
-                        <button class="toggle-btn" type="button" data-period="yearly" aria-pressed="false">سالانه</button>
-                    </div>
-
-                    <div class="pricing-grid">
-                        @forelse ($plans as $plan)
+                    <div class="pricing-grid" style="max-width: 420px; margin: 0 auto;">
                         <article class="pricing-card @if ($plan->is_featured) featured @endif"
                             @if ($plan->color) style="--card-accent: {{ $plan->color }}" @endif>
                             <div class="pricing-header">
-                                <h3><a href="{{ route('pricing.show', $plan->slug) }}">{{ $plan->name }}</a></h3>
+                                <h3>{{ $plan->name }}</h3>
                                 @if ($plan->badge_label)
                                 <span class="pill {{ $plan->badge_style }}">{{ $plan->badge_label }}</span>
                                 @endif
                             </div>
-                            @if ($plan->description)
-                            <p class="plan-desc">{{ $plan->description }}</p>
-                            @endif
                             <div class="price-wrap">
                                 <span class="currency">تومان</span>
                                 @if ($plan->compare_at_monthly)
@@ -104,94 +99,68 @@
                                 @endforeach
                             </ul>
                             @include('partials.plan-cta', ['plan' => $plan])
-                            <a class="plan-detail-link" href="{{ route('pricing.show', $plan->slug) }}">مشاهده جزئیات پلن</a>
                         </article>
-                        @empty
-                        <p class="pricing-empty">به‌زودی پلن‌های تعرفه در این بخش نمایش داده می‌شوند.</p>
-                        @endforelse
                     </div>
                 </div>
             </section>
 
-            @if ($plans->isNotEmpty())
-            <section class="section alt-bg" aria-labelledby="compare-title">
+            <section class="section alt-bg" aria-labelledby="spec-title">
                 <div class="container">
                     <div class="section-heading center">
-                        <span class="kicker">مقایسه</span>
-                        <h2 id="compare-title">مقایسه کامل پلن‌ها</h2>
+                        <span class="kicker">مشخصات</span>
+                        <h2 id="spec-title">مشخصات کامل پلن {{ $plan->name }}</h2>
                     </div>
 
                     <div class="compare-wrap">
-                        <table class="compare-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">ویژگی</th>
-                                    @foreach ($plans as $plan)
-                                    <th scope="col" @if ($plan->is_featured) class="is-featured" @endif><a href="{{ route('pricing.show', $plan->slug) }}">{{ $plan->name }}</a></th>
-                                    @endforeach
-                                </tr>
-                            </thead>
+                        <table class="plan-spec-table">
                             <tbody>
                                 <tr>
                                     <th scope="row">قیمت ماهانه</th>
-                                    @foreach ($plans as $plan)
                                     <td>{{ number_format($plan->price_monthly) }} تومان</td>
-                                    @endforeach
                                 </tr>
                                 <tr>
                                     <th scope="row">قیمت سالانه</th>
-                                    @foreach ($plans as $plan)
                                     <td>{{ number_format($plan->price_yearly) }} تومان</td>
-                                    @endforeach
                                 </tr>
                                 <tr>
                                     <th scope="row">مدت اعتبار</th>
-                                    @foreach ($plans as $plan)
                                     <td>{{ $plan->duration_days ? number_format($plan->duration_days) . ' روز' : '—' }}</td>
-                                    @endforeach
                                 </tr>
                                 <tr>
                                     <th scope="row">تعداد پیامک</th>
-                                    @foreach ($plans as $plan)
                                     <td>{{ $plan->sms_count ? number_format($plan->sms_count) : 'نامحدود' }}</td>
-                                    @endforeach
                                 </tr>
                                 <tr>
                                     <th scope="row">خطوط اختصاصی</th>
-                                    @foreach ($plans as $plan)
                                     <td>{{ $plan->lines_count ? number_format($plan->lines_count) : 'نامحدود' }}</td>
-                                    @endforeach
                                 </tr>
                                 <tr>
                                     <th scope="row">تعداد کاربر</th>
-                                    @foreach ($plans as $plan)
                                     <td>{{ $plan->users_count ? number_format($plan->users_count) : 'نامحدود' }}</td>
-                                    @endforeach
-                                </tr>
-                                @foreach ($allFeatures as $feature)
-                                <tr>
-                                    <th scope="row">{{ $feature }}</th>
-                                    @foreach ($plans as $plan)
-                                    <td>
-                                        @if (in_array($feature, $plan->feature_list, true))
-                                        <span class="tick yes" aria-label="دارد">✓</span>
-                                        @else
-                                        <span class="tick no" aria-label="ندارد">—</span>
-                                        @endif
-                                    </td>
-                                    @endforeach
-                                </tr>
-                                @endforeach
-                                <tr>
-                                    <th scope="row"></th>
-                                    @foreach ($plans as $plan)
-                                    <td>
-                                        @include('partials.plan-cta', ['plan' => $plan])
-                                    </td>
-                                    @endforeach
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            @if ($otherPlans->isNotEmpty())
+            <section class="section" aria-labelledby="other-plans-title">
+                <div class="container">
+                    <div class="section-heading center">
+                        <span class="kicker">سایر پلن‌ها</span>
+                        <h2 id="other-plans-title">پلن‌های دیگر {{ $brand }}</h2>
+                    </div>
+
+                    <div class="other-plans-grid">
+                        @foreach ($otherPlans as $other)
+                        <a class="other-plan-card" href="{{ route('pricing.show', $other->slug) }}">
+                            <span>
+                                <strong>{{ $other->name }}</strong>
+                                <span>{{ number_format($other->price_monthly) }} تومان/ماه</span>
+                            </span>
+                        </a>
+                        @endforeach
                     </div>
                 </div>
             </section>
@@ -225,7 +194,7 @@
                     </div>
                     <div class="cta-actions">
                         <a class="btn btn-primary" href="mailto:{{ $email }}">{{ $email }}</a>
-                        <a class="btn btn-secondary light" href="{{ route('home') }}">بازگشت به صفحه اصلی</a>
+                        <a class="btn btn-secondary light" href="{{ route('pricing') }}">مقایسه همه پلن‌ها</a>
                     </div>
                 </div>
             </section>

@@ -46,6 +46,9 @@ class SettingsSeeder extends Seeder
             ['commerce', 'marketplace_enabled', '1', 'bool', 'فعال بودن بازارچه'],
             ['commerce', 'marketplace_payment_online', '0', 'bool', 'خرید آنلاین افزونه‌های بازارچه (اتصال به درگاه پرداخت)'],
 
+            // نمایندگی فروش
+            ['commerce', 'representation_enabled', '1', 'bool', 'فعال بودن صفحه‌ی نمایندگی فروش'],
+
             // کیف پول و امور مالی (docs/starter.md §22 / §23)
             ['commerce', 'wallet_enabled', '1', 'bool', 'فعال بودن کیف پول و شارژ حساب'],
             ['commerce', 'wallet_min_topup', '10000', 'string', 'حداقل مبلغ شارژ کیف پول (تومان)'],

@@ -37,6 +37,10 @@ class DatabaseSeeder extends Seeder
             BankAccountsSeeder::class,
             DocsSeeder::class,
             BlogSeeder::class,
+            PagesSeeder::class,
+            FaqsSeeder::class,
+            SiteFeaturesSeeder::class,
+            RepresentationTiersSeeder::class,
         ]);
     }
 }

@@ -5,10 +5,12 @@ namespace App\Support;
 use App\Jobs\SendSmsJob;
 use App\Models\BankReceipt;
 use App\Models\BusinessCard;
+use App\Models\ContactMessage;
 use App\Models\Invoice;
 use App\Models\LineOrder;
 use App\Models\MarketplaceInstallation;
 use App\Models\PackageOrder;
+use App\Models\RepresentationApplication;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
@@ -274,6 +276,35 @@ class OperationNotifier
             $invoice->number,
             $invoice->user?->mobile ?? '—',
             number_format((int) $invoice->total),
+        ));
+    }
+
+    /** A visitor submitted the public /contact form. */
+    public function contactMessageReceived(ContactMessage $message): void
+    {
+        $this->toAdmin(sprintf(
+            'پیام تماس جدید در %s — %s (%s): %s',
+            $this->brand(),
+            $message->name,
+            $message->mobile,
+            \Illuminate\Support\Str::limit($message->message, 80),
+        ));
+    }
+
+    /** A visitor submitted the public /representation application form. */
+    public function representationApplicationReceived(RepresentationApplication $application): void
+    {
+        $this->toUser($application->mobile, sprintf(
+            'درخواست نمایندگی فروش شما در %s ثبت شد. همکاران ما به‌زودی با شما تماس می‌گیرند.',
+            $this->brand(),
+        ));
+
+        $this->toAdmin(sprintf(
+            'درخواست نمایندگی فروش جدید در %s — %s (%s)%s',
+            $this->brand(),
+            $application->full_name,
+            $application->mobile,
+            $application->tier ? ' — تعرفه: '.$application->tier->name : '',
         ));
     }
 

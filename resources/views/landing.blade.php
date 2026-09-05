@@ -189,65 +189,17 @@ $url = rtrim($seo['url'], '/');
                     </div>
 
                     <div class="feature-grid">
+                        @foreach ($siteFeatures as $feature)
                         <article class="feature-card">
-                            <div class="icon-wrap blue" aria-hidden="true">✉️</div>
-                            <h3>ارسال انبوه و گروهی</h3>
-                            <p>ارسال فوری پیامک‌های فردی، گروهی و زمان‌بندی‌شده با کارایی بالا و صف اختصاصی.</p>
+                            <div class="icon-wrap blue" aria-hidden="true">{{ $feature->icon ?? '✨' }}</div>
+                            <h3>{{ $feature->title }}</h3>
+                            <p>{{ $feature->tagline ?? $feature->description ?? '' }}</p>
                         </article>
+                        @endforeach
+                    </div>
 
-                        <article class="feature-card">
-                            <div class="icon-wrap orange" aria-hidden="true">📇</div>
-                            <h3>دفترچه تلفن هوشمند</h3>
-                            <p>مدیریت مخاطبین و گروه‌ها با همگام‌سازی دوطرفه با پنل شما و ورود دسته‌ای داده‌ها.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap green" aria-hidden="true">📨</div>
-                            <h3>صندوق پیام‌ها</h3>
-                            <p>مشاهده پیام‌های دریافتی و ارسالی، بایگانی و بروزرسانی لحظه‌ای وضعیت از سامانه.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap purple" aria-hidden="true">🧠</div>
-                            <h3>پیامک پترن</h3>
-                            <p>ساخت الگوهای پیامکی استاندارد و استفاده مجدد برای ارسال‌های تراکنشی و تکرارشونده.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap gold" aria-hidden="true">👛</div>
-                            <h3>کیف پول و فاکتور</h3>
-                            <p>شارژ حساب، دفتر تراکنش شفاف، ثبت فیش بانکی و صدور فاکتور رسمی برای کسب‌وکارها.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap red" aria-hidden="true">🧩</div>
-                            <h3>بازارچه</h3>
-                            <p>افزودن قابلیت‌های تازه به پنل — اتصال به ایرپلاس، کارت ویزیت الکترونیکی و منشی پیامکی.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap blue" aria-hidden="true">📞</div>
-                            <h3>خطوط اختصاصی</h3>
-                            <p>پیش‌شماره‌های ۱۰۰۰، ۲۰۰۰، ۳۰۰۰، ۵۰۰۰ و ۰۲۱ با انتخاب تعداد ارقام و خرید آنلاین.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap gold" aria-hidden="true">🪪</div>
-                            <h3>کارت ویزیت دیجیتال</h3>
-                            <p>کارت ویزیت مجازی VBC یا کارت ویزیت الکترونیکی EBC با کد اختصاصی و لینک اشتراک‌گذاری آسان.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap gold" aria-hidden="true">⚡</div>
-                            <h3>وب‌سرویس و API</h3>
-                            <p>اتصال سریع به اپلیکیشن‌ها، CRM و سیستم‌های فروش با مستندات فارسی و Webhook.</p>
-                        </article>
-
-                        <article class="feature-card">
-                            <div class="icon-wrap purple" aria-hidden="true">🛡️</div>
-                            <h3>دسترسی و امنیت</h3>
-                            <p>سطوح کاربری، کنترل دقیق دسترسی به بخش‌های پنل و ورود امن با کد یک‌بارمصرف.</p>
-                        </article>
+                    <div class="section-more center">
+                        <a class="heading-link" href="{{ route('features') }}">مشاهده همه امکانات ←</a>
                     </div>
                 </div>
             </section>
@@ -548,12 +500,16 @@ $url = rtrim($seo['url'], '/');
                     <div class="faq-list" itemscope itemtype="https://schema.org/FAQPage">
                         @foreach ($faqs as $i => $faq)
                         <details @if ($i===0) open @endif itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
-                            <summary itemprop="name">{{ $faq['q'] }}</summary>
+                            <summary itemprop="name">{{ $faq->question }}</summary>
                             <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
-                                <p itemprop="text">{{ $faq['a'] }}</p>
+                                <p itemprop="text">{{ $faq->answer }}</p>
                             </div>
                         </details>
                         @endforeach
+                    </div>
+
+                    <div class="section-more center">
+                        <a class="heading-link" href="{{ route('faq') }}">مشاهده همه سوالات متداول ←</a>
                     </div>
                 </div>
             </section>

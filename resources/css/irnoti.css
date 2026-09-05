@@ -856,6 +856,56 @@ select {
     color: var(--primary);
     font-size: 1.2rem;
 }
+.plan-detail-link {
+    display: block;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+}
+.plan-detail-link:hover {
+    color: var(--primary);
+}
+
+/* Plan detail page ("/pricing/{plan}") --------------------------- */
+.plan-spec-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.plan-spec-table th,
+.plan-spec-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    text-align: start;
+}
+.plan-spec-table th {
+    color: var(--text-soft);
+    font-weight: 600;
+    width: 40%;
+}
+.other-plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+}
+.other-plan-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+}
+.other-plan-card strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+.other-plan-card span {
+    color: var(--text-soft);
+    font-size: 0.85rem;
+}
 
 /* Lines --------------------------------------------------------- */
 .line-grid {

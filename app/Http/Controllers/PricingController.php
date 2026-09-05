@@ -40,6 +40,31 @@ class PricingController extends Controller
     }
 
     /**
+     * Dedicated per-plan page ("/pricing/{plan}") — its own canonical URL and
+     * Product/Offer JSON-LD, so Google can index and show each plan as a
+     * separate product instead of only ever surfacing the /pricing catalogue.
+     */
+    public function show(string $plan): View
+    {
+        $model = Plan::query()->active()->where('slug', $plan)->firstOrFail();
+        $brand = config('theme.brand');
+        $canonical = route('pricing.show', $model->slug);
+
+        $otherPlans = Plan::query()->active()->ordered()->where('id', '!=', $model->id)->get();
+
+        return view('pricing-show', [
+            'plan' => $model,
+            'otherPlans' => $otherPlans,
+            'faqs' => self::PRICING_FAQS,
+            'metaTitle' => 'پلن '.$model->name.' '.$brand.' | قیمت و امکانات',
+            'metaDescription' => 'جزئیات پلن '.$model->name.' پنل پیامک '.$brand
+                .' — قیمت ماهانه و سالانه، تعداد پیامک، خطوط اختصاصی و امکانات کامل این پلن.',
+            'canonical' => $canonical,
+            'jsonLd' => $this->planJsonLd($model, $canonical),
+        ]);
+    }
+
+    /**
      * Public SMS credit-bundle catalogue ("/sms-packages"). Bundles are managed
      * from the Filament admin panel; buying one is done from the customer panel
      * (docs/starter.md §12).
@@ -91,11 +116,50 @@ class PricingController extends Controller
                     'price' => $plan->price_monthly * 10,
                     'priceCurrency' => 'IRR',
                     'availability' => 'https://schema.org/InStock',
-                    'url' => $canonical,
+                    // Each plan's own detail page, not the shared /pricing canonical —
+                    // this is what lets Google index every plan as a separate product.
+                    'url' => route('pricing.show', $plan->slug),
                     'priceValidUntil' => now()->addYear()->toDateString(),
                 ],
             ];
         }
+
+        return json_encode(
+            ['@context' => 'https://schema.org', '@graph' => $graph],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    /** JSON-LD graph: BreadcrumbList + a single plan's Product/Offer, for its own detail page. */
+    private function planJsonLd(Plan $plan, string $canonical): string
+    {
+        $brand = config('theme.brand');
+        $url = rtrim(config('theme.seo.url'), '/');
+
+        $graph = [
+            [
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url.'/'],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'تعرفه‌ها', 'item' => route('pricing')],
+                    ['@type' => 'ListItem', 'position' => 3, 'name' => $plan->name, 'item' => $canonical],
+                ],
+            ],
+            [
+                '@type' => 'Product',
+                'name' => 'پلن '.$plan->name.' '.$brand,
+                'description' => 'پنل پیامکی '.$brand.' — '.implode('، ', $plan->feature_list),
+                'brand' => ['@type' => 'Brand', 'name' => $brand],
+                'offers' => [
+                    '@type' => 'Offer',
+                    'price' => $plan->price_monthly * 10,
+                    'priceCurrency' => 'IRR',
+                    'availability' => 'https://schema.org/InStock',
+                    'url' => $canonical,
+                    'priceValidUntil' => now()->addYear()->toDateString(),
+                ],
+            ],
+        ];
 
         return json_encode(
             ['@context' => 'https://schema.org', '@graph' => $graph],

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAccountApproved;
+use App\Http\Middleware\RedirectForeignDomain;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,6 +13,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Canonical-host redirect (docs/business-cards.md §4): runs before
+        // sessions/routing so a foreign host never touches app state.
+        $middleware->web(prepend: [RedirectForeignDomain::class]);
+
         // The payment gateway posts the result back here without a CSRF token.
         $middleware->validateCsrfTokens(except: [
             'lines/payment/callback',

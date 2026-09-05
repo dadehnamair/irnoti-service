@@ -3,23 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlogPost;
+use App\Models\Faq;
 use App\Models\MarketplaceApp;
 use App\Models\Plan;
 use App\Models\Setting;
+use App\Models\SiteFeature;
 use App\Models\SmsLine;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 
 class HomeController extends Controller
 {
-    /** @var array<int, array{q: string, a: string}> */
-    private const FAQS = [
-        ['q' => 'آیا irnoti برای شروع کسب‌وکارهای کوچک مناسب است؟', 'a' => 'بله، پلن‌های پایه و حرفه‌ای برای کسب‌وکارهای کوچک تا بزرگ طراحی شده‌اند و برای فروشگاه‌ها، خدمات و برندها مناسب هستند.'],
-        ['q' => 'برای شروع چه چیزی لازم است؟', 'a' => 'فقط یک شماره موبایل. با ثبت‌نام و تأیید کد پیامکی وارد پنل می‌شوید؛ تکمیل هویت و مدارک را می‌توانید بعداً و به‌صورت مرحله‌به‌مرحله انجام دهید.'],
-        ['q' => 'آیا امکان ارسال پیامک زمان‌بندی‌شده وجود دارد؟', 'a' => 'بله، از طریق پنل و API می‌توانید ارسال زمان‌بندی‌شده و کمپین‌های هدفمند داشته باشید.'],
-        ['q' => 'بازارچه چیست؟', 'a' => 'بخشی از پنل که با آن می‌توانید قابلیت‌های تازه‌ای مثل اتصال به ایرپلاس، کارت ویزیت الکترونیکی یا منشی پیامکی را با چند کلیک به حساب خود اضافه کنید.'],
-        ['q' => 'آیا API دارای مستندات فارسی است؟', 'a' => 'بله، مستندات API به‌صورت حرفه‌ای و ساده برای تیم‌های فنی آماده است و به‌راحتی در پروژه‌های مختلف قابل استفاده می‌باشد.'],
-        ['q' => 'روش‌های پرداخت و تسویه چگونه است؟', 'a' => 'پرداخت آنلاین از طریق درگاه بانکی، شارژ کیف پول، ثبت فیش بانکی و صدور فاکتور رسمی برای کسب‌وکارها پشتیبانی می‌شود.'],
+    /** Static fallback so the landing page still renders on a fresh/empty DB. */
+    private const FEATURES_FALLBACK = [
+        ['icon' => '✉️', 'title' => 'ارسال انبوه و گروهی', 'tagline' => 'ارسال فوری پیامک‌های فردی، گروهی و زمان‌بندی‌شده با کارایی بالا و صف اختصاصی.'],
+        ['icon' => '📇', 'title' => 'دفترچه تلفن هوشمند', 'tagline' => 'مدیریت مخاطبین و گروه‌ها با همگام‌سازی دوطرفه با پنل شما و ورود دسته‌ای داده‌ها.'],
+        ['icon' => '📨', 'title' => 'صندوق پیام‌ها', 'tagline' => 'مشاهده پیام‌های دریافتی و ارسالی، بایگانی و بروزرسانی لحظه‌ای وضعیت از سامانه.'],
+        ['icon' => '👛', 'title' => 'کیف پول و فاکتور', 'tagline' => 'شارژ حساب، دفتر تراکنش شفاف، ثبت فیش بانکی و صدور فاکتور رسمی برای کسب‌وکارها.'],
+        ['icon' => '🧩', 'title' => 'بازارچه', 'tagline' => 'افزودن قابلیت‌های تازه به پنل — اتصال به ایرپلاس، کارت ویزیت الکترونیکی و منشی پیامکی.'],
+        ['icon' => '📞', 'title' => 'خطوط اختصاصی', 'tagline' => 'پیش‌شماره‌های ۱۰۰۰، ۲۰۰۰، ۳۰۰۰، ۵۰۰۰ و ۰۲۱ با انتخاب تعداد ارقام و خرید آنلاین.'],
+        ['icon' => '🪪', 'title' => 'کارت ویزیت دیجیتال', 'tagline' => 'کارت ویزیت مجازی VBC یا کارت ویزیت الکترونیکی EBC با کد اختصاصی.'],
+        ['icon' => '⚡', 'title' => 'وب‌سرویس و API', 'tagline' => 'اتصال سریع به اپلیکیشن‌ها، CRM و سیستم‌های فروش با مستندات فارسی و Webhook.'],
+        ['icon' => '🛡️', 'title' => 'دسترسی و امنیت', 'tagline' => 'سطوح کاربری، کنترل دقیق دسترسی به بخش‌های پنل و ورود امن با کد یک‌بارمصرف.'],
     ];
 
     /**
@@ -55,6 +60,14 @@ class HomeController extends Controller
         );
         $marketEnabled = rescue(fn () => (bool) Setting::get('marketplace_enabled', true), true, false);
 
+        $faqs = rescue(fn () => Faq::query()->active()->ordered()->get(), new Collection, false);
+
+        $siteFeatures = rescue(
+            fn () => SiteFeature::query()->active()->ordered()->limit(9)->get(),
+            collect(self::FEATURES_FALLBACK)->map(fn ($f) => (object) $f),
+            false
+        );
+
         return view('landing', [
             'plans' => $plans,
             'latestPosts' => $latestPosts,
@@ -62,13 +75,14 @@ class HomeController extends Controller
             'businessCardPrice' => $businessCardPrice,
             'marketApps' => $marketApps,
             'marketEnabled' => $marketEnabled,
-            'faqs' => self::FAQS,
-            'jsonLd' => $this->buildJsonLd($plans),
+            'faqs' => $faqs,
+            'siteFeatures' => $siteFeatures,
+            'jsonLd' => $this->buildJsonLd($plans, $faqs),
         ]);
     }
 
     /** JSON-LD graph: Organization + WebSite + one Product per plan + FAQPage. */
-    private function buildJsonLd(Collection $plans): string
+    private function buildJsonLd(Collection $plans, Collection $faqs): string
     {
         $brand = config('theme.brand');
         $seo = config('theme.seo');
@@ -120,10 +134,10 @@ class HomeController extends Controller
 
         $graph[] = [
             '@type' => 'FAQPage',
-            'mainEntity' => collect(self::FAQS)->map(fn ($f) => [
+            'mainEntity' => $faqs->map(fn ($f) => [
                 '@type' => 'Question',
-                'name' => $f['q'],
-                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']],
+                'name' => $f->question,
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f->answer],
             ])->all(),
         ];
 
