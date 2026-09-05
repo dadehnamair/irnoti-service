@@ -26,7 +26,9 @@
             @foreach ($mpInstalls as $install)
                 <a href="{{ route('marketplace.manage', $install) }}"
                    @class(['is-active' => request()->routeIs('marketplace.manage') && request()->route('installation')?->id === $install->id])>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+                    <span class="mk-ico sm" aria-hidden="true"
+                        @if ($install->app->accent_color) style="--mk-accent: {{ $install->app->accent_color }}" @endif
+                    >{!! $install->app->icon_html !!}</span>
                     <span>{{ $install->app->name }}</span>
                 </a>
             @endforeach

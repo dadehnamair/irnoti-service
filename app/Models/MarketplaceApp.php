@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -71,7 +72,7 @@ class MarketplaceApp extends Model
         static::saving(function (MarketplaceApp $app) {
             if (blank($app->slug)) {
                 $base = Str::slug($app->name);
-                $app->slug = $base !== '' ? $base : 'app-' . Str::random(6);
+                $app->slug = $base !== '' ? $base : 'app-'.Str::random(6);
             }
         });
     }
@@ -142,10 +143,34 @@ class MarketplaceApp extends Model
             return 'رایگان';
         }
 
-        $label = number_format((int) $this->price) . ' تومان';
+        $label = number_format((int) $this->price).' تومان';
 
         return $this->isSubscription() && $this->billing_period_label
-            ? $label . ' / ' . $this->billing_period_label
+            ? $label.' / '.$this->billing_period_label
             : $label;
+    }
+
+    /**
+     * Markup for the `.mk-ico` badge: `icon` is either an uploaded image path
+     * (Filament `FileUpload` on the `public` disk) or a short emoji/glyph typed
+     * by the admin. Falls back to a generic glyph when unset.
+     */
+    public function getIconHtmlAttribute(): string
+    {
+        $icon = trim((string) $this->icon);
+
+        if ($icon === '') {
+            return e('🧩');
+        }
+
+        if (! Str::contains($icon, ['/', '.'])) {
+            return e($icon);
+        }
+
+        $src = Str::startsWith($icon, ['http://', 'https://', '/'])
+            ? $icon
+            : Storage::url($icon);
+
+        return '<img src="'.e($src).'" alt="" loading="lazy" />';
     }
 }

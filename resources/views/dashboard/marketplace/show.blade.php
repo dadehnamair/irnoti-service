@@ -4,7 +4,10 @@
 
 @section('content')
     <div class="account-card">
-        <h2>{{ $app->name }}</h2>
+        <div class="mk-app-head" @if ($app->accent_color) style="--mk-accent: {{ $app->accent_color }}" @endif>
+            <div class="mk-ico" aria-hidden="true">{!! $app->icon_html !!}</div>
+            <h2>{{ $app->name }}</h2>
+        </div>
         @if ($app->vendor)
             <p class="plan-card__meta">ارائه‌دهنده: {{ $app->vendor }}</p>
         @endif

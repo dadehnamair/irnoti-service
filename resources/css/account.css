@@ -1193,6 +1193,42 @@ fieldset.wallet-topup-method {
     color: var(--muted);
 }
 
+/* Marketplace app icon badge — mirrors `.mk-ico` from the public showcase
+   page (irnoti.css), reimplemented here since the dashboard only loads
+   account.css. `--mk-accent` is per-app via inline style, falling back to
+   the theme primary color. */
+.mk-ico {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 1.3rem;
+    background: color-mix(in srgb, var(--mk-accent, var(--primary)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--mk-accent, var(--primary)) 24%, transparent);
+}
+.mk-ico.sm {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    border-radius: 9px;
+}
+.mk-app-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.mk-app-head h2 {
+    margin: 0;
+}
+.mk-ico img {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+}
+
 /* ============================================================================
  * Baseline form controls — every input / select / textarea inside a panel or
  * an auth card, regardless of which form wrapper it sits in. Uses :where() so

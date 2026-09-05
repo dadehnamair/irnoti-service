@@ -25,10 +25,13 @@
     <div class="plan-cards">
         @foreach ($apps as $app)
         @php $mine = $installed->get($app->id); @endphp
-        <div @class(['plan-card', 'is-featured'=> $app->is_featured])>
+        <div @class(['plan-card', 'is-featured'=> $app->is_featured])
+            @if ($app->accent_color) style="--mk-accent: {{ $app->accent_color }}" @endif>
             @if ($app->is_featured)
             <span class="plan-card__badge">پیشنهادی</span>
             @endif
+
+            <div class="mk-ico" aria-hidden="true">{!! $app->icon_html !!}</div>
 
             <h3>{{ $app->name }}</h3>
             @if ($app->vendor)

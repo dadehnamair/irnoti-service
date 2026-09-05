@@ -20,17 +20,6 @@
 
     $ctaHref = auth()->check() ? route('dashboard.marketplace') : route('register');
 
-    // An app `icon` is either an uploaded image path or a short emoji/glyph.
-    $renderIcon = function ($icon, string $fallback = '🧩') {
-    $icon = trim((string) $icon);
-    if ($icon === '') {
-    return e($fallback);
-    }
-    return \Illuminate\Support\Str::contains($icon, ['/', '.'])
-    ? '<img src="'.e(\Illuminate\Support\Str::startsWith($icon, ['http://', 'https://', '/']) ? $icon : \Illuminate\Support\Facades\Storage::url($icon)).'" alt="" loading="lazy" />'
-    : e($icon);
-    };
-
     $graph = [
     [
     '@type' => 'BreadcrumbList',
@@ -141,7 +130,7 @@
                     <div class="mk-spotlight" @if ($featured->accent_color) style="--mk-accent: {{ $featured->accent_color }}" @endif>
                         <div class="mk-spotlight__badge">پیشنهاد ویژه</div>
                         <div class="mk-spotlight__body">
-                            <div class="mk-ico lg" aria-hidden="true">{!! $renderIcon($featured->icon) !!}</div>
+                            <div class="mk-ico lg" aria-hidden="true">{!! $featured->icon_html !!}</div>
                             <div>
                                 <h2 id="mk-spotlight-title">{{ $featured->name }}</h2>
                                 @if ($featured->vendor)
@@ -187,7 +176,7 @@
                             @if ($app->is_featured)
                             <span class="mk-app__tag">پیشنهادی</span>
                             @endif
-                            <div class="mk-ico" aria-hidden="true">{!! $renderIcon($app->icon) !!}</div>
+                            <div class="mk-ico" aria-hidden="true">{!! $app->icon_html !!}</div>
                             <h3>{{ $app->name }}</h3>
                             <span class="mk-app__cat">{{ $app->category_label }}</span>
                             @if ($app->vendor)
