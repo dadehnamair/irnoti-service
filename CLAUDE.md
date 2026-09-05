@@ -25,6 +25,7 @@ Scope now spans the **public site + admin CMS + the customer dashboard** (a real
 - [docs/site-content.md](docs/site-content.md) — admin-managed static pages (About/Cooperation), FAQ, the marketing features showcase, and the contact form.
 - [docs/sales-representation.md](docs/sales-representation.md) — admin-defined commission tiers + a manually-reviewed lead-capture application form, no self-service payment/activation.
 - [docs/blog.md](docs/blog.md) — blog/magazine content marketing: posts/categories/tags, per-level SEO meta, JSON-LD (BlogPosting/BreadcrumbList/CollectionPage), sitemap + RSS coverage, hreflang.
+- [docs/lines-landing.md](docs/lines-landing.md) — per-prefix line landing pages (`/lines/{slug}`): admin-edited copy/SEO/FAQ + «باندل اختصاصی خط» (line + SMS credit + validity) sold through the shared LineOrder flow.
 
 ## Commands
 
@@ -73,7 +74,8 @@ Thin, read-only, no auth. `PricingController`, `BlogController`, `DocsController
 - `SmsLine` = a line number offered for sale (admin-managed). `LineOrder` = a purchase request; **route key is `token`** (random 24-char, auto-set on `creating`), not `id` — order pages are public and unguessable.
 - Flow: `/lines` (catalogue, grouped by `prefix`, filtered client-side) → `/lines/{line}/checkout` → `POST /lines/order` → either the payment gateway or straight to the token tracking page `/lines/order/{token}`.
 - **Online payment is gated by two conditions**: the `line_payment_online` setting (admin toggle) AND the line being `price > 0` and not `requires_inquiry`. When off, orders just land as `pending`/`awaiting_payment` for the admin to process.
-- Payment uses **shetabit/multipay** via [config/payment.php](config/payment.php); driver = `PAYMENT_DRIVER` env (`local` = bundled test gateway, no credentials). `pay()` → `Payment::purchase()->pay()->render()`; `paymentCallback()` handles both GET and POST, reads `transactionId`/`Authority`/etc. depending on driver, then `Payment::verify()` and marks the order `paid`. `LineOrder::STATUSES` is the full status workflow.
+- Payment uses **shetabit/multipay** via [config/payment.php](config/payment.php); driver = `PAYMENT_DRIVER` env (`local` = bundled test gateway, no credentials). `pay()` → `Payment::purchase()->pay()->render()`; `paymentCallback()` handles both GET and POST, reads `transactionId`/`Authority`/etc. depending on driver, then `Payment::verify()` and settles the order via `PayableSettlement`. `LineOrder::STATUSES` is the full status workflow.
+- **Per-prefix landing pages** (`/lines/{slug}`, `SmsLine.line_group_id` → `LineGroup`) carry admin-edited copy/SEO/FAQ and sell that prefix's variants plus **`LineBundle`s** («باندل اختصاصی خط» = line + SMS credit + validity); a bundle purchase is a `LineOrder` with the bundle columns snapshotted, and `PayableSettlement::settleLineOrder()` grants the bundled `sms_credit`. See [docs/lines-landing.md](docs/lines-landing.md).
 
 ### Customer accounts & auth (`app/Http/Controllers/Auth`, `Dashboard`) — docs/starter.md §26/§27
 - **Mobile-first, stepped.** `web` guard + session (no Breeze). `/register` takes only a mobile → creates a `pending` `User` → texts a 5-digit code (`OtpCode`, hashed, 5-min TTL, 90s resend throttle) → `/verify` logs in and flips the account to `active`. `/login` is mobile+password when a password was set, else `/login/otp` reuses the OTP flow. Filament's `/admin` login is entirely separate.
