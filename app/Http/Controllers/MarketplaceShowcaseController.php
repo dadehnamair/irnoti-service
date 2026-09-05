@@ -20,10 +20,10 @@ class MarketplaceShowcaseController extends Controller
     public function index(): View
     {
         // Degrade gracefully on a fresh / mid-migration DB, just like the landing.
-        abort_unless((bool) rescue(fn() => Setting::get('marketplace_enabled', true), true, false), 404);
+        abort_unless((bool) rescue(fn () => Setting::get('marketplace_enabled', true), true, false), 404);
 
         $apps = rescue(
-            fn() => MarketplaceApp::query()->active()->ordered()->get(),
+            fn () => MarketplaceApp::query()->active()->ordered()->get(),
             new Collection,
             false
         );

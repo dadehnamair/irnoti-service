@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\Dashboard\BankReceiptController;
+use App\Http\Controllers\Dashboard\BusinessCardController;
 use App\Http\Controllers\Dashboard\ContactController;
 use App\Http\Controllers\Dashboard\ContactGroupController;
 use App\Http\Controllers\Dashboard\DashboardController;
@@ -23,7 +24,6 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\MarketplaceShowcaseController;
-use App\Http\Controllers\Dashboard\BusinessCardController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\PublicBusinessCardController;
 use App\Http\Controllers\SubscriptionController;
@@ -110,10 +110,10 @@ Route::prefix('developers')->name('docs.')->group(function () {
  */
 Route::get('/assets/theme.css', function () {
     $css = ':root{'
-        . '--primary:' . config('theme.primary') . ' !important;'
-        . '--accent:' . config('theme.accent') . ' !important;'
-        . '--secondary:' . config('theme.secondary') . ' !important;'
-        . '}';
+        .'--primary:'.config('theme.primary').' !important;'
+        .'--accent:'.config('theme.accent').' !important;'
+        .'--secondary:'.config('theme.secondary').' !important;'
+        .'}';
 
     return Response::make($css, 200, [
         'Content-Type' => 'text/css',
@@ -341,16 +341,16 @@ Route::get('/sitemap.xml', function () {
         ];
     }
 
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
+        .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
 
     foreach ($urls as $url) {
         $xml .= "  <url>\n"
-            . "    <loc>{$url['loc']}</loc>\n"
-            . "    <lastmod>{$url['lastmod']}</lastmod>\n"
-            . "    <changefreq>{$url['changefreq']}</changefreq>\n"
-            . "    <priority>{$url['priority']}</priority>\n"
-            . "  </url>\n";
+            ."    <loc>{$url['loc']}</loc>\n"
+            ."    <lastmod>{$url['lastmod']}</lastmod>\n"
+            ."    <changefreq>{$url['changefreq']}</changefreq>\n"
+            ."    <priority>{$url['priority']}</priority>\n"
+            ."  </url>\n";
     }
 
     $xml .= '</urlset>';

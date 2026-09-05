@@ -1,10 +1,5 @@
 @extends('blog.layout')
 
-@php
-    $brand = config('theme.brand');
-    $siteUrl = rtrim(config('theme.seo.url'), '/');
-@endphp
-
 @push('meta')
     @if ($posts->currentPage() > 1)
         <link rel="prev" href="{{ $posts->previousPageUrl() }}" />
@@ -14,23 +9,9 @@
     @endif
 @endpush
 
+{{-- $jsonLd (CollectionPage) is built in BlogController. --}}
 @push('jsonld')
-    <script type="application/ld+json">
-    {!! json_encode([
-        '@context' => 'https://schema.org',
-        '@type' => 'CollectionPage',
-        'name' => $heading,
-        'description' => $intro,
-        'url' => url()->current(),
-        'isPartOf' => ['@type' => 'WebSite', 'name' => $brand, 'url' => $siteUrl . '/'],
-        'hasPart' => $posts->map(fn ($p) => [
-            '@type' => 'BlogPosting',
-            'headline' => $p->title,
-            'url' => route('blog.show', $p->slug),
-            'datePublished' => optional($p->published_date)->toIso8601String(),
-        ])->all(),
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
-    </script>
+    {!! $jsonLd !!}
 @endpush
 
 @section('blog')

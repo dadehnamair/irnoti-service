@@ -38,42 +38,72 @@ class UsersTable
                 TextColumn::make('account_type')
                     ->label('نوع')
                     ->badge()
-                    ->color(fn (string $state) => $state === 'legal' ? 'info' : 'gray')
-                    ->formatStateUsing(fn (string $state) => User::ACCOUNT_TYPES[$state] ?? $state),
+                    ->color(fn(string $state) => $state === 'legal' ? 'info' : 'gray')
+                    ->formatStateUsing(fn(string $state) => User::ACCOUNT_TYPES[$state] ?? $state),
 
-                TextColumn::make('company')
-                    ->label('شرکت')
-                    ->searchable(['company', 'company_national_id'])
-                    ->placeholder('—')
-                    ->toggleable(),
+                // TextColumn::make('company')
+                //     ->label('شرکت')
+                //     ->searchable(['company', 'company_national_id'])
+                //     ->placeholder('—')
+                //     ->toggleable(),
 
                 TextColumn::make('status')
                     ->label('وضعیت')
                     ->badge()
-                    ->color(fn (string $state) => match ($state) {
+                    ->color(fn(string $state) => match ($state) {
                         'active' => 'success',
                         'awaiting_approval' => 'info',
                         'suspended' => 'warning',
                         'blocked' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state) => User::STATUSES[$state] ?? $state),
+                    ->formatStateUsing(fn(string $state) => User::STATUSES[$state] ?? $state),
 
                 TextColumn::make('documents_status')
                     ->label('مدارک')
                     ->badge()
-                    ->color(fn (string $state) => match ($state) {
+                    ->color(fn(string $state) => match ($state) {
                         'approved' => 'success',
                         'rejected' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state) => User::DOCUMENT_STATUSES[$state] ?? $state),
+                    ->formatStateUsing(fn(string $state) => User::DOCUMENT_STATUSES[$state] ?? $state),
+
+                TextColumn::make('sms_panel_credit')
+                    ->label('اعتبار پنل پیامکی')
+                    ->getStateUsing(fn(User $record) => $record->hasSmsPanel() ? $record->smsPanelCredit() : null)
+                    ->formatStateUsing(function (?array $state) {
+                        if ($state === null) {
+                            return '—';
+                        }
+
+                        if ($state['error'] || $state['sms'] === null) {
+                            return 'خطا در دریافت';
+                        }
+
+                        return number_format($state['sms']) . ' پیامک';
+                    })
+                    ->color(function (?array $state) {
+                        if ($state === null) {
+                            return 'gray';
+                        }
+
+                        return $state['error'] || $state['sms'] === null ? 'danger' : 'success';
+                    })
+                    ->tooltip(function (?array $state) {
+                        if (! $state || $state['error'] || $state['rial'] === null) {
+                            return null;
+                        }
+
+                        return 'معادل ریالی: ' . toman(rial_to_toman($state['rial']), true);
+                    })
+                    ->toggleable(),
 
                 TextColumn::make('walletRelation.balance')
                     ->label('موجودی کیف پول')
-                    ->getStateUsing(fn (User $record) => $record->walletRelation?->balance ?? 0)
+                    ->getStateUsing(fn(User $record) => $record->walletRelation?->balance ?? 0)
                     ->toman()
-                    ->sortable(query: fn ($query, string $direction) => $query->orderBy(
+                    ->sortable(query: fn($query, string $direction) => $query->orderBy(
                         Wallet::selectRaw('coalesce(balance, 0)')->whereColumn('wallets.user_id', 'users.id'),
                         $direction
                     )),
@@ -93,7 +123,7 @@ class UsersTable
                 IconColumn::make('profile_completed_at')
                     ->label('اطلاعات')
                     ->boolean()
-                    ->getStateUsing(fn (User $record) => $record->profile_completed_at !== null),
+                    ->getStateUsing(fn(User $record) => $record->profile_completed_at !== null),
 
                 TextColumn::make('last_login_at')
                     ->label('آخرین ورود')

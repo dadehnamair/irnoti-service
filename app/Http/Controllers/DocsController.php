@@ -7,6 +7,7 @@ use App\Models\DocCategory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class DocsController extends Controller
@@ -166,7 +167,7 @@ class DocsController extends Controller
             '@context' => 'https://schema.org',
             '@type' => 'TechArticle',
             'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $canonical],
-            'headline' => \Illuminate\Support\Str::limit($article->title, 110, ''),
+            'headline' => Str::limit($article->title, 110, ''),
             'description' => $pageDescription,
             'dateModified' => $article->updated_at?->toIso8601String(),
             'datePublished' => $article->created_at?->toIso8601String(),

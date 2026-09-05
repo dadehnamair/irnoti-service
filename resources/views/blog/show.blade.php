@@ -1,56 +1,10 @@
 @extends('blog.layout')
 
-@php
-    $brand = config('theme.brand');
-    $siteUrl = rtrim(config('theme.seo.url'), '/');
-
-    $metaTitle = $article->meta_title_value;
-    $metaDescription = $article->meta_description_value;
-    $canonical = $article->canonical_url ?: route('blog.show', $article->slug);
-    $ogType = 'article';
-    $ogImage = $article->og_image_url ?: ($siteUrl . config('theme.seo.image'));
-    $noindex = $article->noindex;
-
-    $published = optional($article->published_date)->toIso8601String();
-    $modified = optional($article->updated_at)->toIso8601String();
-    $authorName = $article->author?->name ?: $brand;
-
-    $articleSchema = [
-        '@context' => 'https://schema.org',
-        '@type' => 'BlogPosting',
-        'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $canonical],
-        'headline' => \Illuminate\Support\Str::limit($article->title, 110, ''),
-        'description' => $metaDescription,
-        'datePublished' => $published,
-        'dateModified' => $modified ?: $published,
-        'author' => ['@type' => 'Person', 'name' => $authorName],
-        'publisher' => [
-            '@type' => 'Organization',
-            'name' => $brand,
-            'logo' => ['@type' => 'ImageObject', 'url' => $siteUrl . '/logo/logo-text.png'],
-        ],
-        'inLanguage' => 'fa-IR',
-    ];
-    if ($article->cover_url) {
-        $articleSchema['image'] = [\Illuminate\Support\Str::startsWith($article->cover_url, 'http') ? $article->cover_url : $siteUrl . $article->cover_url];
-    }
-    if ($article->tags->isNotEmpty()) {
-        $articleSchema['keywords'] = $article->tags->pluck('name')->implode('، ');
-    }
-
-    $breadcrumbSchema = [
-        '@context' => 'https://schema.org',
-        '@type' => 'BreadcrumbList',
-        'itemListElement' => array_values(array_filter([
-            ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $siteUrl . '/'],
-            ['@type' => 'ListItem', 'position' => 2, 'name' => 'بلاگ', 'item' => route('blog.index')],
-            $article->category
-                ? ['@type' => 'ListItem', 'position' => 3, 'name' => $article->category->name, 'item' => route('blog.category', $article->category->slug)]
-                : null,
-            ['@type' => 'ListItem', 'position' => $article->category ? 4 : 3, 'name' => $article->title, 'item' => $canonical],
-        ])),
-    ];
-@endphp
+{{--
+    $metaTitle, $metaDescription, $canonical, $ogType, $ogImage, $noindex,
+    $published, $modified, $authorName and $jsonLd (BlogPosting + BreadcrumbList)
+    are all built in BlogController::show().
+--}}
 
 @push('meta')
     <meta property="article:published_time" content="{{ $published }}" />
@@ -65,8 +19,7 @@
 @endpush
 
 @push('jsonld')
-    <script type="application/ld+json">{!! json_encode($articleSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
-    <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    {!! $jsonLd !!}
 @endpush
 
 @section('blog')

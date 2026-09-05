@@ -8,6 +8,8 @@ use App\Models\BlogTag;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 class BlogController extends Controller
 {
@@ -21,12 +23,16 @@ class BlogController extends Controller
             ->paginate(self::PER_PAGE)
             ->withQueryString();
 
+        $heading = 'بلاگ '.config('theme.brand');
+        $intro = 'راهنماها و تحلیل‌های کاربردی دربارهٔ بازاریابی پیامکی، افزایش فروش و ارتباط با مشتری.';
+
         return view('blog.index', [
             'posts' => $posts,
             'categories' => $this->sidebarCategories(),
-            'heading' => 'بلاگ '.config('theme.brand'),
-            'intro' => 'راهنماها و تحلیل‌های کاربردی دربارهٔ بازاریابی پیامکی، افزایش فروش و ارتباط با مشتری.',
+            'heading' => $heading,
+            'intro' => $intro,
             'crumb' => null,
+            'jsonLd' => $this->collectionJsonLd($heading, $intro, $posts),
         ]);
     }
 
@@ -40,14 +46,17 @@ class BlogController extends Controller
             ->paginate(self::PER_PAGE)
             ->withQueryString();
 
+        $intro = $model->description;
+
         return view('blog.index', [
             'posts' => $posts,
             'categories' => $this->sidebarCategories(),
             'heading' => $model->name,
-            'intro' => $model->description,
+            'intro' => $intro,
             'crumb' => $model->name,
             'metaTitle' => $model->meta_title ?: ('مقالات '.$model->name),
             'metaDescription' => $model->meta_description ?: $model->description,
+            'jsonLd' => $this->collectionJsonLd($model->name, $intro, $posts),
         ]);
     }
 
@@ -61,12 +70,15 @@ class BlogController extends Controller
             ->paginate(self::PER_PAGE)
             ->withQueryString();
 
+        $heading = 'برچسب: '.$model->name;
+
         return view('blog.index', [
             'posts' => $posts,
             'categories' => $this->sidebarCategories(),
-            'heading' => 'برچسب: '.$model->name,
+            'heading' => $heading,
             'intro' => null,
             'crumb' => $model->name,
+            'jsonLd' => $this->collectionJsonLd($heading, null, $posts),
         ]);
     }
 
@@ -100,9 +112,24 @@ class BlogController extends Controller
             );
         }
 
+        $canonical = $article->canonical_url ?: route('blog.show', $article->slug);
+        $published = optional($article->published_date)->toIso8601String();
+        $modified = optional($article->updated_at)->toIso8601String();
+        $authorName = $article->author?->name ?: config('theme.brand');
+
         return view('blog.show', [
             'article' => $article,
             'related' => $related,
+            'metaTitle' => $article->meta_title_value,
+            'metaDescription' => $article->meta_description_value,
+            'canonical' => $canonical,
+            'ogType' => 'article',
+            'ogImage' => $article->og_image_url ?: (rtrim(config('theme.seo.url'), '/').config('theme.seo.image')),
+            'noindex' => $article->noindex,
+            'published' => $published,
+            'modified' => $modified,
+            'authorName' => $authorName,
+            'jsonLd' => $this->articleJsonLd($article, $canonical, $published, $modified, $authorName),
         ]);
     }
 
@@ -158,5 +185,80 @@ class BlogController extends Controller
             ->get()
             ->filter(fn ($c) => $c->posts_count > 0)
             ->values();
+    }
+
+    /** JSON-LD: a CollectionPage listing the current page of posts. */
+    private function collectionJsonLd(string $heading, ?string $intro, LengthAwarePaginator $posts): string
+    {
+        $brand = config('theme.brand');
+        $siteUrl = rtrim(config('theme.seo.url'), '/');
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $heading,
+            'description' => $intro,
+            'url' => url()->current(),
+            'isPartOf' => ['@type' => 'WebSite', 'name' => $brand, 'url' => $siteUrl.'/'],
+            'hasPart' => $posts->map(fn ($p) => [
+                '@type' => 'BlogPosting',
+                'headline' => $p->title,
+                'url' => route('blog.show', $p->slug),
+                'datePublished' => optional($p->published_date)->toIso8601String(),
+            ])->all(),
+        ];
+
+        return '<script type="application/ld+json">'
+            .json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            .'</script>';
+    }
+
+    /** JSON-LD: a BlogPosting plus a BreadcrumbList script, concatenated (two <script> tags). */
+    private function articleJsonLd(BlogPost $article, string $canonical, ?string $published, ?string $modified, string $authorName): string
+    {
+        $brand = config('theme.brand');
+        $siteUrl = rtrim(config('theme.seo.url'), '/');
+
+        $articleSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $canonical],
+            'headline' => Str::limit($article->title, 110, ''),
+            'description' => $article->meta_description_value,
+            'datePublished' => $published,
+            'dateModified' => $modified ?: $published,
+            'author' => ['@type' => 'Person', 'name' => $authorName],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => $brand,
+                'logo' => ['@type' => 'ImageObject', 'url' => $siteUrl.'/logo/logo-text.png'],
+            ],
+            'inLanguage' => 'fa-IR',
+        ];
+
+        if ($article->cover_url) {
+            $articleSchema['image'] = [Str::startsWith($article->cover_url, 'http') ? $article->cover_url : $siteUrl.$article->cover_url];
+        }
+        if ($article->tags->isNotEmpty()) {
+            $articleSchema['keywords'] = $article->tags->pluck('name')->implode('، ');
+        }
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => array_values(array_filter([
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $siteUrl.'/'],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'بلاگ', 'item' => route('blog.index')],
+                $article->category
+                    ? ['@type' => 'ListItem', 'position' => 3, 'name' => $article->category->name, 'item' => route('blog.category', $article->category->slug)]
+                    : null,
+                ['@type' => 'ListItem', 'position' => $article->category ? 4 : 3, 'name' => $article->title, 'item' => $canonical],
+            ])),
+        ];
+
+        $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+
+        return '<script type="application/ld+json">'.json_encode($articleSchema, $flags).'</script>'
+            .'<script type="application/ld+json">'.json_encode($breadcrumbSchema, $flags).'</script>';
     }
 }
