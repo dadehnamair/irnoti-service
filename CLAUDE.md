@@ -115,7 +115,7 @@ Content models live in `app/Models/`. Conventions to follow when extending:
 - Markdown body fields render via `Str::markdown(..., ['html_input' => 'strip'])` in a `getRenderedBodyAttribute()`.
 - Docs are a nested tree: `DocCategory` self-references via `parent_id`; `DocsController::navigationTree()` eager-loads two levels of published children + articles.
 
-Seeders (`database/seeders/`) are idempotent (`updateOrCreate`) and chained from `DatabaseSeeder` (which also creates the admin user): Settings → Plans → SmsLines → Docs → Blog. New admin-editable toggles live in `SettingsSeeder` (`registration_enabled`, `sms_notifications_enabled`, `admin_mobile`, `plan_payment_online`).
+Seeders (`database/seeders/`) are idempotent (`updateOrCreate`) and chained from `DatabaseSeeder` (which also creates the admin user), now including Settings → Plans → SmsLines → Docs → Blog → Features/UserGroups → Domains → SmsPackages → MarketplaceApps. New admin-editable toggles live in `SettingsSeeder`, grouped by area (`commerce`, `messenger`, …) — see [docs/finance.md](docs/finance.md), [docs/messenger.md](docs/messenger.md), [docs/business-cards.md](docs/business-cards.md) for the settings each subsystem reads.
 
 ## Conventions
 
@@ -124,3 +124,4 @@ Seeders (`database/seeders/`) are idempotent (`updateOrCreate`) and chained from
 - Never hard-code brand identity, colors, prices, contact info, or line numbers in Blade — read `config('theme.*')` or the relevant model.
 - Landing/teaser queries that hit content models are wrapped in `rescue(...)` with a static fallback so the page renders on a fresh/empty DB.
 - Run `./vendor/bin/pint` before finishing PHP changes (StyleCI config: [.styleci.yml](.styleci.yml)).
+- **Keep the documentation map current.** When a new subsystem/feature area is built (not just a small addition to an existing one), add a `docs/<subsystem>.md` file (Persian, same structure as the existing ones: concept → data model with file links → flow → settings → Filament → tests) and add one line for it under **Documentation map** above and in this Architecture section. Don't let `CLAUDE.md` drift out of sync with what actually exists — it did once (wallet/phonebook/messenger/business-cards/marketplace all shipped before this file mentioned any of them).
