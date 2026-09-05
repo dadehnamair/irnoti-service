@@ -20,6 +20,8 @@ use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
 use App\Http\Controllers\Dashboard\WalletController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\FaqController;
+use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LineController;
@@ -85,6 +87,9 @@ Route::match(['get', 'post'], '/lines/payment/callback', [LineController::class,
  */
 Route::get('/terms', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+
+Route::get('/features', [FeaturesController::class, 'index'])->name('features');
+Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 
 /*
  * Blog ("/blog"). Content-marketing articles managed from the Filament admin
