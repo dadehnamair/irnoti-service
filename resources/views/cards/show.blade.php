@@ -15,171 +15,164 @@
 
     <style>
         :root {
-            --accent: {
-                    {
-                    $card->theme_color ?: config('theme.primary')
-                }
+            --accent: #ff3000;
+
+            * {
+                box-sizing: border-box;
             }
 
-            ;
-        }
+            body {
+                margin: 0;
+                font-family: 'Vazirmatn', sans-serif;
+                background: #f3f4f6;
+                color: #1f2937;
+                /* min-height: 100vh; */
+                display: flex;
+                justify-content: center;
+                padding: 24px 12px;
+                flex-direction: column;
+                align-content: center;
+                align-items: center;
+            }
 
-        * {
-            box-sizing: border-box;
-        }
+            .card {
+                width: 100%;
+                max-width: 420px;
+                background: #fff;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            }
 
-        body {
-            margin: 0;
-            font-family: 'Vazirmatn', sans-serif;
-            background: #f3f4f6;
-            color: #1f2937;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            padding: 24px 12px;
-            flex-direction: column;
-            align-content: center;
-            align-items: center;
-        }
+            .cover {
+                height: 140px;
+                background: var(--accent);
+                background-size: cover;
+                background-position: center;
+            }
 
-        .card {
-            width: 100%;
-            max-width: 420px;
-            background: #fff;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
-        }
+            .avatar-wrap {
+                display: flex;
+                justify-content: center;
+                margin-top: -56px;
+            }
 
-        .cover {
-            height: 140px;
-            background: var(--accent);
-            background-size: cover;
-            background-position: center;
-        }
+            .avatar {
+                width: 112px;
+                height: 112px;
+                border-radius: 50%;
+                border: 4px solid #fff;
+                background: #e5e7eb;
+                background-size: cover;
+                background-position: center;
+                object-fit: cover;
+            }
 
-        .avatar-wrap {
-            display: flex;
-            justify-content: center;
-            margin-top: -56px;
-        }
+            .body {
+                padding: 12px 24px 28px;
+                text-align: center;
+            }
 
-        .avatar {
-            width: 112px;
-            height: 112px;
-            border-radius: 50%;
-            border: 4px solid #fff;
-            background: #e5e7eb;
-            background-size: cover;
-            background-position: center;
-            object-fit: cover;
-        }
+            .name {
+                font-size: 1.3rem;
+                font-weight: 700;
+                margin: 8px 0 0;
+            }
 
-        .body {
-            padding: 12px 24px 28px;
-            text-align: center;
-        }
+            .position {
+                color: #6b7280;
+                margin: 4px 0 0;
+                font-size: .95rem;
+            }
 
-        .name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin: 8px 0 0;
-        }
+            .bio {
+                margin-top: 14px;
+                color: #374151;
+                line-height: 1.9;
+                font-size: .92rem;
+                white-space: pre-line;
+            }
 
-        .position {
-            color: #6b7280;
-            margin: 4px 0 0;
-            font-size: .95rem;
-        }
+            .actions {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-top: 20px;
+            }
 
-        .bio {
-            margin-top: 14px;
-            color: #374151;
-            line-height: 1.9;
-            font-size: .92rem;
-            white-space: pre-line;
-        }
+            .actions a {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 12px 8px;
+                border-radius: 12px;
+                background: #f3f4f6;
+                color: #1f2937;
+                text-decoration: none;
+                font-size: .85rem;
+                font-weight: 600;
+            }
 
-        .actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-        }
+            .actions a.full {
+                grid-column: 1 / -1;
+                background: var(--accent);
+                color: #fff;
+            }
 
-        .actions a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 12px 8px;
-            border-radius: 12px;
-            background: #f3f4f6;
-            color: #1f2937;
-            text-decoration: none;
-            font-size: .85rem;
-            font-weight: 600;
-        }
+            .products {
+                margin-top: 24px;
+                text-align: right;
+            }
 
-        .actions a.full {
-            grid-column: 1 / -1;
-            background: var(--accent);
-            color: #fff;
-        }
+            .products h3 {
+                font-size: .95rem;
+                color: #6b7280;
+                margin-bottom: 10px;
+            }
 
-        .products {
-            margin-top: 24px;
-            text-align: right;
-        }
+            .product {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                margin-bottom: 8px;
+            }
 
-        .products h3 {
-            font-size: .95rem;
-            color: #6b7280;
-            margin-bottom: 10px;
-        }
+            .product img {
+                width: 44px;
+                height: 44px;
+                border-radius: 8px;
+                object-fit: cover;
+                background: #f3f4f6;
+            }
 
-        .product {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            margin-bottom: 8px;
-        }
+            .product .info {
+                flex: 1;
+            }
 
-        .product img {
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
-            object-fit: cover;
-            background: #f3f4f6;
-        }
+            .product .info strong {
+                display: block;
+                font-size: .9rem;
+            }
 
-        .product .info {
-            flex: 1;
-        }
+            .product .info span {
+                color: #6b7280;
+                font-size: .8rem;
+            }
 
-        .product .info strong {
-            display: block;
-            font-size: .9rem;
-        }
+            .footer-brand {
+                text-align: center;
+                margin-top: 22px;
+                font-size: .75rem;
+                color: #9ca3af;
+            }
 
-        .product .info span {
-            color: #6b7280;
-            font-size: .8rem;
-        }
-
-        .footer-brand {
-            text-align: center;
-            margin-top: 22px;
-            font-size: .75rem;
-            color: #9ca3af;
-        }
-
-        .footer-brand a {
-            color: inherit;
-        }
+            .footer-brand a {
+                color: inherit;
+            }
     </style>
 </head>
 
