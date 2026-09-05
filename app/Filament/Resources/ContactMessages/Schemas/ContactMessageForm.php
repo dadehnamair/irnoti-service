@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\ContactMessages\Schemas;
 
-use App\Models\ContactMessage;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,7 +19,7 @@ class ContactMessageForm
                     ->schema([
                         Select::make('status')
                             ->label('وضعیت')
-                            ->options(ContactMessage::STATUSES)
+                            ->options(\App\Models\ContactMessage::STATUSES)
                             ->required(),
 
                         Textarea::make('admin_note')
@@ -33,7 +32,7 @@ class ContactMessageForm
                     ->columns(2)
                     ->schema([
                         TextInput::make('name')
-                            ->label('نام')
+                            ->label('نام و نام‌خانوادگی')
                             ->disabled()
                             ->dehydrated(false),
 
