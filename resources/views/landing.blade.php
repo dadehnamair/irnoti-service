@@ -91,15 +91,15 @@ $url = rtrim($seo['url'], '/');
 
                         <div class="hero-meta">
                             <div>
-                                <strong>+۱۲٬۰۰۰</strong>
+                                <strong>+895M</strong>
                                 <span>پیامک ارسال شده</span>
                             </div>
                             <div>
-                                <strong>۹۹.۹٪</strong>
+                                <strong>99.9٪</strong>
                                 <span>دقت ارسال</span>
                             </div>
                             <div>
-                                <strong>۲۴/۷</strong>
+                                <strong>7/24</strong>
                                 <span>پشتیبانی</span>
                             </div>
                         </div>

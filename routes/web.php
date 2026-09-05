@@ -36,6 +36,7 @@ use App\Http\Controllers\UssdController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\BlogTag;
+use App\Models\DocArticle;
 use App\Models\Page;
 use App\Models\Plan;
 use Illuminate\Support\Facades\Response;
@@ -366,8 +367,11 @@ Route::get('/sitemap.xml', function () {
         ['loc' => route('faq'), 'lastmod' => $today, 'changefreq' => 'monthly', 'priority' => '0.6'],
         ['loc' => route('contact'), 'lastmod' => $today, 'changefreq' => 'yearly', 'priority' => '0.5'],
         ['loc' => route('representation'), 'lastmod' => $today, 'changefreq' => 'monthly', 'priority' => '0.6'],
+        ['loc' => route('sms-packages'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.7'],
         ['loc' => route('blog.index'), 'lastmod' => $blogIndexLastmod, 'changefreq' => 'daily', 'priority' => '0.8'],
         ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
+        ['loc' => route('legal.terms'), 'lastmod' => $today, 'changefreq' => 'yearly', 'priority' => '0.3'],
+        ['loc' => route('legal.privacy'), 'lastmod' => $today, 'changefreq' => 'yearly', 'priority' => '0.3'],
     ];
 
     foreach (Plan::query()->active()->get() as $plan) {
@@ -412,6 +416,23 @@ Route::get('/sitemap.xml', function () {
             'lastmod' => optional($post->updated_at)->toDateString() ?: $today,
             'changefreq' => 'monthly',
             'priority' => '0.7',
+        ];
+    }
+
+    // API docs articles (docs/starter.md §34) — one URL per published article
+    // whose category is also published; URL is [category slug, article slug].
+    $docArticles = DocArticle::query()
+        ->where('is_published', true)
+        ->with('category')
+        ->get()
+        ->filter(fn ($article) => $article->category && $article->category->is_published);
+
+    foreach ($docArticles as $article) {
+        $urls[] = [
+            'loc' => route('docs.show', [$article->category->slug, $article->slug]),
+            'lastmod' => optional($article->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'monthly',
+            'priority' => '0.5',
         ];
     }
 
