@@ -31,6 +31,14 @@ collect(['1000', '2000', '3000', '5000', '021', '9000']),
 false
 );
 
+// Digital business card teaser — flat "VBC" price from settings (commerce
+// group); the full VBC/EBC create-and-manage flow lives behind /dashboard/cards.
+$businessCardPrice = rescue(
+fn () => (int) \App\Models\Setting::get('business_card_standard_price', 0),
+600000,
+false
+);
+
 // Marketplace teaser (docs/starter.md §15) — a few active add-ons for the
 // "بازارچه" strip; the full catalogue lives on /marketplace.
 $marketApps = rescue(
@@ -338,6 +346,12 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                         </article>
 
                         <article class="feature-card">
+                            <div class="icon-wrap gold" aria-hidden="true">🪪</div>
+                            <h3>کارت ویزیت دیجیتال</h3>
+                            <p>کارت ویزیت مجازی VBC یا کارت ویزیت الکترونیکی EBC با کد اختصاصی و لینک اشتراک‌گذاری آسان.</p>
+                        </article>
+
+                        <article class="feature-card">
                             <div class="icon-wrap gold" aria-hidden="true">⚡</div>
                             <h3>وب‌سرویس و API</h3>
                             <p>اتصال سریع به اپلیکیشن‌ها، CRM و سیستم‌های فروش با مستندات فارسی و Webhook.</p>
@@ -493,6 +507,28 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 
                     <div class="lines-cta">
                         <a class="btn btn-primary" href="{{ route('lines') }}">مشاهده و خرید خطوط اختصاصی</a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="business-cards" class="section" aria-labelledby="business-cards-title">
+                <div class="container">
+                    <div class="section-heading">
+                        <span class="kicker">کارت ویزیت دیجیتال</span>
+                        <h2 id="business-cards-title">معرفی حرفه‌ای خودتان با یک لینک</h2>
+                    </div>
+
+                    <div class="line-grid">
+                        <a class="line-tag" href="{{ auth()->check() ? route('dashboard.cards.create') : route('register') }}">VBC — کارت ویزیت مجازی</a>
+                        <a class="line-tag" href="{{ auth()->check() ? route('dashboard.cards.create') : route('register') }}">EBC — کارت ویزیت الکترونیکی (کد اختصاصی)</a>
+                    </div>
+
+                    <p class="pricing-note">
+                        کارت ویزیت مجازی VBC از {{ number_format($businessCardPrice) }} تومان؛ کارت ویزیت الکترونیکی EBC با کد دلخواه روی دامنه‌های ویژه.
+                    </p>
+
+                    <div class="lines-cta">
+                        <a class="btn btn-primary" href="{{ auth()->check() ? route('dashboard.cards.create') : route('register') }}">ساخت کارت ویزیت دیجیتال</a>
                     </div>
                 </div>
             </section>

@@ -2,10 +2,43 @@
     $brand = config('theme.brand');
     $seo = config('theme.seo');
     $primary = config('theme.primary');
+    $url = rtrim($seo['url'], '/');
     $canonical = route('sms-packages');
     $metaTitle = 'بسته‌های پیامکی ' . $brand . ' | خرید اعتبار پیامک';
     $metaDescription = 'خرید بسته‌های پیامکی ' . $brand
         . ' — بسته‌های حجمی با قیمت مقطوع؛ اعتبار پیامکی خود را یک‌جا شارژ کنید.';
+
+    $graph = [
+        [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'بسته‌های پیامکی', 'item' => $canonical],
+            ],
+        ],
+    ];
+
+    foreach ($packages as $package) {
+        $graph[] = [
+            '@type' => 'Product',
+            'name' => 'بسته پیامکی ' . $package->name . ' ' . $brand,
+            'description' => $package->description ?: (number_format($package->sms_count) . ' پیامک با قیمت مقطوع'),
+            'brand' => ['@type' => 'Brand', 'name' => $brand],
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => $package->price * 10, // Toman -> Rial for ISO 4217
+                'priceCurrency' => 'IRR',
+                'availability' => 'https://schema.org/InStock',
+                'url' => $canonical,
+                'priceValidUntil' => now()->addYear()->toDateString(),
+            ],
+        ];
+    }
+
+    $jsonLd = json_encode(
+        ['@context' => 'https://schema.org', '@graph' => $graph],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
 @endphp
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -32,6 +65,11 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ route('theme.css') }}" />
+
+    <script type="application/ld+json">
+        @php echo $jsonLd;
+        @endphp
+    </script>
 </head>
 
 <body>

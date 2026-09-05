@@ -34,6 +34,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/docs.css', 'resources/js/docs.js'])
 
     <link rel="stylesheet" href="{{ route('theme.css') }}" />
+
+    @stack('jsonld')
 </head>
 
 <body class="docs-body">
