@@ -6,7 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * The «بازارچه افزونه‌ها» catalogue (docs/starter.md §15). One row per installable
+ * The «بازارچه» catalogue (docs/starter.md §15). One row per installable
  * add-on — an external integration (ایرپلاس) or an internal capability
  * (کارت ویزیت، منشی پیامکی). Each row names a handler class (see
  * config/marketplace.php) and its own pricing. Admin-managed like {@see SmsPackage}.

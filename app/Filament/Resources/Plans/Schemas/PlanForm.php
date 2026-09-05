@@ -39,6 +39,13 @@ class PlanForm
                             ->alphaDash()
                             ->unique(Plan::class, 'slug', ignoreRecord: true),
 
+                        Select::make('type')
+                            ->label('نوع پلن')
+                            ->options(Plan::TYPES)
+                            ->default('subscription')
+                            ->required()
+                            ->helperText('پلن‌های «کد دستوری USSD» در صفحه جدا (/ussd) نمایش داده می‌شوند.'),
+
                         Textarea::make('description')
                             ->label('توضیح کوتاه')
                             ->rows(2)

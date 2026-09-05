@@ -38,8 +38,12 @@ class SettingsSeeder extends Seeder
             ['commerce', 'plan_payment_online', '0', 'bool', 'خرید آنلاین پلن‌ها (اتصال به درگاه پرداخت)'],
             ['commerce', 'package_payment_online', '0', 'bool', 'خرید آنلاین بسته‌های پیامکی (اتصال به درگاه پرداخت)'],
 
-            // بازارچه افزونه‌ها (docs/starter.md §15)
-            ['commerce', 'marketplace_enabled', '1', 'bool', 'فعال بودن بازارچه افزونه‌ها'],
+            // کارت ویزیت دیجیتال — تعرفه استاندارد و روش تکمیل خرید
+            ['commerce', 'business_card_payment_online', '0', 'bool', 'خرید آنلاین کارت ویزیت دیجیتال (اتصال به درگاه پرداخت)'],
+            ['commerce', 'business_card_standard_price', '600000', 'string', 'قیمت کارت ویزیت دیجیتال استاندارد (تومان)'],
+
+            // بازارچه (docs/starter.md §15)
+            ['commerce', 'marketplace_enabled', '1', 'bool', 'فعال بودن بازارچه'],
             ['commerce', 'marketplace_payment_online', '0', 'bool', 'خرید آنلاین افزونه‌های بازارچه (اتصال به درگاه پرداخت)'],
 
             // کیف پول و امور مالی (docs/starter.md §22 / §23)

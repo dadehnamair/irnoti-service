@@ -18,6 +18,7 @@ class PlansSeeder extends Seeder
             [
                 'slug' => 'basic',
                 'name' => 'پایه',
+                'type' => 'subscription',
                 'description' => 'برای شروع کسب‌وکارهای کوچک و فروشگاه‌ها.',
                 'badge_label' => 'برای شروع',
                 'badge_style' => 'neutral',
@@ -37,6 +38,7 @@ class PlansSeeder extends Seeder
             [
                 'slug' => 'pro',
                 'name' => 'حرفه‌ای',
+                'type' => 'subscription',
                 'description' => 'محبوب‌ترین پلن برای کسب‌وکارهای در حال رشد.',
                 'badge_label' => 'پرفروش',
                 'badge_style' => 'primary',
@@ -56,6 +58,7 @@ class PlansSeeder extends Seeder
             [
                 'slug' => 'enterprise',
                 'name' => 'سازمانی',
+                'type' => 'subscription',
                 'description' => 'برای سازمان‌ها و کسب‌وکارهای با حجم ارسال بالا.',
                 'badge_label' => 'سفارشی',
                 'badge_style' => 'dark',

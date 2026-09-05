@@ -11,6 +11,7 @@ class Plan extends Model
     protected $fillable = [
         'name',
         'slug',
+        'type',
         'description',
         'badge_label',
         'badge_style',
@@ -47,6 +48,12 @@ class Plan extends Model
         'sort' => 'integer',
     ];
 
+    /** Persian labels for the `type` column. */
+    public const TYPES = [
+        'subscription' => 'اشتراک سرویس پیامک',
+        'ussd' => 'کد دستوری USSD',
+    ];
+
     protected static function booted(): void
     {
         static::saving(function (Plan $plan) {
@@ -70,6 +77,16 @@ class Plan extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeOfType(Builder $query, string $type): Builder
+    {
+        return $query->where('type', $type);
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::TYPES[$this->type] ?? $this->type;
     }
 
     /** Price in Toman for a billing period; 0 means the plan is free. */

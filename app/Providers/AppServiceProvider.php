@@ -29,8 +29,8 @@ class AppServiceProvider extends ServiceProvider
         $this->bindPhonebookClient();
         $this->bindMessengerManager();
 
-        // «بازارچه افزونه‌ها» handler registry (docs/starter.md §15).
-        $this->app->singleton(AppRegistry::class, fn () => new AppRegistry);
+        // «بازارچه» handler registry (docs/starter.md §15).
+        $this->app->singleton(AppRegistry::class, fn() => new AppRegistry);
     }
 
     /**
@@ -63,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
-        DateTimePicker::configureUsing(fn (DateTimePicker $picker) => $picker->jalali());
+        DateTimePicker::configureUsing(fn(DateTimePicker $picker) => $picker->jalali());
     }
 
     /**
@@ -72,9 +72,9 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerBladeDirectives(): void
     {
-        Blade::directive('jdate', fn ($expr) => "<?php echo e(jalali_date($expr)); ?>");
-        Blade::directive('jdatetime', fn ($expr) => "<?php echo e(jalali_datetime($expr)); ?>");
-        Blade::directive('toman', fn ($expr) => "<?php echo e(toman($expr)); ?>");
+        Blade::directive('jdate', fn($expr) => "<?php echo e(jalali_date($expr)); ?>");
+        Blade::directive('jdatetime', fn($expr) => "<?php echo e(jalali_datetime($expr)); ?>");
+        Blade::directive('toman', fn($expr) => "<?php echo e(toman($expr)); ?>");
     }
 
     /**
@@ -90,17 +90,17 @@ class AppServiceProvider extends ServiceProvider
 
         TextColumn::macro('jalaliDate', function () {
             /** @var TextColumn $this */
-            return $this->formatStateUsing(fn ($state) => jalali_date($state))->tooltip(fn ($state) => $state);
+            return $this->formatStateUsing(fn($state) => jalali_date($state))->tooltip(fn($state) => $state);
         });
 
         TextColumn::macro('jalaliDateTime', function () {
             /** @var TextColumn $this */
-            return $this->formatStateUsing(fn ($state) => jalali_datetime($state))->tooltip(fn ($state) => $state);
+            return $this->formatStateUsing(fn($state) => jalali_datetime($state))->tooltip(fn($state) => $state);
         });
 
         TextColumn::macro('toman', function (bool $withUnit = true) {
             /** @var TextColumn $this */
-            return $this->formatStateUsing(fn ($state) => $state === null || $state === ''
+            return $this->formatStateUsing(fn($state) => $state === null || $state === ''
                 ? '—'
                 : toman($state, $withUnit));
         });
@@ -117,7 +117,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(SmsProviderInterface::class, function () {
             $key = (string) config('sms.provider', 'log');
-            $config = (array) config('sms.providers.'.$key);
+            $config = (array) config('sms.providers.' . $key);
 
             if (! isset($config['driver'])) {
                 Log::warning(
@@ -141,7 +141,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             MessengerManager::class,
-            fn () => new MessengerManager((string) (config('messenger.driver') ?: 'log')),
+            fn() => new MessengerManager((string) (config('messenger.driver') ?: 'log')),
         );
     }
 

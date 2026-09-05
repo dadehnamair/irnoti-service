@@ -6,7 +6,7 @@ use App\Models\MarketplaceApp;
 use Illuminate\Database\Seeder;
 
 /**
- * Seeds «بازارچه افزونه‌ها» (docs/starter.md §15). Idempotent (`updateOrCreate` by
+ * Seeds «بازارچه» (docs/starter.md §15). Idempotent (`updateOrCreate` by
  * slug); admin-owned bits (price, is_active) are only set on first insert so a
  * re-run does not stomp the panel. Structure fields always follow this file.
  */

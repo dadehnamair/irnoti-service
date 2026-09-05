@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Jobs\SendSmsJob;
 use App\Models\BankReceipt;
+use App\Models\BusinessCard;
 use App\Models\Invoice;
 use App\Models\LineOrder;
 use App\Models\MarketplaceInstallation;
@@ -137,6 +138,27 @@ class OperationNotifier
             $order->line_label,
             $order->status_label,
             $order->token,
+        ));
+    }
+
+    /** A digital business card became active — free (instant) or paid. */
+    public function businessCardPaid(BusinessCard $card): void
+    {
+        $user = $card->user;
+
+        if ($user?->mobile) {
+            $this->toUser($user->mobile, sprintf(
+                'کارت ویزیت دیجیتال شما (%s) در %s فعال شد.',
+                $card->public_url,
+                $this->brand(),
+            ));
+        }
+
+        $this->toAdmin(sprintf(
+            'فعال‌سازی کارت ویزیت دیجیتال در %s — %s → %s',
+            $this->brand(),
+            $user?->mobile ?? '—',
+            $card->public_url,
         ));
     }
 

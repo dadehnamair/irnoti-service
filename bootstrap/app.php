@@ -20,6 +20,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'packages/payment/callback',
             'invoices/payment/callback',
             'marketplace/payment/callback',
+            'cards/payment/callback',
         ]);
 
         // Panel features stay locked until an admin approves the account (docs/starter.md §39).

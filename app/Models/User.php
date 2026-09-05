@@ -213,6 +213,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(LineOrder::class);
     }
 
+    public function businessCards(): HasMany
+    {
+        return $this->hasMany(BusinessCard::class);
+    }
+
     public function walletRelation(): HasOne
     {
         return $this->hasOne(Wallet::class);

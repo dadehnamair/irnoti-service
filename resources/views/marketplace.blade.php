@@ -1,10 +1,12 @@
 @php
-    /**
-     * Public marketing page for «بازارچه افزونه‌ها» ("/marketplace"). Standalone
-     * document (own <head>) like the pricing / lines pages. Content is
-     * database-driven (marketplace_apps) and managed from the Filament admin
-     * panel — see docs/starter.md §15.
-     */
+/**
+* Public marketing page for «بازارچه» ("/marketplace"). Standalone
+* document (own
+
+<head>) like the pricing / lines pages. Content is
+    * database-driven (marketplace_apps) and managed from the Filament admin
+    * panel — see docs/starter.md §15.
+    */
     $brand = config('theme.brand');
     $seo = config('theme.seo');
     $primary = config('theme.primary');
@@ -12,96 +14,96 @@
     $url = rtrim($seo['url'], '/');
     $canonical = route('marketplace');
 
-    $metaTitle = 'بازارچه افزونه‌های ' . $brand . ' | افزودن قابلیت به پنل پیامک';
+    $metaTitle = 'بازارچهی ' . $brand . ' | افزودن قابلیت به پنل پیامک';
     $metaDescription = 'افزونه‌های کسب‌وکار ' . $brand
-        . ' — اتصال به ایرپلاس، کارت ویزیت الکترونیکی، منشی پیامکی و ابزارهای بیشتر. با چند کلیک به پنل پیامک خود اضافه کنید.';
+    . ' — اتصال به ایرپلاس، کارت ویزیت الکترونیکی، منشی پیامکی و ابزارهای بیشتر. با چند کلیک به پنل پیامک خود اضافه کنید.';
 
     $ctaHref = auth()->check() ? route('dashboard.marketplace') : route('register');
 
     // An app `icon` is either an uploaded image path or a short emoji/glyph.
     $renderIcon = function ($icon, string $fallback = '🧩') {
-        $icon = trim((string) $icon);
-        if ($icon === '') {
-            return e($fallback);
-        }
-        return \Illuminate\Support\Str::contains($icon, ['/', '.'])
-            ? '<img src="'.e(\Illuminate\Support\Str::startsWith($icon, ['http://', 'https://', '/']) ? $icon : \Illuminate\Support\Facades\Storage::url($icon)).'" alt="" loading="lazy" />'
-            : e($icon);
+    $icon = trim((string) $icon);
+    if ($icon === '') {
+    return e($fallback);
+    }
+    return \Illuminate\Support\Str::contains($icon, ['/', '.'])
+    ? '<img src="'.e(\Illuminate\Support\Str::startsWith($icon, ['http://', 'https://', '/']) ? $icon : \Illuminate\Support\Facades\Storage::url($icon)).'" alt="" loading="lazy" />'
+    : e($icon);
     };
 
     $graph = [
-        [
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'بازارچه افزونه‌ها', 'item' => $canonical],
-            ],
-        ],
+    [
+    '@type' => 'BreadcrumbList',
+    'itemListElement' => [
+    ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url . '/'],
+    ['@type' => 'ListItem', 'position' => 2, 'name' => 'بازارچه', 'item' => $canonical],
+    ],
+    ],
     ];
 
     if ($apps->isNotEmpty()) {
-        $graph[] = [
-            '@type' => 'ItemList',
-            'name' => 'بازارچه افزونه‌های ' . $brand,
-            'itemListElement' => $apps->values()->map(fn ($app, $i) => [
-                '@type' => 'ListItem',
-                'position' => $i + 1,
-                'item' => [
-                    '@type' => 'Product',
-                    'name' => $app->name,
-                    'description' => $app->tagline ?: $app->name,
-                    'brand' => ['@type' => 'Brand', 'name' => $app->vendor ?: $brand],
-                    'category' => $app->category_label,
-                ],
-            ])->all(),
-        ];
+    $graph[] = [
+    '@type' => 'ItemList',
+    'name' => 'بازارچهی ' . $brand,
+    'itemListElement' => $apps->values()->map(fn ($app, $i) => [
+    '@type' => 'ListItem',
+    'position' => $i + 1,
+    'item' => [
+    '@type' => 'Product',
+    'name' => $app->name,
+    'description' => $app->tagline ?: $app->name,
+    'brand' => ['@type' => 'Brand', 'name' => $app->vendor ?: $brand],
+    'category' => $app->category_label,
+    ],
+    ])->all(),
+    ];
     }
 
     $jsonLd = json_encode(
-        ['@context' => 'https://schema.org', '@graph' => $graph],
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    ['@context' => 'https://schema.org', '@graph' => $graph],
+    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
     );
-@endphp
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+    @endphp
+    <!DOCTYPE html>
+    <html lang="fa" dir="rtl">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-    <meta name="theme-color" content="{{ $primary }}" />
-    <meta name="author" content="{{ $brand }}" />
-    <meta name="description" content="{{ $metaDescription }}" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+        <meta name="theme-color" content="{{ $primary }}" />
+        <meta name="author" content="{{ $brand }}" />
+        <meta name="description" content="{{ $metaDescription }}" />
 
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="{{ $brand }}" />
-    <meta property="og:locale" content="{{ $seo['locale'] }}" />
-    <meta property="og:title" content="{{ $metaTitle }}" />
-    <meta property="og:description" content="{{ $metaDescription }}" />
-    <meta property="og:url" content="{{ $canonical }}" />
-    <meta property="og:image" content="{{ $url }}{{ $seo['image'] }}" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="{{ $metaTitle }}" />
-    <meta name="twitter:description" content="{{ $metaDescription }}" />
-    <meta name="twitter:image" content="{{ $url }}{{ $seo['image'] }}" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="{{ $brand }}" />
+        <meta property="og:locale" content="{{ $seo['locale'] }}" />
+        <meta property="og:title" content="{{ $metaTitle }}" />
+        <meta property="og:description" content="{{ $metaDescription }}" />
+        <meta property="og:url" content="{{ $canonical }}" />
+        <meta property="og:image" content="{{ $url }}{{ $seo['image'] }}" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="{{ $metaTitle }}" />
+        <meta name="twitter:description" content="{{ $metaDescription }}" />
+        <meta name="twitter:image" content="{{ $url }}{{ $seo['image'] }}" />
 
-    <link rel="canonical" href="{{ $canonical }}" />
-    <link rel="icon" href="/logo/favicon.png" type="image/png" />
+        <link rel="canonical" href="{{ $canonical }}" />
+        <link rel="icon" href="/logo/favicon.png" type="image/png" />
 
-    <title>{{ $metaTitle }}</title>
+        <title>{{ $metaTitle }}</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ route('theme.css') }}" />
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <link rel="stylesheet" href="{{ route('theme.css') }}" />
 
-    <script type="application/ld+json">
-        @php echo $jsonLd;
-        @endphp
-    </script>
-</head>
+        <script type="application/ld+json">
+            @php echo $jsonLd;
+            @endphp
+        </script>
+    </head>
 
 <body>
     <div class="page-shell">
@@ -113,11 +115,11 @@
                     <nav class="blog-breadcrumb" aria-label="مسیر">
                         <a href="{{ route('home') }}">خانه</a>
                         <span aria-hidden="true">/</span>
-                        <span>بازارچه افزونه‌ها</span>
+                        <span>بازارچه</span>
                     </nav>
 
                     <div class="section-heading center">
-                        <span class="kicker">بازارچه افزونه‌ها</span>
+                        <span class="kicker">بازارچه</span>
                         <h1>پنل پیامک {{ $brand }} را با افزونه‌ها گسترش دهید</h1>
                         <p>
                             قابلیت‌های تازه را بدون تغییر در سرویس فعلی به حساب خود اضافه کنید — از

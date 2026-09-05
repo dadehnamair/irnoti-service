@@ -14,7 +14,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-/** «بازارچه افزونه‌ها» catalogue — the add-ons customers can install (docs/starter.md §15). */
+/** «بازارچه» catalogue — the add-ons customers can install (docs/starter.md §15). */
 class MarketplaceAppResource extends Resource
 {
     protected static ?string $model = MarketplaceApp::class;

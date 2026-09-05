@@ -36,7 +36,7 @@ class FeatureCatalog
         'marketplace' => [
             'label' => 'بازارچه',
             'items' => [
-                'marketplace.browse' => ['label' => 'بازارچه افزونه‌ها', 'route' => 'dashboard.marketplace', 'system' => true],
+                'marketplace.browse' => ['label' => 'بازارچه', 'route' => 'dashboard.marketplace', 'system' => true],
             ],
         ],
 
@@ -141,7 +141,7 @@ class FeatureCatalog
                 'pro.mobile_send' => 'ارسال از موبایل',
                 'pro.fax' => 'پیامک فکس',
                 'pro.subusers' => 'کاربران (زیرمجموعه)',
-                'pro.business_card' => 'کارت ویزیت',
+                'pro.business_card' => ['label' => 'کارت ویزیت دیجیتال', 'route' => 'dashboard.cards', 'system' => true],
             ],
         ],
 

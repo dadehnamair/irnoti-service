@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /**
- * One installable add-on in «بازارچه افزونه‌ها» (docs/starter.md §15). Either an
+ * One installable add-on in «بازارچه» (docs/starter.md §15). Either an
  * external integration (ایرپلاس) or an internal capability (کارت ویزیت، منشی).
  * Structure and pricing are admin-managed from Filament; behaviour comes from the
  * `handler` class (see config/marketplace.php). Slug auto-fills like {@see Plan}.
@@ -71,7 +71,7 @@ class MarketplaceApp extends Model
         static::saving(function (MarketplaceApp $app) {
             if (blank($app->slug)) {
                 $base = Str::slug($app->name);
-                $app->slug = $base !== '' ? $base : 'app-'.Str::random(6);
+                $app->slug = $base !== '' ? $base : 'app-' . Str::random(6);
             }
         });
     }
@@ -142,10 +142,10 @@ class MarketplaceApp extends Model
             return 'رایگان';
         }
 
-        $label = number_format((int) $this->price).' تومان';
+        $label = number_format((int) $this->price) . ' تومان';
 
         return $this->isSubscription() && $this->billing_period_label
-            ? $label.' / '.$this->billing_period_label
+            ? $label . ' / ' . $this->billing_period_label
             : $label;
     }
 }

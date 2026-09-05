@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\BusinessCard;
 use App\Models\Invoice;
 use App\Models\LineOrder;
 use App\Models\MarketplaceInstallation;
@@ -31,6 +32,7 @@ class PayableSettlement
             $payable instanceof WalletTopup => $this->settleTopup($payable, $payment),
             $payable instanceof Subscription => $this->settleSubscription($payable, $payment),
             $payable instanceof LineOrder => $this->settleLineOrder($payable, $payment),
+            $payable instanceof BusinessCard => $this->settleBusinessCard($payable, $payment),
             $payable instanceof PackageOrder => $this->settlePackageOrder($payable, $payment),
             $payable instanceof MarketplaceInstallation => $this->settleMarketplaceInstallation($payable, $payment),
             $payable instanceof Invoice => $this->settleInvoice($payable, $payment),
@@ -113,6 +115,23 @@ class PayableSettlement
         ])->save();
 
         $this->notifier->lineOrderPaid($order);
+    }
+
+    private function settleBusinessCard(BusinessCard $card, array $payment): void
+    {
+        if ($card->status === 'active') {
+            return;
+        }
+
+        $card->forceFill([
+            'status' => 'active',
+            'transaction_id' => $payment['transaction_id'] ?? $card->transaction_id,
+            'reference_id' => $payment['reference_id'] ?? $card->reference_id,
+            'payment_driver' => $payment['payment_driver'] ?? $card->payment_driver,
+            'paid_at' => $card->paid_at ?? now(),
+        ])->save();
+
+        $this->notifier->businessCardPaid($card);
     }
 
     private function settlePackageOrder(PackageOrder $order, array $payment): void

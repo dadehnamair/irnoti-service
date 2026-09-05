@@ -9,7 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 
 /**
- * Public marketing page for «بازارچه افزونه‌ها» ("/marketplace"). Read-only,
+ * Public marketing page for «بازارچه» ("/marketplace"). Read-only,
  * no auth — mirrors the thin public controllers (PricingController, LineController).
  * The in-panel install / connect / pay flow lives in
  * {@see MarketplaceController}. Content is fully
@@ -21,10 +21,10 @@ class MarketplaceShowcaseController extends Controller
     public function index(): View
     {
         // Degrade gracefully on a fresh / mid-migration DB, just like the landing.
-        abort_unless((bool) rescue(fn () => Setting::get('marketplace_enabled', true), true, false), 404);
+        abort_unless((bool) rescue(fn() => Setting::get('marketplace_enabled', true), true, false), 404);
 
         $apps = rescue(
-            fn () => MarketplaceApp::query()->active()->ordered()->get(),
+            fn() => MarketplaceApp::query()->active()->ordered()->get(),
             new Collection,
             false
         );

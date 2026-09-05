@@ -17,45 +17,45 @@ $plans = \App\Models\Plan::query()->active()->ordered()->get();
 
 // Latest published articles for the blog teaser strip (degrades to empty).
 $latestPosts = rescue(
-    fn () => \App\Models\BlogPost::query()->published()->with('category')->limit(3)->get(),
-    collect(),
-    false
+fn () => \App\Models\BlogPost::query()->published()->with('category')->limit(3)->get(),
+collect(),
+false
 );
 
 // Dedicated-line prefixes come from the DB (sms_lines table, docs/starter.md §9)
 // and are managed from the Filament admin panel. The full catalogue + buy flow
 // lives on the standalone /lines page.
 $lines = rescue(
-    fn () => \App\Models\SmsLine::query()->active()->orderBy('sort')->pluck('prefix')->unique()->values(),
-    collect(['1000', '2000', '3000', '5000', '021', '9000']),
-    false
+fn () => \App\Models\SmsLine::query()->active()->orderBy('sort')->pluck('prefix')->unique()->values(),
+collect(['1000', '2000', '3000', '5000', '021', '9000']),
+false
 );
 
 // Marketplace teaser (docs/starter.md §15) — a few active add-ons for the
-// "بازارچه افزونه‌ها" strip; the full catalogue lives on /marketplace.
+// "بازارچه" strip; the full catalogue lives on /marketplace.
 $marketApps = rescue(
-    fn () => \App\Models\MarketplaceApp::query()->active()->ordered()->limit(4)->get(),
-    collect(),
-    false
+fn () => \App\Models\MarketplaceApp::query()->active()->ordered()->limit(4)->get(),
+collect(),
+false
 );
 $marketEnabled = rescue(fn () => (bool) \App\Models\Setting::get('marketplace_enabled', true), true, false);
 
 // An app `icon` is either an uploaded image path or a short emoji/glyph.
 $renderIcon = function ($icon, string $fallback = '🧩') {
-    $icon = trim((string) $icon);
-    if ($icon === '') {
-        return e($fallback);
-    }
-    return \Illuminate\Support\Str::contains($icon, ['/', '.'])
-        ? '<img src="'.e(\Illuminate\Support\Str::startsWith($icon, ['http://', 'https://', '/']) ? $icon : \Illuminate\Support\Facades\Storage::url($icon)).'" alt="" loading="lazy" />'
-        : e($icon);
+$icon = trim((string) $icon);
+if ($icon === '') {
+return e($fallback);
+}
+return \Illuminate\Support\Str::contains($icon, ['/', '.'])
+? '<img src="'.e(\Illuminate\Support\Str::startsWith($icon, ['http://', 'https://', '/']) ? $icon : \Illuminate\Support\Facades\Storage::url($icon)).'" alt="" loading="lazy" />'
+: e($icon);
 };
 
 $faqs = [
 ['q' => 'آیا irnoti برای شروع کسب‌وکارهای کوچک مناسب است؟', 'a' => 'بله، پلن‌های پایه و حرفه‌ای برای کسب‌وکارهای کوچک تا بزرگ طراحی شده‌اند و برای فروشگاه‌ها، خدمات و برندها مناسب هستند.'],
 ['q' => 'برای شروع چه چیزی لازم است؟', 'a' => 'فقط یک شماره موبایل. با ثبت‌نام و تأیید کد پیامکی وارد پنل می‌شوید؛ تکمیل هویت و مدارک را می‌توانید بعداً و به‌صورت مرحله‌به‌مرحله انجام دهید.'],
 ['q' => 'آیا امکان ارسال پیامک زمان‌بندی‌شده وجود دارد؟', 'a' => 'بله، از طریق پنل و API می‌توانید ارسال زمان‌بندی‌شده و کمپین‌های هدفمند داشته باشید.'],
-['q' => 'بازارچه افزونه‌ها چیست؟', 'a' => 'بخشی از پنل که با آن می‌توانید قابلیت‌های تازه‌ای مثل اتصال به ایرپلاس، کارت ویزیت الکترونیکی یا منشی پیامکی را با چند کلیک به حساب خود اضافه کنید.'],
+['q' => 'بازارچه چیست؟', 'a' => 'بخشی از پنل که با آن می‌توانید قابلیت‌های تازه‌ای مثل اتصال به ایرپلاس، کارت ویزیت الکترونیکی یا منشی پیامکی را با چند کلیک به حساب خود اضافه کنید.'],
 ['q' => 'آیا API دارای مستندات فارسی است؟', 'a' => 'بله، مستندات API به‌صورت حرفه‌ای و ساده برای تیم‌های فنی آماده است و به‌راحتی در پروژه‌های مختلف قابل استفاده می‌باشد.'],
 ['q' => 'روش‌های پرداخت و تسویه چگونه است؟', 'a' => 'پرداخت آنلاین از طریق درگاه بانکی، شارژ کیف پول، ثبت فیش بانکی و صدور فاکتور رسمی برای کسب‌وکارها پشتیبانی می‌شود.'],
 ];
@@ -327,7 +327,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 
                         <article class="feature-card">
                             <div class="icon-wrap red" aria-hidden="true">🧩</div>
-                            <h3>بازارچه افزونه‌ها</h3>
+                            <h3>بازارچه</h3>
                             <p>افزودن قابلیت‌های تازه به پنل — اتصال به ایرپلاس، کارت ویزیت الکترونیکی و منشی پیامکی.</p>
                         </article>
 
@@ -367,7 +367,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                             <li><span class="tour-ico">📇</span> دفترچه تلفن و گروه‌ها</li>
                             <li><span class="tour-ico">👛</span> کیف پول و تراکنش‌ها</li>
                             <li><span class="tour-ico">🧾</span> فاکتورها و فیش بانکی</li>
-                            <li><span class="tour-ico">🧩</span> بازارچه افزونه‌ها</li>
+                            <li><span class="tour-ico">🧩</span> بازارچه</li>
                             <li><span class="tour-ico">📞</span> خطوط اختصاصی</li>
                         </ul>
 
@@ -395,7 +395,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             <section id="marketplace" class="section market-teaser" aria-labelledby="market-title">
                 <div class="container">
                     <div class="section-heading">
-                        <span class="kicker">بازارچه افزونه‌ها</span>
+                        <span class="kicker">بازارچه</span>
                         <h2 id="market-title">پنل خود را با چند کلیک قدرتمندتر کنید</h2>
                         <a class="heading-link" href="{{ route('marketplace') }}">مشاهده همه افزونه‌ها ←</a>
                     </div>
@@ -414,7 +414,7 @@ JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
                     </div>
 
                     <div class="lines-cta">
-                        <a class="btn btn-primary" href="{{ route('marketplace') }}">ورود به بازارچه افزونه‌ها</a>
+                        <a class="btn btn-primary" href="{{ route('marketplace') }}">ورود به بازارچه</a>
                     </div>
                 </div>
             </section>

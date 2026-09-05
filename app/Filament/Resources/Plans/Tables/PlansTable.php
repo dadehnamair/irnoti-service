@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Plans\Tables;
 
+use App\Models\Plan;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
@@ -22,6 +24,11 @@ class PlansTable
                     ->label('نام')
                     ->searchable()
                     ->sortable(),
+
+                TextColumn::make('type')
+                    ->label('نوع')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => Plan::TYPES[$state] ?? $state),
 
                 TextColumn::make('badge_label')
                     ->label('برچسب')
@@ -60,6 +67,7 @@ class PlansTable
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('type')->label('نوع')->options(Plan::TYPES),
                 TernaryFilter::make('is_active')->label('وضعیت'),
                 TernaryFilter::make('is_featured')->label('ویژه'),
             ])

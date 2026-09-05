@@ -21,8 +21,11 @@ use App\Http\Controllers\Dashboard\WalletController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\MarketplaceShowcaseController;
+use App\Http\Controllers\Dashboard\BusinessCardController;
 use App\Http\Controllers\PricingController;
+use App\Http\Controllers\PublicBusinessCardController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\UssdController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\Setting;
@@ -40,6 +43,13 @@ Route::get('/', function () {
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
 /*
+ * USSD plan catalogue ("/ussd") — reuses the Plan/Subscription purchase
+ * machinery, scoped to plans.type = "ussd". Checkout is the same
+ * dashboard.plan.checkout / subscriptions.* flow used by /pricing.
+ */
+Route::get('/ussd', [UssdController::class, 'index'])->name('ussd');
+
+/*
  * Dedicated SMS lines ("/lines") — the catalogue of line numbers for sale
  * (sms_lines table), managed from the Filament admin panel. Buyer picks a line,
  * fills the checkout form, and either pays online (shetabit/multipay, when the
@@ -49,7 +59,7 @@ Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::get('/lines', [LineController::class, 'index'])->name('lines');
 
 /*
- * «بازارچه افزونه‌ها» public showcase ("/marketplace") — the marketing catalogue
+ * «بازارچه» public showcase ("/marketplace") — the marketing catalogue
  * of installable add-ons (marketplace_apps table, docs/starter.md §15). Read-only;
  * the actual install / connect / pay flow lives behind auth under
  * /dashboard/marketplace.
@@ -112,10 +122,10 @@ Route::prefix('developers')->name('docs.')->group(function () {
  */
 Route::get('/assets/theme.css', function () {
     $css = ':root{'
-        .'--primary:'.config('theme.primary').' !important;'
-        .'--accent:'.config('theme.accent').' !important;'
-        .'--secondary:'.config('theme.secondary').' !important;'
-        .'}';
+        . '--primary:' . config('theme.primary') . ' !important;'
+        . '--accent:' . config('theme.accent') . ' !important;'
+        . '--secondary:' . config('theme.secondary') . ' !important;'
+        . '}';
 
     return Response::make($css, 200, [
         'Content-Type' => 'text/css',
@@ -170,6 +180,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/subscription/{subscription}/wallet', [SubscriptionController::class, 'payFromWallet'])->name('subscriptions.wallet');
 
     /*
+     * Self-service digital business cards: create, edit, buy ("standard" flat
+     * price, or "vip" — a custom code under one of the admin-managed domains,
+     * priced by that domain's code_price_tiers). Static segments before {card}.
+     */
+    Route::get('/dashboard/cards', [BusinessCardController::class, 'index'])->name('dashboard.cards');
+    Route::get('/dashboard/cards/create', [BusinessCardController::class, 'create'])->name('dashboard.cards.create');
+    Route::get('/dashboard/cards/quote', [BusinessCardController::class, 'quote'])->name('dashboard.cards.quote');
+    Route::post('/dashboard/cards', [BusinessCardController::class, 'store'])->name('dashboard.cards.store');
+    Route::get('/dashboard/cards/{card}/edit', [BusinessCardController::class, 'edit'])->name('dashboard.cards.edit');
+    Route::put('/dashboard/cards/{card}', [BusinessCardController::class, 'update'])->name('dashboard.cards.update');
+    Route::get('/dashboard/cards/{card}/pay', [BusinessCardController::class, 'pay'])->name('dashboard.cards.pay');
+    Route::post('/dashboard/cards/{card}/wallet', [BusinessCardController::class, 'payFromWallet'])->name('dashboard.cards.wallet');
+
+    /*
      * Wallet & financial history (docs/starter.md §22 / §23): "شارژ حساب" to any
      * amount, the immutable ledger, plus bank-receipt submission and admin-issued
      * invoices. All money is integer Toman; dates render Jalali.
@@ -192,7 +216,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/packages/order/{order}/wallet', [PackageOrderController::class, 'payFromWallet'])->name('package-orders.wallet');
 
     /*
-     * «بازارچه افزونه‌ها» (docs/starter.md §15): the add-on catalogue + install /
+     * «بازارچه» (docs/starter.md §15): the add-on catalogue + install /
      * connect / pay / manage flow. Static `app/…`, `i/…` and `payment/callback`
      * segments are declared before the {app:slug} wildcard. Behaviour per add-on
      * lives in its handler class (config/marketplace.php).
@@ -293,6 +317,7 @@ Route::match(['get', 'post'], '/wallet/topup/callback', [WalletController::class
 Route::match(['get', 'post'], '/packages/payment/callback', [PackageOrderController::class, 'callback'])->name('package-orders.callback');
 Route::match(['get', 'post'], '/marketplace/payment/callback', [MarketplaceController::class, 'callback'])->name('marketplace.payment.callback');
 Route::match(['get', 'post'], '/invoices/payment/callback', [InvoiceController::class, 'callback'])->name('invoices.callback');
+Route::match(['get', 'post'], '/cards/payment/callback', [BusinessCardController::class, 'paymentCallback'])->name('cards.payment.callback');
 
 // Public SMS-package catalogue, parallel to /pricing (docs/starter.md §12).
 Route::get('/sms-packages', [PricingController::class, 'packages'])->name('sms-packages');
@@ -305,6 +330,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => route('pricing'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
         ['loc' => route('lines'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
         ['loc' => route('marketplace'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.7'],
+        ['loc' => route('ussd'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.7'],
         ['loc' => route('blog.index'), 'lastmod' => $today, 'changefreq' => 'daily', 'priority' => '0.8'],
         ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
     ];
@@ -327,19 +353,29 @@ Route::get('/sitemap.xml', function () {
         ];
     }
 
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
-        .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
     foreach ($urls as $url) {
         $xml .= "  <url>\n"
-            ."    <loc>{$url['loc']}</loc>\n"
-            ."    <lastmod>{$url['lastmod']}</lastmod>\n"
-            ."    <changefreq>{$url['changefreq']}</changefreq>\n"
-            ."    <priority>{$url['priority']}</priority>\n"
-            ."  </url>\n";
+            . "    <loc>{$url['loc']}</loc>\n"
+            . "    <lastmod>{$url['lastmod']}</lastmod>\n"
+            . "    <changefreq>{$url['changefreq']}</changefreq>\n"
+            . "    <priority>{$url['priority']}</priority>\n"
+            . "  </url>\n";
     }
 
     $xml .= '</urlset>';
 
     return Response::make($xml, 200, ['Content-Type' => 'application/xml']);
 })->name('sitemap');
+
+/*
+ * Public digital-business-card page — vanity code under one of the
+ * admin-managed domains (11v.ir, 7db.ir, irnoti.com, …). Resolved by Host
+ * header in PublicBusinessCardController, so no per-domain route is needed.
+ * Kept absolutely last so every other path above wins first.
+ */
+Route::get('/{code}', [PublicBusinessCardController::class, 'show'])
+    ->where('code', '[A-Za-z0-9\-]{2,32}')
+    ->name('cards.show');

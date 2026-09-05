@@ -1585,7 +1585,7 @@ fieldset.wallet-topup-method {
     flex: 1 1 240px;
 }
 
-/* ---- Sidebar «بازارچه افزونه‌ها» promo card (docs/starter.md §15) ---- */
+/* ---- Sidebar «بازارچه» promo card (docs/starter.md §15) ---- */
 
 .account-nav a.mkt-cta {
     position: relative;
@@ -1726,7 +1726,7 @@ jdp-container {
     --jdp-color-4: var(--text-soft);
     --jdp-color-5: var(--text);
     --jdp-red: #ff6b6b;
-    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+    font-family: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm, 10px);
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);

@@ -1,4 +1,4 @@
-# راهنمای «بازارچه افزونه‌ها» (Marketplace)
+# راهنمای «بازارچه» (Marketplace)
 
 > مکمل [starter.md](starter.md) §15. این سند معماری، نحوه‌ی افزودن افزونه‌ی جدید، و
 > گردش خرید/فعال‌سازی را توضیح می‌دهد.
@@ -9,15 +9,15 @@
 
 **بازارچه** جایی است که کاربر افزونه‌های کسب‌وکار را به پنل خود اضافه می‌کند. هر افزونه یکی از دو نوع است:
 
-| نوع | نمونه | چه می‌کند |
-|---|---|---|
-| **اتصال بیرونی** (`integration`) | ایرپلاس | با کلید API به یک سرویس بیرونی وصل می‌شود؛ داده (لیست مسافران، گروه‌بندی‌ها) را می‌کشد و یک دفترچه‌تلفن اختصاصی می‌سازد. |
-| **قابلیت داخلی** (`card` / `messaging` / `tool`) | کارت ویزیت، منشی پیامکی | یک ردیف از منوی کناری پنل را پشت دروازه‌ی خرید/نصب باز می‌کند. |
+| نوع                                              | نمونه                   | چه می‌کند                                                                                                                |
+| ------------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **اتصال بیرونی** (`integration`)                 | ایرپلاس                 | با کلید API به یک سرویس بیرونی وصل می‌شود؛ داده (لیست مسافران، گروه‌بندی‌ها) را می‌کشد و یک دفترچه‌تلفن اختصاصی می‌سازد. |
+| **قابلیت داخلی** (`card` / `messaging` / `tool`) | کارت ویزیت، منشی پیامکی | یک ردیف از منوی کناری پنل را پشت دروازه‌ی خرید/نصب باز می‌کند.                                                           |
 
 هر دو از یک زیرساخت مشترک استفاده می‌کنند: ردیف کاتالوگ + یک **کلاس هندلر** + قیمت‌گذاری
 (رایگان / خرید یک‌باره / اشتراک دوره‌ای).
 
-نام‌گذاری: رابط کاربری = «بازارچه افزونه‌ها»؛ کد = namespace `App\Marketplace`،
+نام‌گذاری: رابط کاربری = «بازارچه»؛ کد = namespace `App\Marketplace`،
 جدول‌ها `marketplace_apps` / `marketplace_installations`.
 
 ---
@@ -26,34 +26,34 @@
 
 ### جدول `marketplace_apps` — کاتالوگ (مدیر می‌سازد)
 
-| ستون | توضیح |
-|---|---|
-| `slug` | کلید مسیر (`/dashboard/marketplace/app/{slug}`) |
-| `name` / `vendor` / `tagline` / `description` | معرفی؛ `description` مارک‌داون |
-| `category` | `integration` \| `messaging` \| `card` \| `tool` \| `other` |
-| `icon` / `accent_color` / `docs_url` | نمایش |
-| `handler` | کلید هندلر در `config/marketplace.php` |
-| `billing_type` | `free` \| `one_time` \| `subscription` |
-| `price` (تومان) / `billing_period` (`monthly`\|`yearly`) / `trial_days` | قیمت |
-| `config_schema` (JSON) | فیلدهای فرم اتصال: `[{key,label,type,required,secret,help}]` |
-| `capabilities` (JSON) | کلید ردیف‌های `features` که با نصب فعال می‌شوند (فقط برای `feature_unlock`) |
-| `is_active` / `is_featured` / `sort` | «بزودی»/زنده، ویژه، ترتیب |
+| ستون                                                                    | توضیح                                                                       |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `slug`                                                                  | کلید مسیر (`/dashboard/marketplace/app/{slug}`)                             |
+| `name` / `vendor` / `tagline` / `description`                           | معرفی؛ `description` مارک‌داون                                              |
+| `category`                                                              | `integration` \| `messaging` \| `card` \| `tool` \| `other`                 |
+| `icon` / `accent_color` / `docs_url`                                    | نمایش                                                                       |
+| `handler`                                                               | کلید هندلر در `config/marketplace.php`                                      |
+| `billing_type`                                                          | `free` \| `one_time` \| `subscription`                                      |
+| `price` (تومان) / `billing_period` (`monthly`\|`yearly`) / `trial_days` | قیمت                                                                        |
+| `config_schema` (JSON)                                                  | فیلدهای فرم اتصال: `[{key,label,type,required,secret,help}]`                |
+| `capabilities` (JSON)                                                   | کلید ردیف‌های `features` که با نصب فعال می‌شوند (فقط برای `feature_unlock`) |
+| `is_active` / `is_featured` / `sort`                                    | «بزودی»/زنده، ویژه، ترتیب                                                   |
 
 مدل: [`app/Models/MarketplaceApp.php`](../app/Models/MarketplaceApp.php) — `slug` خودکار، `scopeActive`/`scopeOrdered`،
 `configFields()`، `capabilityKeys()`، `price_label`.
 
 ### جدول `marketplace_installations` — نصبِ هر کاربر (روی سایت متولد می‌شود)
 
-| ستون | توضیح |
-|---|---|
-| `token` | کلید مسیر غیرقابل‌حدس ۲۴ نویسه‌ای (مثل `LineOrder` / `Subscription`) |
-| `user_id` / `marketplace_app_id` | یکتا با هم (نصب تکراری ممنوع) |
-| `status` | `pending` → `awaiting_payment` → `active` → `expired` / `suspended` / `cancelled` |
-| `config` | **`encrypted:array`** — اعتبارهای API کاربر |
-| `settings` | `array` — وضعیت رانتایم هندلر (مثل `group_id` محلی، cursor) |
-| `price` / `billing_type` / `billing_period` | snapshot هنگام نصب |
-| `payment_driver` / `transaction_id` / `reference_id` / `paid_at` | پرداخت (مثل `PackageOrder`) |
-| `installed_at` / `activated_at` / `expires_at` / `last_synced_at` | چرخه‌ی عمر |
+| ستون                                                              | توضیح                                                                             |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `token`                                                           | کلید مسیر غیرقابل‌حدس ۲۴ نویسه‌ای (مثل `LineOrder` / `Subscription`)              |
+| `user_id` / `marketplace_app_id`                                  | یکتا با هم (نصب تکراری ممنوع)                                                     |
+| `status`                                                          | `pending` → `awaiting_payment` → `active` → `expired` / `suspended` / `cancelled` |
+| `config`                                                          | **`encrypted:array`** — اعتبارهای API کاربر                                       |
+| `settings`                                                        | `array` — وضعیت رانتایم هندلر (مثل `group_id` محلی، cursor)                       |
+| `price` / `billing_type` / `billing_period`                       | snapshot هنگام نصب                                                                |
+| `payment_driver` / `transaction_id` / `reference_id` / `paid_at`  | پرداخت (مثل `PackageOrder`)                                                       |
+| `installed_at` / `activated_at` / `expires_at` / `last_synced_at` | چرخه‌ی عمر                                                                        |
 
 مدل: [`app/Models/MarketplaceInstallation.php`](../app/Models/MarketplaceInstallation.php) —
 `isPayable()`، `isActive()`، `isExpired()`، `handler()`، `configValue()` / `settingValue()` / `putSetting()`.
@@ -156,9 +156,9 @@ return [
 
 **درایورها** (`config('marketplace.irplus.driver')`):
 
-| درایور | کلاس | کاربرد |
-|---|---|---|
-| `fake` | `FakeIrPlusClient` | داده‌ی نمونه‌ی ثابت — دِو/تست، بدون اعتبار (پیش‌فرض؛ مثل `SMS_PROVIDER=log`) |
+| درایور | کلاس               | کاربرد                                                                           |
+| ------ | ------------------ | -------------------------------------------------------------------------------- |
+| `fake` | `FakeIrPlusClient` | داده‌ی نمونه‌ی ثابت — دِو/تست، بدون اعتبار (پیش‌فرض؛ مثل `SMS_PROVIDER=log`)     |
 | `http` | `HttpIrPlusClient` | REST واقعی با bearer token؛ اندپوینت‌های `/api/v1/groups` و `/api/v1/passengers` |
 
 ---
@@ -262,16 +262,16 @@ idempotent تا وقتی نصب هنوز `active` و منقضی‌نشده اس�
 
 گروه ناوبری **«بازارچه»**:
 
-| ریسورس | نوع | کار |
-|---|---|---|
-| `MarketplaceApps` | CRUD کامل | ساخت/ویرایش افزونه، قیمت‌گذاری شرطی، Repeater فیلدهای اتصال، انتخاب capabilityها، تیک `is_active` |
-| `MarketplaceInstallations` | فقط List/Edit (`canCreate()=false`) | مشاهده‌ی نصب‌ها، تغییر `status` (تعلیق)، تمدید دستی `expires_at`، دیدن `config` با mask رمز |
+| ریسورس                     | نوع                                 | کار                                                                                               |
+| -------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `MarketplaceApps`          | CRUD کامل                           | ساخت/ویرایش افزونه، قیمت‌گذاری شرطی، Repeater فیلدهای اتصال، انتخاب capabilityها، تیک `is_active` |
+| `MarketplaceInstallations` | فقط List/Edit (`canCreate()=false`) | مشاهده‌ی نصب‌ها، تغییر `status` (تعلیق)، تمدید دستی `expires_at`، دیدن `config` با mask رمز       |
 
 ---
 
 ## ۸. منوی داشبورد کاربر
 
-- `FeatureCatalog::GROUPS['marketplace']` → ردیف `marketplace.browse` (system) → لینک «بازارچه افزونه‌ها».
+- `FeatureCatalog::GROUPS['marketplace']` → ردیف `marketplace.browse` (system) → لینک «بازارچه».
 - [`resources/views/dashboard/partials/nav-marketplace.blade.php`](../resources/views/dashboard/partials/nav-marketplace.blade.php) —
   گروه «افزونه‌های من» با نصب‌های `active` که هندلرشان `panelView()` دارد (اتصال‌های بیرونی).
 - کارت تبلیغی گرادیانی `.mkt-cta` در فوتر منوی کناری، درست بالای «ورود به پنل VIP» — هدایت به بازارچه.
@@ -281,11 +281,11 @@ idempotent تا وقتی نصب هنوز `active` و منقضی‌نشده اس�
 
 ## ۹. تنظیمات (`/admin → تنظیمات`)
 
-| کلید | پیش‌فرض | کار |
-|---|---|---|
-| `marketplace_enabled` | `1` | روشن بودن کل بازارچه (خاموش = مسیرها 404) |
-| `marketplace_payment_online` | `0` | فعال بودن پرداخت آنلاین افزونه‌ها از درگاه |
-| `receipt_for_marketplace` | `1` | امکان ثبت فیش بانکی برای خرید افزونه |
+| کلید                         | پیش‌فرض | کار                                        |
+| ---------------------------- | ------- | ------------------------------------------ |
+| `marketplace_enabled`        | `1`     | روشن بودن کل بازارچه (خاموش = مسیرها 404)  |
+| `marketplace_payment_online` | `0`     | فعال بودن پرداخت آنلاین افزونه‌ها از درگاه |
+| `receipt_for_marketplace`    | `1`     | امکان ثبت فیش بانکی برای خرید افزونه       |
 
 ---
 
@@ -324,17 +324,17 @@ php artisan test --filter=Marketplace
 
 ## ۱۳. فایل‌های کلیدی
 
-| بخش | مسیر |
-|---|---|
-| مدل‌ها | `app/Models/MarketplaceApp.php`، `MarketplaceInstallation.php` |
-| هندلر | `app/Marketplace/**` |
-| کانفیگ | `config/marketplace.php` |
-| کنترلر | `app/Http/Controllers/Dashboard/MarketplaceController.php` |
-| تسویه | `app/Support/PayableSettlement.php` (`settleMarketplaceInstallation`) |
-| اطلاع‌رسانی | `app/Support/OperationNotifier.php` (`marketplaceAppActivated`) |
-| مسیرها | `routes/web.php` (بلوک «بازارچه افزونه‌ها») + `bootstrap/app.php` (CSRF) |
-| Filament | `app/Filament/Resources/MarketplaceApps/**`، `MarketplaceInstallations/**` |
-| سیدر | `database/seeders/MarketplaceAppsSeeder.php` + زنجیره در `DatabaseSeeder` |
-| ویوها | `resources/views/dashboard/marketplace/**` |
-| منو | `resources/views/dashboard/partials/nav-marketplace.blade.php`، `nav.blade.php` |
-| مهاجرت‌ها | `database/migrations/2026_09_02_18000{1,2,3}_*` |
+| بخش         | مسیر                                                                            |
+| ----------- | ------------------------------------------------------------------------------- |
+| مدل‌ها      | `app/Models/MarketplaceApp.php`، `MarketplaceInstallation.php`                  |
+| هندلر       | `app/Marketplace/**`                                                            |
+| کانفیگ      | `config/marketplace.php`                                                        |
+| کنترلر      | `app/Http/Controllers/Dashboard/MarketplaceController.php`                      |
+| تسویه       | `app/Support/PayableSettlement.php` (`settleMarketplaceInstallation`)           |
+| اطلاع‌رسانی | `app/Support/OperationNotifier.php` (`marketplaceAppActivated`)                 |
+| مسیرها      | `routes/web.php` (بلوک «بازارچه») + `bootstrap/app.php` (CSRF)                  |
+| Filament    | `app/Filament/Resources/MarketplaceApps/**`، `MarketplaceInstallations/**`      |
+| سیدر        | `database/seeders/MarketplaceAppsSeeder.php` + زنجیره در `DatabaseSeeder`       |
+| ویوها       | `resources/views/dashboard/marketplace/**`                                      |
+| منو         | `resources/views/dashboard/partials/nav-marketplace.blade.php`، `nav.blade.php` |
+| مهاجرت‌ها   | `database/migrations/2026_09_02_18000{1,2,3}_*`                                 |

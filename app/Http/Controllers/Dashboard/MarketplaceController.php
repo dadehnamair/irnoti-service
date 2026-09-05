@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 use Shetabit\Multipay\Exceptions\InvalidPaymentException;
 
 /**
- * «بازارچه افزونه‌ها» for logged-in customers (docs/starter.md §15). Browse the
+ * «بازارچه» for logged-in customers (docs/starter.md §15). Browse the
  * catalogue, install/connect an add-on, pay for it (mirrors
  * {@see PackageOrderController}: online gateway / wallet / bank receipt), then
  * manage it from its own page. Behaviour per add-on lives in its handler class.
@@ -70,7 +70,7 @@ class MarketplaceController extends Controller
             return $existing->isPayable()
                 ? redirect()->route('marketplace.manage', $existing)
                 : redirect()->route('marketplace.manage', $existing)
-                    ->with('auth_status', 'این افزونه قبلاً برای حساب شما نصب شده است.');
+                ->with('auth_status', 'این افزونه قبلاً برای حساب شما نصب شده است.');
         }
 
         $handler = app(AppRegistry::class)->for($app);
@@ -106,7 +106,7 @@ class MarketplaceController extends Controller
             default => $this->onlinePaymentEnabled()
                 ? redirect()->route('marketplace.pay', $installation)
                 : redirect()->route('marketplace.manage', $installation)
-                    ->with('auth_status', 'درخواست ثبت شد. برای هماهنگی پرداخت با شما تماس می‌گیریم.'),
+                ->with('auth_status', 'درخواست ثبت شد. برای هماهنگی پرداخت با شما تماس می‌گیریم.'),
         };
     }
 
@@ -146,11 +146,11 @@ class MarketplaceController extends Controller
             Log::error('Marketplace sync failed', ['installation' => $installation->id, 'error' => $e->getMessage()]);
 
             return redirect()->route('marketplace.manage', $installation)
-                ->with('sms_error', 'دریافت اطلاعات از سرویس ناموفق بود: '.$e->getMessage());
+                ->with('sms_error', 'دریافت اطلاعات از سرویس ناموفق بود: ' . $e->getMessage());
         }
 
         return redirect()->route('marketplace.manage', $installation)
-            ->with('sms_status', 'همگام‌سازی انجام شد — '.$result->summary());
+            ->with('sms_status', 'همگام‌سازی انجام شد — ' . $result->summary());
     }
 
     public function updateConfig(Request $request, MarketplaceInstallation $installation): RedirectResponse
@@ -161,7 +161,7 @@ class MarketplaceController extends Controller
         // Blank fields keep the stored value — so a masked secret needn't be re-typed.
         $submitted = array_filter(
             (array) $request->input('config', []),
-            fn ($value) => is_string($value) ? $value !== '' : $value !== null,
+            fn($value) => is_string($value) ? $value !== '' : $value !== null,
         );
         $merged = array_merge((array) $installation->config, $submitted);
 
@@ -214,7 +214,7 @@ class MarketplaceController extends Controller
             return $this->purchaseViaGateway(
                 (int) $installation->price,
                 route('marketplace.payment.callback'),
-                fn ($transactionId) => $installation->forceFill([
+                fn($transactionId) => $installation->forceFill([
                     'transaction_id' => $transactionId,
                     'payment_driver' => config('payment.default'),
                 ])->save(),
@@ -232,7 +232,7 @@ class MarketplaceController extends Controller
         $transactionId = $this->gatewayTransactionId($request);
 
         $installation = MarketplaceInstallation::query()
-            ->when($transactionId, fn ($q) => $q->where('transaction_id', $transactionId))
+            ->when($transactionId, fn($q) => $q->where('transaction_id', $transactionId))
             ->latest('id')
             ->first();
 
@@ -279,7 +279,7 @@ class MarketplaceController extends Controller
             (int) $installation->price,
             'marketplace_purchase',
             $installation,
-            'خرید افزونه «'.($installation->app?->name ?? '').'»',
+            'خرید افزونه «' . ($installation->app?->name ?? '') . '»',
             "marketplace:{$installation->id}",
         );
 

@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
-/** «بازارچه افزونه‌ها» — catalogue, install, pay, uninstall (docs/starter.md §15). */
+/** «بازارچه» — catalogue, install, pay, uninstall (docs/starter.md §15). */
 class MarketplaceInstallTest extends TestCase
 {
     use RefreshDatabase;
