@@ -39,8 +39,18 @@ use App\Models\BlogTag;
 use App\Models\DocArticle;
 use App\Models\Page;
 use App\Models\Plan;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/system-clear-cache/{key}', function (string $key) {
+    abort_unless($key === 'CHANGE-ME-TO-SOMETHING-SECRET', 404);
+
+    Artisan::call('optimize:clear');   // config, route, view, cache, events
+
+    return response('<pre>' . Artisan::output() . '</pre>');
+});
+
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -152,10 +162,10 @@ Route::prefix('developers')->name('docs.')->group(function () {
  */
 Route::get('/assets/theme.css', function () {
     $css = ':root{'
-        .'--primary:'.config('theme.primary').' !important;'
-        .'--accent:'.config('theme.accent').' !important;'
-        .'--secondary:'.config('theme.secondary').' !important;'
-        .'}';
+        . '--primary:' . config('theme.primary') . ' !important;'
+        . '--accent:' . config('theme.accent') . ' !important;'
+        . '--secondary:' . config('theme.secondary') . ' !important;'
+        . '}';
 
     return Response::make($css, 200, [
         'Content-Type' => 'text/css',
@@ -385,7 +395,7 @@ Route::get('/sitemap.xml', function () {
 
     foreach (Page::query()->published()->get() as $page) {
         $urls[] = [
-            'loc' => url('/'.$page->slug),
+            'loc' => url('/' . $page->slug),
             'lastmod' => optional($page->updated_at)->toDateString() ?: $today,
             'changefreq' => 'monthly',
             'priority' => '0.5',
@@ -425,7 +435,7 @@ Route::get('/sitemap.xml', function () {
         ->where('is_published', true)
         ->with('category')
         ->get()
-        ->filter(fn ($article) => $article->category && $article->category->is_published);
+        ->filter(fn($article) => $article->category && $article->category->is_published);
 
     foreach ($docArticles as $article) {
         $urls[] = [
@@ -436,16 +446,16 @@ Route::get('/sitemap.xml', function () {
         ];
     }
 
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
-        .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
     foreach ($urls as $url) {
         $xml .= "  <url>\n"
-            ."    <loc>{$url['loc']}</loc>\n"
-            ."    <lastmod>{$url['lastmod']}</lastmod>\n"
-            ."    <changefreq>{$url['changefreq']}</changefreq>\n"
-            ."    <priority>{$url['priority']}</priority>\n"
-            ."  </url>\n";
+            . "    <loc>{$url['loc']}</loc>\n"
+            . "    <lastmod>{$url['lastmod']}</lastmod>\n"
+            . "    <changefreq>{$url['changefreq']}</changefreq>\n"
+            . "    <priority>{$url['priority']}</priority>\n"
+            . "  </url>\n";
     }
 
     $xml .= '</urlset>';
