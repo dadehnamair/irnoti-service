@@ -27,6 +27,7 @@
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
     @endif
     <link rel="canonical" href="{{ $canonical }}" />
+    <link rel="alternate" hreflang="fa-IR" href="{{ $canonical }}" />
     <link rel="alternate" type="application/rss+xml" title="بلاگ {{ $brand }}" href="{{ route('blog.feed') }}" />
 
     <meta property="og:site_name" content="{{ $brand }}" />

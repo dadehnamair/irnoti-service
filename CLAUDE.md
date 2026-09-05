@@ -24,6 +24,7 @@ Scope now spans the **public site + admin CMS + the customer dashboard** (a real
 - [docs/marketplace.md](docs/marketplace.md) — installable add-ons (integrations like ایرپلاس, internal feature unlocks like the business card) with a common handler architecture.
 - [docs/site-content.md](docs/site-content.md) — admin-managed static pages (About/Cooperation), FAQ, the marketing features showcase, and the contact form.
 - [docs/sales-representation.md](docs/sales-representation.md) — admin-defined commission tiers + a manually-reviewed lead-capture application form, no self-service payment/activation.
+- [docs/blog.md](docs/blog.md) — blog/magazine content marketing: posts/categories/tags, per-level SEO meta, JSON-LD (BlogPosting/BreadcrumbList/CollectionPage), sitemap + RSS coverage, hreflang.
 
 ## Commands
 
@@ -105,6 +106,9 @@ Customer-dashboard subsystems built on top of the finance + panel-features layer
 
 ### Site content & sales representation
 Small admin-managed public pages that round out the marketing site: static `Page` rows (About/Cooperation), `Faq`, the `SiteFeature` marketing showcase, and the `ContactMessage` lead form — see [docs/site-content.md](docs/site-content.md). A parallel, unrelated-to-payment lead flow, admin-defined commission tiers plus a manually-reviewed application form, lives at `/representation` — see [docs/sales-representation.md](docs/sales-representation.md).
+
+### Blog / magazine
+Content-marketing section (`/blog`) — posts/categories/tags fully admin-managed, with per-level SEO meta (title/description/OG image), JSON-LD (`BlogPosting`+`BreadcrumbList` on articles, `CollectionPage` on archives), sitemap inclusion, and an RSS feed with `<category>`/`<dc:creator>` per item — see [docs/blog.md](docs/blog.md).
 
 ### Filament admin (`/admin`)
 [`AdminPanelProvider`](app/Providers/Filament/AdminPanelProvider.php) — auto-discovers resources in `app/Filament/Resources`, primary color from `config('theme.primary')`, Vazirmatn font, Jalali (Shamsi) date pickers panel-wide via a single `DateTimePicker::configureUsing(...->jalali())` hook in `AppServiceProvider::boot()`. Access is gated by `User::canAccessPanel()` → `is_admin` boolean column.

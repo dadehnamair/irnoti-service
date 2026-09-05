@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\ContactController as PublicContactController;
 use App\Http\Controllers\Dashboard\BankReceiptController;
 use App\Http\Controllers\Dashboard\BusinessCardController;
 use App\Http\Controllers\Dashboard\ContactController;
@@ -19,7 +20,6 @@ use App\Http\Controllers\Dashboard\PackageOrderController;
 use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
 use App\Http\Controllers\Dashboard\WalletController;
-use App\Http\Controllers\ContactController as PublicContactController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeaturesController;
@@ -35,6 +35,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UssdController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
+use App\Models\BlogTag;
 use App\Models\Page;
 use App\Models\Plan;
 use Illuminate\Support\Facades\Response;
@@ -150,10 +151,10 @@ Route::prefix('developers')->name('docs.')->group(function () {
  */
 Route::get('/assets/theme.css', function () {
     $css = ':root{'
-        . '--primary:' . config('theme.primary') . ' !important;'
-        . '--accent:' . config('theme.accent') . ' !important;'
-        . '--secondary:' . config('theme.secondary') . ' !important;'
-        . '}';
+        .'--primary:'.config('theme.primary').' !important;'
+        .'--accent:'.config('theme.accent').' !important;'
+        .'--secondary:'.config('theme.secondary').' !important;'
+        .'}';
 
     return Response::make($css, 200, [
         'Content-Type' => 'text/css',
@@ -352,6 +353,8 @@ Route::get('/sms-packages', [PricingController::class, 'packages'])->name('sms-p
 
 Route::get('/sitemap.xml', function () {
     $today = now()->toDateString();
+    $latestPost = BlogPost::query()->published()->orderByDesc('updated_at')->first();
+    $blogIndexLastmod = optional($latestPost?->updated_at)->toDateString() ?: $today;
 
     $urls = [
         ['loc' => route('home'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '1.0'],
@@ -363,7 +366,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => route('faq'), 'lastmod' => $today, 'changefreq' => 'monthly', 'priority' => '0.6'],
         ['loc' => route('contact'), 'lastmod' => $today, 'changefreq' => 'yearly', 'priority' => '0.5'],
         ['loc' => route('representation'), 'lastmod' => $today, 'changefreq' => 'monthly', 'priority' => '0.6'],
-        ['loc' => route('blog.index'), 'lastmod' => $today, 'changefreq' => 'daily', 'priority' => '0.8'],
+        ['loc' => route('blog.index'), 'lastmod' => $blogIndexLastmod, 'changefreq' => 'daily', 'priority' => '0.8'],
         ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
     ];
 
@@ -394,6 +397,15 @@ Route::get('/sitemap.xml', function () {
         ];
     }
 
+    foreach (BlogTag::query()->get() as $tag) {
+        $urls[] = [
+            'loc' => route('blog.tag', $tag->slug),
+            'lastmod' => optional($tag->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'weekly',
+            'priority' => '0.5',
+        ];
+    }
+
     foreach (BlogPost::query()->published()->get() as $post) {
         $urls[] = [
             'loc' => route('blog.show', $post->slug),
@@ -403,16 +415,16 @@ Route::get('/sitemap.xml', function () {
         ];
     }
 
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
+        .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
 
     foreach ($urls as $url) {
         $xml .= "  <url>\n"
-            . "    <loc>{$url['loc']}</loc>\n"
-            . "    <lastmod>{$url['lastmod']}</lastmod>\n"
-            . "    <changefreq>{$url['changefreq']}</changefreq>\n"
-            . "    <priority>{$url['priority']}</priority>\n"
-            . "  </url>\n";
+            ."    <loc>{$url['loc']}</loc>\n"
+            ."    <lastmod>{$url['lastmod']}</lastmod>\n"
+            ."    <changefreq>{$url['changefreq']}</changefreq>\n"
+            ."    <priority>{$url['priority']}</priority>\n"
+            ."  </url>\n";
     }
 
     $xml .= '</urlset>';

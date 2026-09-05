@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class BlogTag extends Model
 {
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'slug', 'meta_title', 'meta_description', 'og_image'];
 
     protected static function booted(): void
     {
@@ -23,5 +23,32 @@ class BlogTag extends Model
     public function posts(): BelongsToMany
     {
         return $this->belongsToMany(BlogPost::class, 'blog_post_tag');
+    }
+
+    public function getMetaTitleValueAttribute(): string
+    {
+        return $this->meta_title ?: 'برچسب: '.$this->name;
+    }
+
+    public function getMetaDescriptionValueAttribute(): ?string
+    {
+        if (blank($this->meta_description)) {
+            return null;
+        }
+
+        return Str::of($this->meta_description)->squish()->limit(160)->value();
+    }
+
+    public function getOgImageUrlAttribute(): ?string
+    {
+        if (blank($this->og_image)) {
+            return null;
+        }
+
+        if (Str::startsWith($this->og_image, ['http://', 'https://', '/'])) {
+            return $this->og_image;
+        }
+
+        return asset('storage/'.ltrim($this->og_image, '/'));
     }
 }

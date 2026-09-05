@@ -71,14 +71,18 @@ class BlogController extends Controller
             ->withQueryString();
 
         $heading = 'برچسب: '.$model->name;
+        $intro = 'پست‌های برچسب‌خورده با «'.$model->name.'» در بلاگ '.config('theme.brand').'.';
 
         return view('blog.index', [
             'posts' => $posts,
             'categories' => $this->sidebarCategories(),
             'heading' => $heading,
-            'intro' => null,
+            'intro' => $intro,
             'crumb' => $model->name,
-            'jsonLd' => $this->collectionJsonLd($heading, null, $posts),
+            'metaTitle' => $model->meta_title ?: ('پست‌های برچسب‌خورده با '.$model->name),
+            'metaDescription' => $model->meta_description ?: $intro,
+            'ogImage' => $model->og_image_url,
+            'jsonLd' => $this->collectionJsonLd($heading, $intro, $posts),
         ]);
     }
 
@@ -135,7 +139,7 @@ class BlogController extends Controller
 
     public function feed(): Response
     {
-        $posts = BlogPost::query()->published()->with('author')->limit(30)->get();
+        $posts = BlogPost::query()->published()->with(['author', 'category'])->limit(30)->get();
         $brand = config('theme.brand');
         $site = rtrim(config('theme.seo.url'), '/');
         $self = route('blog.feed');
@@ -145,6 +149,10 @@ class BlogController extends Controller
             $url = route('blog.show', $post->slug);
             $desc = htmlspecialchars($post->meta_description_value, ENT_QUOTES);
             $date = optional($post->published_date)->toRfc2822String();
+            $authorName = htmlspecialchars($post->author?->name ?: config('theme.brand'), ENT_QUOTES);
+            $category = $post->category
+                ? '<category>'.htmlspecialchars($post->category->name, ENT_QUOTES).'</category>'."\n                    "
+                : '';
 
             return <<<XML
                 <item>
@@ -153,13 +161,14 @@ class BlogController extends Controller
                     <guid isPermaLink="true">{$url}</guid>
                     <pubDate>{$date}</pubDate>
                     <description>{$desc}</description>
+                    {$category}<dc:creator>{$authorName}</dc:creator>
                 </item>
             XML;
         })->implode("\n");
 
         $xml = <<<XML
         <?xml version="1.0" encoding="UTF-8"?>
-        <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+        <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
         <channel>
             <title>بلاگ {$brand}</title>
             <link>{$site}/blog</link>

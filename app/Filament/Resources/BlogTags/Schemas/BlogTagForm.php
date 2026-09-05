@@ -3,7 +3,10 @@
 namespace App\Filament\Resources\BlogTags\Schemas;
 
 use App\Models\BlogTag;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
@@ -29,6 +32,30 @@ class BlogTagForm
                     ->required()
                     ->alphaDash()
                     ->unique(BlogTag::class, 'slug', ignoreRecord: true),
+
+                Section::make('متادیتا')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('meta_title')
+                            ->label('عنوان متا')
+                            ->maxLength(70)
+                            ->placeholder('خالی = «برچسب: نام برچسب»'),
+
+                        Textarea::make('meta_description')
+                            ->label('توضیح متا')
+                            ->rows(2)
+                            ->maxLength(160)
+                            ->columnSpanFull(),
+
+                        FileUpload::make('og_image')
+                            ->label('تصویر اشتراک‌گذاری (OG)')
+                            ->image()
+                            ->disk('public')
+                            ->directory('blog/og')
+                            ->visibility('public')
+                            ->columnSpanFull()
+                            ->helperText('خالی = تصویر پیش‌فرض سایت. ۱۲۰۰×۶۳۰ پیکسل.'),
+                    ]),
             ]);
     }
 }
