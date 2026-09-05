@@ -26,6 +26,14 @@ class SmsLineForm
                             ->placeholder('3000')
                             ->helperText('گروه‌بندی صفحه خطوط بر اساس همین مقدار است.'),
 
+                        Select::make('line_group_id')
+                            ->label('صفحهٔ اختصاصی خط')
+                            ->relationship('lineGroup', 'title')
+                            ->searchable()
+                            ->preload()
+                            ->nullable()
+                            ->helperText('اگر خالی بماند، از روی پیش‌شماره وصل می‌شود (docs/lines-landing.md).'),
+
                         TextInput::make('operator')
                             ->label('اپراتور')
                             ->placeholder('مگفا / آسیاتک / همراه اول'),

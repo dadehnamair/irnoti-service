@@ -85,6 +85,17 @@ $totalLines = $groups->sum(fn ($g) => $g['lines']->count());
                         @endforeach
                     </div>
 
+                    @if (($landings ?? collect())->isNotEmpty())
+                    <nav class="line-landing-links" aria-label="صفحه‌های اختصاصی خطوط">
+                        <span>راهنمای هر خط:</span>
+                        @foreach ($groups as $group)
+                            @if ($landings->has($group['prefix']))
+                            <a href="{{ route('lines.group', $landings->get($group['prefix'])) }}">خط {{ $group['prefix'] }}</a>
+                            @endif
+                        @endforeach
+                    </nav>
+                    @endif
+
                     <div class="line-filters">
                         <label>
                             <span>تعداد ارقام</span>

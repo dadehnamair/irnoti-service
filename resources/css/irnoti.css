@@ -1669,6 +1669,185 @@ select {
     text-align: center;
     color: var(--text-soft);
 }
+
+/* Per-prefix line landing pages (docs/lines-landing.md) ------------- */
+.line-landing-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 14px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+.line-landing-links a {
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text-soft);
+    text-decoration: none;
+    transition:
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+.line-landing-links a:hover {
+    border-color: var(--primary-line);
+    color: var(--text);
+}
+.line-group-cta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+}
+.line-group-prose {
+    max-width: 760px;
+    margin-inline: auto;
+    color: var(--text-soft);
+    line-height: 2;
+}
+.line-group-specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+.line-group-specs h2 {
+    margin-bottom: 14px;
+}
+.line-group-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+}
+.line-group-list li {
+    position: relative;
+    padding-inline-start: 1.4rem;
+    color: var(--text-soft);
+}
+.line-group-list li::before {
+    content: "✓";
+    position: absolute;
+    inset-inline-start: 0;
+    color: var(--primary);
+    font-weight: 700;
+}
+.line-bundle-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+}
+.line-bundle-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--panel);
+    transition:
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+.line-bundle-card:hover {
+    border-color: var(--primary-line);
+    transform: translateY(-2px);
+}
+.line-bundle-card.is-featured {
+    border-color: var(--primary-line);
+    box-shadow: 0 0 0 1px var(--primary-line) inset;
+}
+.line-bundle-badge {
+    position: absolute;
+    inset-block-start: -12px;
+    inset-inline-end: 18px;
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.line-bundle-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+.line-bundle-desc {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+.line-bundle-meta {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+}
+.line-bundle-meta li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: var(--text-soft);
+}
+.line-bundle-meta li strong {
+    color: var(--text);
+}
+.line-bundle-features {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+}
+.line-bundle-features li {
+    position: relative;
+    padding-inline-start: 1.2rem;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+}
+.line-bundle-features li::before {
+    content: "✓";
+    position: absolute;
+    inset-inline-start: 0;
+    color: var(--primary);
+    font-weight: 700;
+}
+.line-bundle-foot {
+    margin-top: auto;
+    display: grid;
+    gap: 12px;
+}
+.line-group-faq {
+    max-width: 760px;
+    margin-inline: auto;
+    display: grid;
+    gap: 12px;
+}
+.line-group-faq details {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--panel);
+    padding: 14px 18px;
+}
+.line-group-faq summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text);
+}
+.line-group-faq details[open] summary {
+    margin-bottom: 8px;
+}
+.line-group-faq p {
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.9;
+}
 .line-steps {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
