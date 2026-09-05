@@ -35,6 +35,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UssdController;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
+use App\Models\Page;
 use App\Models\Plan;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
@@ -358,9 +359,31 @@ Route::get('/sitemap.xml', function () {
         ['loc' => route('lines'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.9'],
         ['loc' => route('marketplace'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.7'],
         ['loc' => route('ussd'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.7'],
+        ['loc' => route('features'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.8'],
+        ['loc' => route('faq'), 'lastmod' => $today, 'changefreq' => 'monthly', 'priority' => '0.6'],
+        ['loc' => route('contact'), 'lastmod' => $today, 'changefreq' => 'yearly', 'priority' => '0.5'],
+        ['loc' => route('representation'), 'lastmod' => $today, 'changefreq' => 'monthly', 'priority' => '0.6'],
         ['loc' => route('blog.index'), 'lastmod' => $today, 'changefreq' => 'daily', 'priority' => '0.8'],
         ['loc' => route('docs.index'), 'lastmod' => $today, 'changefreq' => 'weekly', 'priority' => '0.6'],
     ];
+
+    foreach (Plan::query()->active()->get() as $plan) {
+        $urls[] = [
+            'loc' => route('pricing.show', $plan->slug),
+            'lastmod' => optional($plan->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'weekly',
+            'priority' => '0.6',
+        ];
+    }
+
+    foreach (Page::query()->published()->get() as $page) {
+        $urls[] = [
+            'loc' => url('/'.$page->slug),
+            'lastmod' => optional($page->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'monthly',
+            'priority' => '0.5',
+        ];
+    }
 
     foreach (BlogCategory::query()->visible()->get() as $category) {
         $urls[] = [

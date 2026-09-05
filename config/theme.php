@@ -69,7 +69,7 @@ return [
     */
 
     'nav' => [
-        ['label' => 'امکانات', 'href' => '#features'],
+        ['label' => 'امکانات', 'href' => '/features'],
         ['label' => 'تعرفه‌ها', 'href' => '/pricing'],
         ['label' => 'خطوط اختصاصی', 'href' => '/lines'],
         ['label' => 'کد دستوری USSD', 'href' => '/ussd'],
@@ -114,16 +114,18 @@ return [
             [
                 'title' => 'شرکت',
                 'links' => [
-                    ['label' => 'درباره ما', 'href' => '/#about'],
+                    ['label' => 'درباره ما', 'href' => '/about'],
+                    ['label' => 'همکاری با ما', 'href' => '/cooperation'],
+                    ['label' => 'نمایندگی فروش', 'href' => '/representation'],
                     ['label' => 'وبلاگ', 'href' => '/blog'],
-                    ['label' => 'سوالات متداول', 'href' => '/#faq'],
-                    ['label' => 'تماس با ما', 'href' => '/#cta'],
+                    ['label' => 'تماس با ما', 'href' => '/contact'],
                 ],
             ],
             [
                 'title' => 'راهنما و پشتیبانی',
                 'links' => [
                     ['label' => 'مستندات فنی', 'href' => '/developers'],
+                    ['label' => 'سوالات متداول', 'href' => '/faq'],
                     ['label' => 'قوانین و مقررات', 'href' => '/terms'],
                     ['label' => 'حریم خصوصی', 'href' => '/privacy'],
                     ['label' => 'ورود به پنل', 'href' => '/login'],
