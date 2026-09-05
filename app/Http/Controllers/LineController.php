@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Dashboard\LineOrderController;
+use App\Models\LineBundle;
+use App\Models\LineGroup;
 use App\Models\LineOrder;
 use App\Models\Setting;
 use App\Models\SmsLine;
 use App\Support\HandlesGatewayPayment;
 use App\Support\OperationNotifier;
+use App\Support\PayableSettlement;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +39,97 @@ class LineController extends Controller
             'digitOptions' => $lines->pluck('digits')->unique()->sort()->values(),
             'typeOptions' => $lines->pluck('line_type')->unique()->values(),
             'jsonLd' => $this->linesJsonLd($groups, $canonical),
+            // prefix → landing slug, so each catalogue group can link to its page.
+            'landings' => LineGroup::query()->active()->pluck('slug', 'prefix'),
+        ]);
+    }
+
+    /**
+     * Per-prefix landing page ("/lines/{group}") — docs/lines-landing.md.
+     * Marketing copy + SEO + FAQ from the {@see LineGroup}, next to that
+     * prefix's own purchase variants ({@see SmsLine}) and {@see LineBundle}s.
+     */
+    public function group(LineGroup $group): View
+    {
+        abort_unless($group->is_active, 404);
+
+        $lines = $group->lines()->active()->ordered()->get();
+        $bundles = $group->bundles()->active()->ordered()->get();
+        $canonical = route('lines.group', $group);
+
+        return view('line-group', [
+            'group' => $group,
+            'lines' => $lines,
+            'bundles' => $bundles,
+            'canonical' => $canonical,
+            'jsonLd' => $this->groupJsonLd($group, $lines, $canonical),
+        ]);
+    }
+
+    /** JSON-LD graph for a landing page: BreadcrumbList + Product/Offer per line + FAQPage. */
+    private function groupJsonLd(LineGroup $group, Collection $lines, string $canonical): string
+    {
+        $brand = config('theme.brand');
+        $url = rtrim(config('theme.seo.url'), '/');
+
+        $graph = [
+            [
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $url.'/'],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'خطوط اختصاصی', 'item' => route('lines')],
+                    ['@type' => 'ListItem', 'position' => 3, 'name' => $group->title, 'item' => $canonical],
+                ],
+            ],
+        ];
+
+        foreach ($lines as $line) {
+            $graph[] = [
+                '@type' => 'Product',
+                'name' => 'خط '.$line->prefix.' ('.$line->digits.' رقمی) '.$brand,
+                'description' => $line->description ?: ($group->tagline ?: 'خط اختصاصی پیامک با پیش‌شماره '.$line->prefix),
+                'brand' => ['@type' => 'Brand', 'name' => $brand],
+                'offers' => [
+                    '@type' => 'Offer',
+                    'price' => $line->price,
+                    'priceCurrency' => 'IRR',
+                    'availability' => $line->sale_status === 'available'
+                        ? 'https://schema.org/InStock'
+                        : 'https://schema.org/OutOfStock',
+                    'url' => $canonical,
+                ],
+            ];
+        }
+
+        if ($faqs = $group->faq_list) {
+            $graph[] = [
+                '@type' => 'FAQPage',
+                'mainEntity' => array_map(fn ($row) => [
+                    '@type' => 'Question',
+                    'name' => $row['q'],
+                    'acceptedAnswer' => ['@type' => 'Answer', 'text' => $row['a']],
+                ], $faqs),
+            ];
+        }
+
+        return json_encode(
+            ['@context' => 'https://schema.org', '@graph' => $graph],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    /**
+     * Checkout for a «باندل اختصاصی خط» (docs/lines-landing.md) — same contact
+     * form as {@see checkout()}, posting to the shared {@see order()} endpoint.
+     */
+    public function bundleCheckout(LineGroup $group, LineBundle $bundle): View
+    {
+        abort_unless($group->is_active && $bundle->is_active && $bundle->line_group_id === $group->id, 404);
+
+        return view('line-bundle-checkout', [
+            'group' => $group,
+            'bundle' => $bundle,
+            'onlinePayment' => $this->onlinePaymentEnabled() && $bundle->price > 0,
         ]);
     }
 
@@ -121,7 +215,8 @@ class LineController extends Controller
     public function order(Request $request, OperationNotifier $notifier): RedirectResponse
     {
         $data = $request->validate([
-            'sms_line_id' => ['required', Rule::exists('sms_lines', 'id')->where('is_active', true)],
+            'sms_line_id' => ['required_without:line_bundle_id', 'nullable', Rule::exists('sms_lines', 'id')->where('is_active', true)],
+            'line_bundle_id' => ['required_without:sms_line_id', 'nullable', Rule::exists('line_bundles', 'id')->where('is_active', true)],
             'customer_name' => ['required', 'string', 'max:120'],
             'customer_phone' => ['required', 'string', 'max:20'],
             'customer_email' => ['nullable', 'email', 'max:160'],
@@ -134,22 +229,48 @@ class LineController extends Controller
             'customer_email' => 'ایمیل',
         ]);
 
-        $line = SmsLine::findOrFail($data['sms_line_id']);
-
-        $payOnline = $this->onlinePaymentEnabled() && ! $line->requires_inquiry && $line->price > 0;
-
-        $order = LineOrder::create([
-            'sms_line_id' => $line->id,
-            'line_label' => trim($line->group_label.' — '.$line->display_number),
-            'price' => $line->price,
+        $attributes = [
+            'user_id' => $request->user()?->id,
             'customer_name' => $data['customer_name'],
             'customer_phone' => $data['customer_phone'],
             'customer_email' => $data['customer_email'] ?? null,
             'company' => $data['company'] ?? null,
             'desired_number' => $data['desired_number'] ?? null,
             'note' => $data['note'] ?? null,
-            'status' => $line->requires_inquiry ? 'pending' : 'awaiting_payment',
-        ]);
+        ];
+
+        if (! empty($data['line_bundle_id'])) {
+            // «باندل اختصاصی خط» — snapshot the bundle onto the order (docs/lines-landing.md).
+            $bundle = LineBundle::with('smsLine', 'group')->findOrFail($data['line_bundle_id']);
+            $line = $bundle->smsLine;
+            $requiresInquiry = (bool) $line?->requires_inquiry;
+
+            $attributes += [
+                'sms_line_id' => $line?->id,
+                'line_bundle_id' => $bundle->id,
+                'line_label' => $line ? trim($line->group_label.' — '.$line->display_number) : ('خط '.$bundle->group->prefix),
+                'bundle_label' => $bundle->title,
+                'price' => $bundle->price,
+                'sms_credit' => $bundle->sms_credit,
+                'validity_days' => $bundle->validity_days,
+                'status' => $requiresInquiry ? 'pending' : 'awaiting_payment',
+            ];
+
+            $payOnline = $this->onlinePaymentEnabled() && ! $requiresInquiry && $bundle->price > 0;
+        } else {
+            $line = SmsLine::findOrFail($data['sms_line_id']);
+
+            $attributes += [
+                'sms_line_id' => $line->id,
+                'line_label' => trim($line->group_label.' — '.$line->display_number),
+                'price' => $line->price,
+                'status' => $line->requires_inquiry ? 'pending' : 'awaiting_payment',
+            ];
+
+            $payOnline = $this->onlinePaymentEnabled() && ! $line->requires_inquiry && $line->price > 0;
+        }
+
+        $order = LineOrder::create($attributes);
 
         // Notify the buyer + admin that a request was captured (docs/starter.md §44).
         $notifier->lineOrderCreated($order);
@@ -192,7 +313,7 @@ class LineController extends Controller
     }
 
     /** Gateway callback — verify the transaction and mark the order paid. */
-    public function paymentCallback(Request $request, OperationNotifier $notifier): RedirectResponse
+    public function paymentCallback(Request $request, PayableSettlement $settlement): RedirectResponse
     {
         $transactionId = $this->gatewayTransactionId($request);
 
@@ -214,13 +335,14 @@ class LineController extends Controller
         try {
             $receipt = $this->verifyViaGateway((int) $order->price, $order->transaction_id);
 
-            $order->update([
-                'status' => 'paid',
+            // One idempotent settlement path — also grants any bundled SMS
+            // credit for a «باندل اختصاصی خط» (docs/lines-landing.md).
+            $settlement->settle($order, [
+                'method' => 'gateway',
+                'transaction_id' => $order->transaction_id,
                 'reference_id' => $receipt->getReferenceId(),
-                'paid_at' => now(),
+                'payment_driver' => $order->payment_driver ?? config('payment.default'),
             ]);
-
-            $notifier->lineOrderPaid($order);
 
             return redirect()
                 ->route('lines.track', $order)

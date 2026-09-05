@@ -114,6 +114,13 @@ class PayableSettlement
             'paid_at' => $order->paid_at ?? now(),
         ])->save();
 
+        // «باندل اختصاصی خط» (docs/lines-landing.md): grant the bundled SMS credit
+        // to the buyer's account — mirrors settlePackageOrder(). Guests get it
+        // added by the admin during the status workflow.
+        if ($order->line_bundle_id && $order->user && (int) $order->sms_credit > 0) {
+            $order->user->increment('sms_credit', (int) $order->sms_credit);
+        }
+
         $this->notifier->lineOrderPaid($order);
     }
 

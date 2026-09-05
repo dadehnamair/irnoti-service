@@ -37,6 +37,7 @@ use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\BlogTag;
 use App\Models\DocArticle;
+use App\Models\LineGroup;
 use App\Models\Page;
 use App\Models\Plan;
 use Illuminate\Support\Facades\Artisan;
@@ -95,6 +96,17 @@ Route::post('/lines/order', [LineController::class, 'order'])->name('lines.order
 Route::get('/lines/order/{order}', [LineController::class, 'track'])->name('lines.track');
 Route::get('/lines/order/{order}/pay', [LineController::class, 'pay'])->name('lines.pay');
 Route::match(['get', 'post'], '/lines/payment/callback', [LineController::class, 'paymentCallback'])->name('lines.payment.callback');
+
+/*
+ * Per-prefix landing pages ("/lines/{group}") — marketing copy + SEO + FAQ for a
+ * line family, next to its purchase variants and «باندل اختصاصی خط» offers
+ * (line_groups / line_bundles tables — docs/lines-landing.md). Registered after
+ * the static /lines/* routes above; {group} never matches a two-segment path.
+ */
+Route::get('/lines/{group}/bundle/{bundle}', [LineController::class, 'bundleCheckout'])
+    ->scopeBindings()->name('lines.bundle.checkout');
+Route::get('/lines/{group}', [LineController::class, 'group'])
+    ->where('group', '[A-Za-z0-9\-]+')->name('lines.group');
 
 /*
  * Legal pages linked from the site footer (docs/starter.md §67). Body copy is
@@ -390,6 +402,16 @@ Route::get('/sitemap.xml', function () {
             'lastmod' => optional($plan->updated_at)->toDateString() ?: $today,
             'changefreq' => 'weekly',
             'priority' => '0.6',
+        ];
+    }
+
+    // Per-prefix line landing pages (docs/lines-landing.md).
+    foreach (LineGroup::query()->active()->ordered()->get() as $lineGroup) {
+        $urls[] = [
+            'loc' => route('lines.group', $lineGroup->slug),
+            'lastmod' => optional($lineGroup->updated_at)->toDateString() ?: $today,
+            'changefreq' => 'weekly',
+            'priority' => '0.7',
         ];
     }
 

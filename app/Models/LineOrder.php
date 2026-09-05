@@ -16,8 +16,12 @@ class LineOrder extends Model
         'token',
         'user_id',
         'sms_line_id',
+        'line_bundle_id',
         'line_label',
+        'bundle_label',
         'price',
+        'sms_credit',
+        'validity_days',
         'customer_name',
         'customer_phone',
         'customer_email',
@@ -34,6 +38,8 @@ class LineOrder extends Model
 
     protected $casts = [
         'price' => 'integer',
+        'sms_credit' => 'integer',
+        'validity_days' => 'integer',
         'paid_at' => 'datetime',
     ];
 
@@ -65,6 +71,17 @@ class LineOrder extends Model
     public function line()
     {
         return $this->belongsTo(SmsLine::class, 'sms_line_id');
+    }
+
+    public function bundle(): BelongsTo
+    {
+        return $this->belongsTo(LineBundle::class, 'line_bundle_id');
+    }
+
+    /** A «باندل اختصاصی خط» purchase rather than a bare line order. */
+    public function isBundle(): bool
+    {
+        return $this->line_bundle_id !== null;
     }
 
     public function user(): BelongsTo

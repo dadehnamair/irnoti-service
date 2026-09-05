@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * A dedicated SMS line offered for sale (docs/starter.md §9 / §10).
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 class SmsLine extends Model
 {
     protected $fillable = [
+        'line_group_id',
         'prefix',
         'operator',
         'number',
@@ -55,6 +57,22 @@ class SmsLine extends Model
         'reserved' => 'رزرو شده',
         'sold' => 'فروخته شده',
     ];
+
+    protected static function booted(): void
+    {
+        // Keep the landing-page link (docs/lines-landing.md) in sync: when the
+        // admin leaves it blank, attach the LineGroup that owns this prefix.
+        static::saving(function (SmsLine $line) {
+            if (blank($line->line_group_id) && filled($line->prefix)) {
+                $line->line_group_id = LineGroup::where('prefix', $line->prefix)->value('id');
+            }
+        });
+    }
+
+    public function lineGroup(): BelongsTo
+    {
+        return $this->belongsTo(LineGroup::class);
+    }
 
     public function orders()
     {
