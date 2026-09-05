@@ -6,9 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **irnoti** — a Persian (RTL, `fa` locale) SaaS marketing/commerce site for an SMS-panel service, built on **Laravel 12 + PHP 8.2 + Filament 4**. Product/technical spec is [docs/starter.md](docs/starter.md) (Persian); its numbered sections (`§8`, `§11`, `§33`…) are referenced throughout the code comments — keep that convention.
 
-Current scope is the **public site + admin CMS**, not the end-user SMS panel:
-- Landing (`/`), pricing (`/pricing`), dedicated SMS lines catalogue + buy flow (`/lines`), blog (`/blog`), API docs (`/developers`), plus `/sitemap.xml` and `/blog/feed` (RSS).
+Scope now spans the **public site + admin CMS + the customer dashboard** (a real logged-in SMS-panel front end has been built, not just marketing pages):
+- Public: Landing (`/`), pricing (`/pricing`), dedicated SMS lines catalogue + buy flow (`/lines`), blog (`/blog`), API docs (`/developers`), marketplace showcase (`/marketplace`), plus `/sitemap.xml` and `/blog/feed` (RSS).
+- Customer dashboard (`/dashboard/*`, behind mobile-OTP auth): SMS send + phonebook, wallet/ledger + invoices + bank receipts, subscriptions, dedicated-line orders, digital business cards, marketplace add-on installs, bulk messenger sends (Bale/Eitaa/WhatsApp) — see the **documentation map** below for each.
 - All content is **database-driven and edited from the Filament admin panel at `/admin`**. Blade views should never hard-code brand copy, colors, plans, or line numbers.
+
+## Documentation map
+
+`docs/starter.md` is the original product spec (Persian, numbered sections `§8`, `§11`, `§33`… referenced throughout code comments — keep that convention). Several subsystems built since then have their own deep-dive doc in `docs/` — **read the relevant one before touching that area, and add a new one (plus a line here) whenever a new subsystem is built instead of only relying on this file's summaries**:
+
+- [docs/starter.md](docs/starter.md) — product/technical spec (Persian).
+- [docs/finance.md](docs/finance.md) — wallet + immutable ledger, bank receipts, SMS packages, admin invoices, `PayableSettlement` (the shared "mark paid" dispatcher every purchase flow converges on).
+- [docs/phonebook.md](docs/phonebook.md) — contacts/groups with two-way sync to the customer's own SMS panel, group SMS sending.
+- [docs/panel-features.md](docs/panel-features.md) — the feature-catalogue + user-group + per-user-override system that drives the entire dashboard sidebar and gates non-system pages.
+- [docs/messenger.md](docs/messenger.md) — bulk sending to Bale/Eitaa/WhatsApp, wallet-priced with failed-portion refund.
+- [docs/business-cards.md](docs/business-cards.md) — digital business card public pages (vanity domains + codes), standard/VIP pricing.
+- [docs/marketplace.md](docs/marketplace.md) — installable add-ons (integrations like ایرپلاس, internal feature unlocks like the business card) with a common handler architecture.
 
 ## Commands
 
@@ -76,12 +89,22 @@ Thin, read-only, no auth. `PricingController`, `BlogController`, `DocsController
 ### SMS provider layer (`app/Services/Sms`) — docs/starter.md §12/§13/§44
 - All SMS config lives in [config/sms.php](config/sms.php) — `provider` (active codename), `label` (brand-neutral name shown to customers — **never expose the real vendor**; overlaid by the `sms_provider_label` setting, read via the `sms_provider_label()` helper), `admin_mobile`, and a `providers` registry mapping an opaque codename → driver class + credentials.
 - `SmsProviderInterface` (`send` / `sendPattern` / `deliveryStatus`) with `LogProvider` (credential-free dev default, `SMS_PROVIDER=log`, like `PAYMENT_DRIVER=local`), `PasargadProvider` (prod driver — internal codename for the real upstream, env `SMS_PASARGAD_*`), `NullProvider` (tests, `SMS_PROVIDER=null` in `phpunit.xml`). Bound in `AppServiceProvider::register()` from the `config('sms.providers.*')` registry keyed by `config('sms.provider')`.
-- Never call a provider directly: dispatch the queued `App\Jobs\SendSmsJob` (`::text()` / `::pattern()`). Operation notifications go through the single `App\Support\OperationNotifier` (`userRegistered`, `profileCompleted`, `subscriptionActivated`, `lineOrderCreated`/`Paid`/`StatusChanged`), gated by the `sms_notifications_enabled` setting, admin copy sent to `admin_mobile`. `LineOrderObserver` covers admin status changes made from Filament.
+- Never call a provider directly: dispatch the queued `App\Jobs\SendSmsJob` (`::text()` / `::pattern()`). Operation notifications go through the single `App\Support\OperationNotifier` (`userRegistered`, `profileCompleted`, `subscriptionActivated`, `lineOrderCreated`/`Paid`/`StatusChanged`, `businessCardPaid`, …), gated by the `sms_notifications_enabled` setting, admin copy sent to `admin_mobile`. `LineOrderObserver` covers admin status changes made from Filament.
+- The phonebook's contact/group sync talks to the same customer-specific panel credentials via `App\Services\Sms\Phonebook\*` — see [docs/phonebook.md](docs/phonebook.md).
+
+### Finance / wallet (`app/Support/PayableSettlement`, `app/Models/Wallet*`)
+Every customer has one `Wallet`, mutated only through an immutable `WalletTransaction` ledger (row-locked, idempotency-keyed). Every purchase flow (plan, line, SMS package, business card, marketplace install, admin invoice) converges on the single `PayableSettlement::settle()` dispatcher, reachable from a gateway callback, a "pay from wallet" action, or bank-receipt approval. Full detail: [docs/finance.md](docs/finance.md).
+
+### Panel features access (dashboard sidebar)
+The entire customer-dashboard sidebar is generated from one `FeatureCatalog` PHP array, mirrored into the `features` table by `FeaturesSeeder`, bundled into `UserGroup`s, with per-user `UserFeatureOverride` grant/revoke exceptions. Controllers gate non-system pages with `abort_unless($user->canUseFeature($key), 403)` — there is no blanket middleware for this. Full detail, and the checklist for adding a new dashboard feature: [docs/panel-features.md](docs/panel-features.md).
+
+### Phonebook, messenger, business cards, marketplace
+Customer-dashboard subsystems built on top of the finance + panel-features layers above. See their dedicated docs rather than re-deriving from code: [docs/phonebook.md](docs/phonebook.md), [docs/messenger.md](docs/messenger.md), [docs/business-cards.md](docs/business-cards.md), [docs/marketplace.md](docs/marketplace.md).
 
 ### Filament admin (`/admin`)
-[`AdminPanelProvider`](app/Providers/Filament/AdminPanelProvider.php) — auto-discovers resources in `app/Filament/Resources`, primary color from `config('theme.primary')`, Vazirmatn font. Access is gated by `User::canAccessPanel()` → `is_admin` boolean column.
+[`AdminPanelProvider`](app/Providers/Filament/AdminPanelProvider.php) — auto-discovers resources in `app/Filament/Resources`, primary color from `config('theme.primary')`, Vazirmatn font, Jalali (Shamsi) date pickers panel-wide via a single `DateTimePicker::configureUsing(...->jalali())` hook in `AppServiceProvider::boot()`. Access is gated by `User::canAccessPanel()` → `is_admin` boolean column.
 
-Resources use the Filament 4 split layout: each `XxxResource.php` has sibling `Schemas/XxxForm.php`, `Tables/XxxTable.php`, and `Pages/`. Resources: BlogPosts / BlogCategories / BlogTags, DocArticles / DocCategories, Plans, SmsLines, LineOrders, Users, Subscriptions, Settings. Users & Subscriptions are edit-only (`canCreate() === false`) — records are born on the public site.
+Resources use the Filament 4 split layout: each `XxxResource.php` has sibling `Schemas/XxxForm.php`, `Tables/XxxTable.php`, and `Pages/`. Beyond the original content resources (BlogPosts / BlogCategories / BlogTags, DocArticles / DocCategories, Plans, SmsLines, LineOrders, Users, Subscriptions, Settings), there are now resources per subsystem above: WalletTransactions, BankReceipts, Invoices, PackageOrders, SmsPackages, Contacts, ContactGroups, Features, UserGroups, MessengerCampaigns, BusinessCards, MarketplaceApps/MarketplaceInstallations, Domains. Most customer-born resources are edit/view-only (`canCreate() === false`) — records are born on the public site or the dashboard, not in Filament.
 
 ### Models & data
 Content models live in `app/Models/`. Conventions to follow when extending:
