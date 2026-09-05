@@ -21,8 +21,9 @@ use Shetabit\Multipay\Exceptions\InvalidPaymentException;
 
 /**
  * Self-service digital business cards: create, edit, buy from the customer
- * panel. "standard" tier is a flat price; "vip" lets the owner pick a Domain
- * and a custom code, priced by that domain's code_price_tiers.
+ * panel. "standard" tier (branded VBC) is a flat price; "vip" tier (branded
+ * EBC) lets the owner pick a Domain and a custom code, priced by that
+ * domain's code_price_tiers.
  */
 class BusinessCardController extends Controller
 {

@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 /**
- * A self-service digital business card (standard flat-price tier, or a "vip"
- * tier with a custom vanity code priced per the chosen Domain's tiers).
+ * A self-service digital business card, sold under two branded tiers:
+ * "standard" (VBC — کارت ویزیت مجازی, flat price) or "vip" (EBC — کارت ویزیت
+ * الکترونیکی, a custom vanity code priced per the chosen Domain's tiers).
  * Publicly served at {domain}/{code} by PublicBusinessCardController; created
  * and managed by the owner from /dashboard/cards.
  */
@@ -56,8 +57,8 @@ class BusinessCard extends Model
     ];
 
     public const TIERS = [
-        'standard' => 'استاندارد',
-        'vip' => 'اختصاصی (کد دلخواه)',
+        'standard' => 'VBC (کارت ویزیت مجازی)',
+        'vip' => 'EBC (کارت ویزیت الکترونیکی با کد اختصاصی)',
     ];
 
     public const STATUSES = [

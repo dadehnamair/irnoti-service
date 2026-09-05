@@ -14,11 +14,11 @@
                 <legend>نوع کارت *</legend>
                 <label class="type-switch__opt">
                     <input type="radio" name="tier" value="standard" checked data-tier-radio />
-                    <span>استاندارد — {{ number_format($standardPrice) }} تومان</span>
+                    <span>VBC — کارت ویزیت مجازی — {{ number_format($standardPrice) }} تومان</span>
                 </label>
                 <label class="type-switch__opt">
                     <input type="radio" name="tier" value="vip" data-tier-radio />
-                    <span>اختصاصی (کد دلخواه)</span>
+                    <span>EBC — کارت ویزیت الکترونیکی (کد اختصاصی)</span>
                 </label>
                 @error('tier') <span class="field-error">{{ $message }}</span> @enderror
             </fieldset>

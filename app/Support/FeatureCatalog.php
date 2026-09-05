@@ -170,6 +170,7 @@ class FeatureCatalog
                 'commerce.line' => ['label' => 'خرید خط اختصاصی', 'route' => 'dashboard.lines', 'system' => true],
                 'commerce.package' => ['label' => 'بسته پیامکی', 'route' => 'dashboard.packages', 'system' => true],
                 'commerce.package_change' => 'ارتقا / کاهش بسته',
+                'commerce.ussd' => ['label' => 'کد USSD', 'route' => 'ussd', 'system' => true],
             ],
         ],
 
