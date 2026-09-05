@@ -19,6 +19,7 @@ use App\Http\Controllers\Dashboard\PackageOrderController;
 use App\Http\Controllers\Dashboard\ProfileController;
 use App\Http\Controllers\Dashboard\SmsController;
 use App\Http\Controllers\Dashboard\WalletController;
+use App\Http\Controllers\ContactController as PublicContactController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeaturesController;
@@ -26,8 +27,10 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\MarketplaceShowcaseController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\PublicBusinessCardController;
+use App\Http\Controllers\RepresentationController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UssdController;
 use App\Models\BlogCategory;
@@ -90,6 +93,29 @@ Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy
 
 Route::get('/features', [FeaturesController::class, 'index'])->name('features');
 Route::get('/faq', [FaqController::class, 'index'])->name('faq');
+
+/*
+ * Public "تماس با ما" (contact) page — office info + a message form, stored
+ * in contact_messages and reviewed manually from the Filament admin panel.
+ */
+Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
+Route::post('/contact', [PublicContactController::class, 'store'])
+    ->middleware('throttle:6,1')->name('contact.store');
+
+/*
+ * "نمایندگی فروش" (sales representation): admin-defined tiers plus a
+ * lead-capture application form, reviewed manually by the admin.
+ */
+Route::get('/representation', [RepresentationController::class, 'index'])->name('representation');
+Route::post('/representation', [RepresentationController::class, 'apply'])
+    ->middleware('throttle:6,1')->name('representation.apply');
+
+/*
+ * Generic static content pages (About / Cooperation) — one row per slug in
+ * the `pages` table, edited from the Filament admin panel.
+ */
+Route::get('/about', [PageController::class, 'show'])->defaults('slug', 'about')->name('page.about');
+Route::get('/cooperation', [PageController::class, 'show'])->defaults('slug', 'cooperation')->name('page.cooperation');
 
 /*
  * Blog ("/blog"). Content-marketing articles managed from the Filament admin
