@@ -215,6 +215,63 @@ function jalaliDatePickers() {
     });
 }
 
+/*
+ * Progressive-enhancement AJAX forms: any <form data-ajax> posts through fetch()
+ * instead of navigating. Works without JS too — the form just submits normally
+ * and the controller falls back to a redirect + session flash. The controller
+ * must return JSON (message / errors / redirect) when the request wants JSON.
+ */
+function ajaxForms() {
+    document.querySelectorAll('form[data-ajax]').forEach((form) => {
+        if (form.dataset.ajaxBound) return;
+        form.dataset.ajaxBound = '1';
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const submitter = event.submitter;
+            const originalLabel = submitter ? submitter.textContent : null;
+            if (submitter) {
+                submitter.disabled = true;
+                if (submitter.dataset.busyLabel) submitter.textContent = submitter.dataset.busyLabel;
+            }
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { Accept: 'application/json' },
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (response.status === 422 && data.errors) {
+                    const firstError = Object.values(data.errors)[0];
+                    window.toast?.('error', Array.isArray(firstError) ? firstError[0] : String(firstError));
+                    return;
+                }
+
+                if (!response.ok) {
+                    window.toast?.('error', data.message || 'خطایی رخ داد. دوباره تلاش کنید.');
+                    return;
+                }
+
+                if (data.message) window.toast?.('success', data.message);
+                form.dispatchEvent(new CustomEvent('ajax:success', { detail: data }));
+
+                if (data.redirect) window.location.href = data.redirect;
+                else if (data.reload) window.location.reload();
+            } catch (err) {
+                window.toast?.('error', 'ارتباط با سرور برقرار نشد.');
+            } finally {
+                if (submitter) {
+                    submitter.disabled = false;
+                    if (originalLabel !== null) submitter.textContent = originalLabel;
+                }
+            }
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     otpResendCountdown();
     otpInput();
@@ -223,4 +280,5 @@ document.addEventListener('DOMContentLoaded', () => {
     moneyInputs();
     groupPickers();
     jalaliDatePickers();
+    ajaxForms();
 });

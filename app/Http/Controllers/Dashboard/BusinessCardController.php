@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Shetabit\Multipay\Exceptions\InvalidPaymentException;
@@ -98,10 +99,11 @@ class BusinessCardController extends Controller
         return view('dashboard.cards.edit', [
             'card' => $card,
             'walletBalance' => $request->user()->wallet()->balance,
+            'onlinePayment' => $this->onlinePaymentEnabled(),
         ]);
     }
 
-    public function update(Request $request, BusinessCard $card): RedirectResponse
+    public function update(Request $request, BusinessCard $card): RedirectResponse|JsonResponse
     {
         abort_unless($card->user_id === $request->user()->id, 403);
 
@@ -109,26 +111,54 @@ class BusinessCardController extends Controller
 
         $card->update($this->attributes($data, $request, $card));
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'اطلاعات کارت ذخیره شد.',
+                'avatar_url' => $card->avatar_path ? Storage::url($card->avatar_path) : null,
+                'cover_url' => $card->cover_path ? Storage::url($card->cover_path) : null,
+            ]);
+        }
+
         return redirect()->route('dashboard.cards.edit', $card)->with('status', 'اطلاعات کارت ذخیره شد.');
     }
 
-    public function payFromWallet(Request $request, BusinessCard $card, PayableSettlement $settlement): RedirectResponse
+    public function payFromWallet(Request $request, BusinessCard $card, PayableSettlement $settlement): RedirectResponse|JsonResponse
     {
         abort_unless($card->user_id === $request->user()->id, 403);
 
         if (! $card->isPayable()) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'این کارت قابل پرداخت نیست.'], 422);
+            }
+
             return redirect()->route('dashboard.cards.edit', $card);
         }
 
         $wallet = $request->user()->wallet();
 
         if (! $wallet->hasSufficient((int) $card->price)) {
-            return redirect()->route('dashboard.cards.edit', $card)
-                ->with('payment_error', 'موجودی کیف پول کافی نیست. ابتدا حساب خود را شارژ کنید.');
+            $message = 'موجودی کیف پول کافی نیست. ابتدا حساب خود را شارژ کنید.';
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('dashboard.cards.edit', $card)->with('payment_error', $message);
         }
 
         $wallet->debit((int) $card->price, 'business_card_purchase', $card, 'خرید کارت ویزیت دیجیتال', "business_card:{$card->id}");
         $settlement->settle($card, ['method' => 'wallet']);
+
+        if ($request->wantsJson()) {
+            $card->refresh();
+
+            return response()->json([
+                'message' => 'پرداخت با موفقیت انجام شد.',
+                'status' => $card->status,
+                'status_label' => $card->status_label,
+                'wallet_balance' => $request->user()->wallet()->balance,
+            ]);
+        }
 
         return redirect()->route('dashboard.cards.edit', $card)->with('payment_success', true);
     }

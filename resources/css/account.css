@@ -47,8 +47,8 @@ label {
 }
 
 .auth-card .auth-head .kicker {
-    color: var(--primary);
-    font-size: 0.8rem;
+    color: var(--secondary);
+    font-size: 1.8rem;
     font-weight: 700;
 }
 

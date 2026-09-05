@@ -5,48 +5,36 @@
 @section('content')
     <div class="account-card">
         <div class="account-card__head">
-            <h2>کارت ویزیت دیجیتال</h2>
-            <a class="btn btn-primary btn-sm" href="{{ route('dashboard.cards.create') }}">+ کارت جدید</a>
+            <h2>کارت‌های ویزیت دیجیتال من</h2>
+            <a class="btn btn-primary" href="{{ route('dashboard.cards.create') }}">+ کارت جدید</a>
         </div>
 
-        <div class="account-table-wrap">
-            <table class="account-table">
-                <thead>
-                    <tr>
-                        <th>لینک</th>
-                        <th>نوع</th>
-                        <th>وضعیت</th>
-                        <th>بازدید</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($cards as $card)
+        @forelse ($cards as $card)
+            <div class="account-table-wrap" style="margin-top:16px">
+                <table class="account-table">
+                    <tbody>
                         <tr>
-                            <td dir="ltr">{{ $card->domain->host }}/{{ $card->code }}</td>
-                            <td>{{ $card->tier_label }}</td>
                             <td>
-                                <span class="account-badge {{ $card->status === 'active' ? 'is-ok' : 'is-warn' }}">
+                                <strong>{{ $card->title ?: $card->code }}</strong>
+                                <div class="auth-sub" dir="ltr">{{ $card->domain->host }}/{{ $card->code }}</div>
+                            </td>
+                            <td>
+                                <span class="account-badge {{ $card->status === 'active' ? 'is-ok' : ($card->status === 'awaiting_payment' ? 'is-warn' : 'is-info') }}">
                                     {{ $card->status_label }}
                                 </span>
                             </td>
-                            <td>{{ number_format($card->views_count) }}</td>
                             <td>
-                                <div class="row-actions">
-                                    @if ($card->status === 'active')
-                                        <a class="btn btn-ghost btn-sm" href="{{ $card->public_url }}" target="_blank" rel="noopener">مشاهده</a>
-                                    @endif
-                                    <a class="btn btn-ghost btn-sm" href="{{ route('dashboard.cards.edit', $card) }}">ویرایش</a>
-                                </div>
+                                <a class="btn btn-ghost" href="{{ route('dashboard.cards.edit', $card) }}">ویرایش</a>
+                                @if ($card->status === 'active')
+                                    <a class="btn btn-ghost" href="{{ $card->public_url }}" target="_blank" rel="noopener">مشاهده</a>
+                                @endif
                             </td>
                         </tr>
-                    @empty
-                        <tr class="account-table__note">
-                            <td colspan="5">هنوز کارت ویزیتی نساخته‌اید.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+        @empty
+            <p class="auth-sub" style="margin-top:16px">هنوز کارت ویزیت دیجیتالی نساخته‌اید.</p>
+        @endforelse
     </div>
 @endsection

@@ -23,6 +23,22 @@
     --primary-glow: color-mix(in srgb, var(--primary) 40%, transparent);
     --brand-gradient: linear-gradient(135deg, var(--primary), var(--accent));
 
+    --accent-strong: color-mix(in srgb, var(--accent), #000 22%);
+    --accent-soft-08: color-mix(in srgb, var(--accent) 8%, transparent);
+    --accent-soft-12: color-mix(in srgb, var(--accent) 12%, transparent);
+    --accent-soft-16: color-mix(in srgb, var(--accent) 16%, transparent);
+    --accent-soft-20: color-mix(in srgb, var(--accent) 20%, transparent);
+    --accent-line: color-mix(in srgb, var(--accent) 34%, transparent);
+    --accent-glow: color-mix(in srgb, var(--accent) 40%, transparent);
+
+    --secondary-strong: color-mix(in srgb, var(--secondary), #000 22%);
+    --secondary-soft-08: color-mix(in srgb, var(--secondary) 8%, transparent);
+    --secondary-soft-12: color-mix(in srgb, var(--secondary) 12%, transparent);
+    --secondary-soft-16: color-mix(in srgb, var(--secondary) 16%, transparent);
+    --secondary-soft-20: color-mix(in srgb, var(--secondary) 20%, transparent);
+    --secondary-line: color-mix(in srgb, var(--secondary) 34%, transparent);
+    --secondary-glow: color-mix(in srgb, var(--secondary) 40%, transparent);
+
     /* Surface + text */
     --bg: #07111f;
     --bg-soft: #0c1628;
@@ -323,9 +339,9 @@ select {
     gap: 10px;
     padding: 0.45rem 0.8rem;
     border-radius: 999px;
-    background: var(--primary-soft-08);
-    border: 1px solid var(--primary-soft-20);
-    color: color-mix(in srgb, var(--primary) 30%, #ffffff);
+    background: var(--secondary-soft-08);
+    border: 1px solid var(--secondary-soft-20);
+    color: color-mix(in srgb, var(--secondary) 30%, #ffffff);
     font-size: 0.86rem;
     font-weight: 600;
 }
@@ -2198,7 +2214,9 @@ select {
     border-radius: 12px;
     color: var(--text-soft);
     font-weight: 600;
-    transition: background 0.18s ease, color 0.18s ease;
+    transition:
+        background 0.18s ease,
+        color 0.18s ease;
 }
 .tour-menu li + li {
     margin-top: 2px;
@@ -2287,7 +2305,9 @@ select {
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.02);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
 }
 .mk-teaser-card:hover {
     transform: translateY(-4px);
@@ -2314,8 +2334,13 @@ select {
     height: 52px;
     border-radius: 14px;
     font-size: 1.5rem;
-    background: color-mix(in srgb, var(--mk-accent, var(--primary)) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--mk-accent, var(--primary)) 24%, transparent);
+    background: color-mix(
+        in srgb,
+        var(--mk-accent, var(--primary)) 14%,
+        transparent
+    );
+    border: 1px solid
+        color-mix(in srgb, var(--mk-accent, var(--primary)) 24%, transparent);
 }
 .mk-ico.lg {
     width: 72px;
@@ -2480,7 +2505,10 @@ select {
     color: var(--text-soft);
     font-weight: 600;
     cursor: pointer;
-    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease,
+        background 0.15s ease;
 }
 .mk-filter:hover {
     color: var(--text);
@@ -2507,7 +2535,9 @@ select {
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.02);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
 }
 .mk-app:hover {
     transform: translateY(-4px);
