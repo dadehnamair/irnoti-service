@@ -2,15 +2,23 @@
  * irnoti — blog styles (/blog). Builds on the shared tokens in irnoti.css.
  * Content-marketing look: wide hero, card grid, long-form article typography.
  */
-@import 'highlight.js/styles/github-dark.css';
+@import "highlight.js/styles/github-dark.css";
 
 .blog-body {
     background:
-        radial-gradient(circle at top left, var(--primary-soft-08), transparent 24%),
+        radial-gradient(
+            circle at top left,
+            var(--primary-soft-08),
+            transparent 24%
+        ),
         var(--bg);
 }
 
-.brand-logo { height: 34px; width: auto; display: block; }
+.brand-logo {
+    height: 34px;
+    width: auto;
+    display: block;
+}
 
 .blog-progress {
     position: fixed;
@@ -37,7 +45,9 @@
     color: var(--muted);
     margin-bottom: 22px;
 }
-.blog-breadcrumb a:hover { color: var(--text); }
+.blog-breadcrumb a:hover {
+    color: var(--text);
+}
 
 /* Hero --------------------------------------------------------------- */
 .blog-hero {
@@ -72,13 +82,18 @@
     background: var(--panel);
     color: var(--text-soft);
     font-size: 0.88rem;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        color 0.15s ease;
 }
 .blog-chip span {
     font-size: 0.75rem;
     color: var(--muted);
 }
-.blog-chip:hover { color: var(--text); border-color: var(--primary-line); }
+.blog-chip:hover {
+    color: var(--text);
+    border-color: var(--primary-line);
+}
 .blog-chip.is-active {
     background: var(--primary-soft-16);
     border-color: var(--primary-line);
@@ -99,7 +114,9 @@
     border-radius: var(--radius-md);
     overflow: hidden;
     background: var(--panel);
-    transition: transform 0.16s ease, border-color 0.16s ease;
+    transition:
+        transform 0.16s ease,
+        border-color 0.16s ease;
 }
 .blog-card:hover {
     transform: translateY(-3px);
@@ -147,7 +164,9 @@
     line-height: 1.55;
 }
 .blog-card-body h2 a:hover,
-.blog-card-body h3 a:hover { color: var(--primary); }
+.blog-card-body h3 a:hover {
+    color: var(--primary);
+}
 .blog-card-body p {
     margin: 0;
     color: var(--text-soft);
@@ -176,7 +195,10 @@
     display: flex;
     justify-content: center;
 }
-.blog-pagination svg { width: 18px; height: 18px; }
+.blog-pagination svg {
+    width: 18px;
+    height: 18px;
+}
 .blog-pagination a,
 .blog-pagination span {
     color: var(--text-soft);
@@ -184,10 +206,14 @@
 
 /* Article ------------------------------------------------------------- */
 .blog-post {
-    max-width: 760px;
+    max-width: 1000px;
     margin: 0 auto;
+    background: #cccccc0a;
+    padding: 20px;
 }
-.blog-post-head { margin-bottom: 26px; }
+.blog-post-head {
+    margin-bottom: 26px;
+}
 .blog-post-cat {
     display: inline-block;
     font-weight: 700;
@@ -232,7 +258,18 @@
     font-size: 1.05rem;
     line-height: 2;
 }
-.blog-prose > * + * { margin-top: 1.25em; }
+.blog-prose > * + * {
+    margin-top: 1.25em;
+}
+.blog-post-head h1 {
+    font-size: clamp(1.9rem, 4.4vw, 2rem);
+    line-height: 1.3;
+    margin: 0 0 14px;
+    text-shadow: 1px 1px 3px #717171;
+    background: #cccccc14;
+    border-radius: 30px;
+    padding: 10px 20px;
+}
 .blog-prose h2 {
     font-size: 1.5rem;
     margin-top: 1.9em;
@@ -247,11 +284,16 @@
     text-decoration: underline;
     text-underline-offset: 3px;
 }
+.blog-prose p {
+    text-align: justify;
+}
 .blog-prose ul,
 .blog-prose ol {
     padding-inline-start: 1.5em;
 }
-.blog-prose li { margin-top: 0.5em; }
+.blog-prose li {
+    margin-top: 0.5em;
+}
 .blog-prose blockquote {
     margin: 0;
     padding: 6px 18px;
@@ -300,7 +342,9 @@
     padding: 9px 12px;
     text-align: start;
 }
-.blog-prose th { background: rgba(255, 255, 255, 0.03); }
+.blog-prose th {
+    background: rgba(255, 255, 255, 0.03);
+}
 
 /* Tags / share / related --------------------------------------- */
 .blog-post-tags {
@@ -316,7 +360,10 @@
     border-radius: 999px;
     padding: 4px 12px;
 }
-.blog-post-tags a:hover { color: var(--text); border-color: var(--primary-line); }
+.blog-post-tags a:hover {
+    color: var(--text);
+    border-color: var(--primary-line);
+}
 
 .blog-share {
     display: flex;
@@ -335,7 +382,10 @@
     border-radius: 8px;
     padding: 5px 12px;
 }
-.blog-share a:hover { color: var(--text); border-color: var(--primary-line); }
+.blog-share a:hover {
+    color: var(--text);
+    border-color: var(--primary-line);
+}
 
 .blog-related {
     max-width: 1100px;
@@ -347,5 +397,7 @@
 }
 
 @media (max-width: 640px) {
-    .blog-main { padding: 24px 0 64px; }
+    .blog-main {
+        padding: 24px 0 64px;
+    }
 }
