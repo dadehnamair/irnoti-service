@@ -2,9 +2,44 @@
     $brand = config('theme.brand');
     $pageTitle = ($article->seo_title ?: $article->title) . ' — مستندات ' . $brand;
     $pageDescription = $article->seo_description ?: $article->excerpt;
+    $siteUrl = rtrim(config('theme.seo.url'), '/');
+    $canonical = route('docs.show', [$category->slug, $article->slug]);
+
+    $techArticleSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'TechArticle',
+        'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $canonical],
+        'headline' => \Illuminate\Support\Str::limit($article->title, 110, ''),
+        'description' => $pageDescription,
+        'dateModified' => $article->updated_at?->toIso8601String(),
+        'datePublished' => $article->created_at?->toIso8601String(),
+        'inLanguage' => 'fa-IR',
+        'author' => ['@type' => 'Organization', 'name' => $brand],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $brand,
+            'logo' => ['@type' => 'ImageObject', 'url' => $siteUrl . '/logo/logo-text.png'],
+        ],
+    ];
+
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => $siteUrl . '/'],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => 'مستندات API', 'item' => route('docs.index')],
+            ['@type' => 'ListItem', 'position' => 3, 'name' => $category->title, 'item' => $canonical],
+            ['@type' => 'ListItem', 'position' => 4, 'name' => $article->title, 'item' => $canonical],
+        ],
+    ];
 @endphp
 
 @extends('docs.layout')
+
+@push('jsonld')
+    <script type="application/ld+json">{!! json_encode($techArticleSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endpush
 
 @section('docs')
     <article class="docs-article">
