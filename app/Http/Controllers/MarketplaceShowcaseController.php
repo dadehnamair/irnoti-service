@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Dashboard\MarketplaceController;
 use App\Models\MarketplaceApp;
 use App\Models\Setting;
 use Illuminate\Contracts\View\View;
