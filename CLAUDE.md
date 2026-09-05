@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **irnoti** — a Persian (RTL, `fa` locale) SaaS marketing/commerce site for an SMS-panel service, built on **Laravel 12 + PHP 8.2 + Filament 4**. Product/technical spec is [docs/starter.md](docs/starter.md) (Persian); its numbered sections (`§8`, `§11`, `§33`…) are referenced throughout the code comments — keep that convention.
 
 Scope now spans the **public site + admin CMS + the customer dashboard** (a real logged-in SMS-panel front end has been built, not just marketing pages):
-- Public: Landing (`/`), pricing (`/pricing`), dedicated SMS lines catalogue + buy flow (`/lines`), blog (`/blog`), API docs (`/developers`), marketplace showcase (`/marketplace`), plus `/sitemap.xml` and `/blog/feed` (RSS).
+- Public: Landing (`/`), pricing (`/pricing`, per-plan `/pricing/{plan}`), USSD catalogue (`/ussd`), dedicated SMS lines catalogue + buy flow (`/lines`), blog (`/blog`), API docs (`/developers`), marketplace showcase (`/marketplace`), site content — features (`/features`), FAQ (`/faq`), contact (`/contact`), static pages (`/about`, `/cooperation`) — sales representation (`/representation`), plus `/sitemap.xml` and `/blog/feed` (RSS).
 - Customer dashboard (`/dashboard/*`, behind mobile-OTP auth): SMS send + phonebook, wallet/ledger + invoices + bank receipts, subscriptions, dedicated-line orders, digital business cards, marketplace add-on installs, bulk messenger sends (Bale/Eitaa/WhatsApp) — see the **documentation map** below for each.
 - All content is **database-driven and edited from the Filament admin panel at `/admin`**. Blade views should never hard-code brand copy, colors, plans, or line numbers.
 
@@ -22,6 +22,8 @@ Scope now spans the **public site + admin CMS + the customer dashboard** (a real
 - [docs/messenger.md](docs/messenger.md) — bulk sending to Bale/Eitaa/WhatsApp, wallet-priced with failed-portion refund.
 - [docs/business-cards.md](docs/business-cards.md) — digital business card public pages (vanity domains + codes), standard/VIP pricing.
 - [docs/marketplace.md](docs/marketplace.md) — installable add-ons (integrations like ایرپلاس, internal feature unlocks like the business card) with a common handler architecture.
+- [docs/site-content.md](docs/site-content.md) — admin-managed static pages (About/Cooperation), FAQ, the marketing features showcase, and the contact form.
+- [docs/sales-representation.md](docs/sales-representation.md) — admin-defined commission tiers + a manually-reviewed lead-capture application form, no self-service payment/activation.
 
 ## Commands
 
@@ -100,6 +102,9 @@ The entire customer-dashboard sidebar is generated from one `FeatureCatalog` PHP
 
 ### Phonebook, messenger, business cards, marketplace
 Customer-dashboard subsystems built on top of the finance + panel-features layers above. See their dedicated docs rather than re-deriving from code: [docs/phonebook.md](docs/phonebook.md), [docs/messenger.md](docs/messenger.md), [docs/business-cards.md](docs/business-cards.md), [docs/marketplace.md](docs/marketplace.md).
+
+### Site content & sales representation
+Small admin-managed public pages that round out the marketing site: static `Page` rows (About/Cooperation), `Faq`, the `SiteFeature` marketing showcase, and the `ContactMessage` lead form — see [docs/site-content.md](docs/site-content.md). A parallel, unrelated-to-payment lead flow, admin-defined commission tiers plus a manually-reviewed application form, lives at `/representation` — see [docs/sales-representation.md](docs/sales-representation.md).
 
 ### Filament admin (`/admin`)
 [`AdminPanelProvider`](app/Providers/Filament/AdminPanelProvider.php) — auto-discovers resources in `app/Filament/Resources`, primary color from `config('theme.primary')`, Vazirmatn font, Jalali (Shamsi) date pickers panel-wide via a single `DateTimePicker::configureUsing(...->jalali())` hook in `AppServiceProvider::boot()`. Access is gated by `User::canAccessPanel()` → `is_admin` boolean column.

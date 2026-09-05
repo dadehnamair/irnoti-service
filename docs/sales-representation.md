@@ -69,6 +69,7 @@
 ## ۶. تست‌ها
 
 جریان کامل (نمایش صفحه + JSON-LD + ثبت درخواست) در
-[`tests/Feature/TempSitePagesSmokeTest.php`](../tests/Feature/TempSitePagesSmokeTest.php)
-پوشش داده شده (به‌همراه FAQ/Features/Contact/Pages که زیرسیستم‌های مجاور همین
-دسته «محتوای عمومی سایت» هستند).
+[`tests/Feature/SitePagesTest.php`](../tests/Feature/SitePagesTest.php)
+پوشش داده شده (به‌همراه FAQ/Features/Contact/Pages — ببینید
+[docs/site-content.md](site-content.md)) و رندر صفحات Filament در
+[`tests/Feature/AdminSiteContentResourcesTest.php`](../tests/Feature/AdminSiteContentResourcesTest.php).
